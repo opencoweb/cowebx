@@ -1,25 +1,24 @@
 //
-// Busy dialog showing session state changes.
+// Busy dialog showing session status changes.
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('coweb.ext.ui.BusyDialog');
-dojo.require('coweb.topics');
+dojo.provide('cowebx.BusyDialog');
 dojo.require('dijit.Dialog');
 dojo.require('dijit.form.Button');
 dojo.require('dojo.string');
 dojo.require('dojo.i18n');
-dojo.requireLocalization('coweb.ext.ui', 'BusyDialog');
+dojo.requireLocalization('cowebx', 'BusyDialog');
 
 /**
  * Dialog containing a busy indicator, status message, and cancel button.
  */
-dojo.declare('coweb.ext.ui.BusySheet', [dijit._Widget, dijit._Templated], {
+dojo.declare('cowebx.BusySheet', [dijit._Widget, dijit._Templated], {
     // reference to a session interface instance
     session: null,
     // widget template
-    templatePath: dojo.moduleUrl('coweb.ext.ui', 'templates/BusySheet.html'),
+    templatePath: dojo.moduleUrl('cowebx', 'templates/BusySheet.html'),
     widgetsInTemplate: true,
 
     /**
@@ -27,14 +26,11 @@ dojo.declare('coweb.ext.ui.BusySheet', [dijit._Widget, dijit._Templated], {
      */
     postMixInProperties: function() {
         // load the localized labels
-        this.labels = dojo.i18n.getLocalization('coweb.ext.ui', 'BusyDialog');
+        this.labels = dojo.i18n.getLocalization('cowebx', 'BusyDialog');
         // failure state reached, no further updates allowed
         this._frozen = false;
-        // subscribe to busy notices
-        this._tok = OpenAjax.hub.subscribe(coweb.BUSY, 
-        function(topic, state) {
-            this.setState(state);
-        }, this);
+        // connect to session for status updates
+        this.connect(this.session, 'onStatusChange', this, 'setState');
     },
 
     uninitialize: function() {
@@ -117,7 +113,7 @@ dojo.declare('coweb.ext.ui.BusySheet', [dijit._Widget, dijit._Templated], {
 /**
  * Dialog containing the busy sheet.
  */
-dojo.declare('coweb.ext.ui.BusyDialog', dijit.Dialog, {
+dojo.declare('cowebx.BusyDialog', dijit.Dialog, {
     // assume content is parsed for us by default
     parseOnLoad: false,
     // no dragging, to assist with popup z-index problems
@@ -166,7 +162,7 @@ dojo.declare('coweb.ext.ui.BusyDialog', dijit.Dialog, {
      * and failure states, but only if the sheet is not already in a frozen
      * state.
      *
-     * @param state One of the coweb.busy.* state constants
+     * @param state One of SessionInterface status strings
      */
     setState: function(state) {
         if(state == 'ready' && !this._sheet.isFrozen()) {
@@ -183,26 +179,26 @@ dojo.declare('coweb.ext.ui.BusyDialog', dijit.Dialog, {
 });
 
 // busy dialog singleton
-coweb.ext.ui._busyDlg = null;
+cowebx._busyDlg = null;
 
 /**
  * Factory function that creates a modal busy status dialog singleton.
  */
-coweb.ext.ui.createBusy = function(session) {
+cowebx.createBusy = function(session) {
     var dlg;
-    if(!coweb.ext.ui._busyDlg) {
+    if(!cowebx._busyDlg) {
         // create a dialog box
-        var lbl = dojo.i18n.getLocalization('coweb.ext.ui', 'BusyDialog');
-        dlg = new coweb.ext.ui.BusyDialog({title : lbl.title});
+        var lbl = dojo.i18n.getLocalization('cowebx', 'BusyDialog');
+        dlg = new cowebx.BusyDialog({title : lbl.title});
         // create a busy sheet
-        var sheet = new coweb.ext.ui.BusySheet({session:session});
+        var sheet = new cowebx.BusySheet({session:session});
         // put the sheet in the dialog
         dlg.attr('content', sheet.domNode);
-        coweb.ext.ui._busyDlg = dlg;
+        cowebx._busyDlg = dlg;
         // return the sheet
         return sheet;
     } else {
-        dlg = coweb.ext.ui._busyDlg;
+        dlg = cowebx._busyDlg;
         return dlg._sheet;
     }
 };
@@ -210,10 +206,10 @@ coweb.ext.ui.createBusy = function(session) {
 /**
  * Destroy the busy dialog singleton.
  */
-coweb.ext.ui.destroyBusy = function() {
-    var dlg = coweb.ext.ui._busyDlg;
+cowebx.destroyBusy = function() {
+    var dlg = cowebx._busyDlg;
     if(dlg) {
         dlg.destroyRecursive();
-        coweb.ext.ui._busyDlg = null;
+        cowebx._busyDlg = null;
     }
 };

@@ -15,7 +15,7 @@ require({
     'CoopGrid',
     'CoopItemFileWriteStore'
 ], function(coweb, CoopGrid, CoopItemFileWriteStore) {
-    // dojo.require('coweb.ext.ui.BusyDialog');
+    // dojo.require('cowebx.BusyDialog');
     dojo.require('dojox.grid.DataGrid');
     dojo.require('dojo.data.ItemFileWriteStore');
     dojo.require('dijit.form.Button');
@@ -73,7 +73,7 @@ require({
         // get a session instance
         var sess = coweb.initSession();
         // use the ext busy dialog to show progress joining/updating
-        //coweb.ext.ui.createBusy(sess);
+        //cowebx.createBusy(sess);
         // do the prep and autoJoin / autoUpdate
         var prep = {collab: true, autoJoin : true, autoUpdate: true};
         sess.prepareConference(prep);
