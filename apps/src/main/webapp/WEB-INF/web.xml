@@ -4,13 +4,14 @@
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>
-  <servlet-name>cometd</servlet-name>
+  <servlet>
+    <servlet-name>cometd</servlet-name>
     <servlet-class>org.cometd.server.CometdServlet</servlet-class>
     <init-param>
       <param-name>logLevel</param-name>
       <param-value>0</param-value>
     </init-param>
-     <init-param>
+    <init-param>
       <param-name>timeout</param-name>
       <param-value>30000</param-value>
     </init-param>

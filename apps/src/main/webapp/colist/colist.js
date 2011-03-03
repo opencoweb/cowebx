@@ -7,8 +7,8 @@
 /*global require*/
 require({
     paths : {
-        coweb : '../../libs/coweb',
-        org : '../../libs/org'
+        coweb : '../libs/coweb',
+        org : '../libs/org'
     }
 }, [
     'coweb/main',
