@@ -30,7 +30,7 @@ dojo.declare('cowebx.BusySheet', [dijit._Widget, dijit._Templated], {
         // failure state reached, no further updates allowed
         this._frozen = false;
         // connect to session for status updates
-        this.connect(this.session, 'onStatusChange', this, 'setState');
+        this.connect(this.session, 'onStatusChange', 'setState');
     },
 
     uninitialize: function() {
