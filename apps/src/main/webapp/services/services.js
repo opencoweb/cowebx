@@ -5,8 +5,13 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 /*global require*/
+// configure coweb lib before load
+var cowebConfig = {
+    adminUrl : '/cowebx_apps/admin'
+};
+
 var echo1, echo2, getTime1, getTime2;
-require({baseUrl : '../../libs'}, [
+require({baseUrl : '../lib'}, [
     'coweb/main'
 ], function(coweb) {
     /* Logs info about a response to a bot request. */
