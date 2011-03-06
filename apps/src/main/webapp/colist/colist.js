@@ -87,7 +87,7 @@ require({
         
         // get a session instance
         var sess = coweb.initSession();
-        // use the ext busy dialog to show progress joining/updating
+        // use a dojo busy dialog to show progress joining/updating
         cowebx.createBusy(sess);
         // do the prep
         var prep = {collab: true};
