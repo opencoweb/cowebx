@@ -3,32 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <title>Cooperative Map Example</title>
-    <style type="text/css">
-      @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/resources/dojo.css";
-      @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dijit/themes/claro/claro.css";
-      @import "../../libs/coweb/ext/ui/styles/claro/claro.css";
-      @import "comap.css";
-    </style>
-    <script type="text/javascript">
-      var path = window.location.pathname.split('/');
-      path.pop();
-      path = path.join('/');
-      var djConfig = {
-          isDebug: false,
-          parseOnLoad: false,
-          modulePaths: {
-            'coweb' : 'coweb',
-            'dojox.cometd' : 'dojox/cometd',
-            'org.cometd' : 'org/cometd',
-            'comap' : path
-          },
-          baseUrl : '../../libs/'
-      };
-    </script>
-    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></script>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/OpenAjax.js"></script>
-    <script type="text/javascript" src="comap.js"></script>
+    <link rel="stylesheet" href="comap.css" type="text/css" />
+    <script data-main="comap" src="../lib/require.js"></script>
   </head>
   <body class="claro" style="display: none;">
     <div id="layout" dojoType="dijit.layout.BorderContainer" liveSplitters="true" design="sidebar">
