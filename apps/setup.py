@@ -74,7 +74,6 @@ def develop(options, args):
     # symlink widgets into www/lib/cowebx
     target = os.path.join(targetRoot, 'www/lib/cowebx')
     src = os.path.abspath('../widgets')
-    print src, target
     try:
         os.symlink(src, target)
     except OSError, e:
