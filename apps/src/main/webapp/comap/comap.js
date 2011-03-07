@@ -23,9 +23,8 @@ require({baseUrl : '../lib'},
 [
     'coweb/main',
     'coweb/ext/attendance',
-    'http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js',
-    'http://maps.google.com/maps/api/js?sensor=false'
-], function(coweb, attendance) {
+    'http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js'
+], function(coweb, attendance, g) {
     dojo.require('comap.GMap');
     dojo.require('comap.ChatBox');
     dojo.require('cowebx.BusyDialog');
@@ -164,7 +163,7 @@ require({baseUrl : '../lib'},
         },
 
         onRemoteChatMessage : function(topic, value, type, pos, site) {
-            var username = attendance.getUserAtSite(site).username;
+            var username = attendance.users[site].username;
             // sanitize received text
             value.text = this.chat.sanitizeText(value.text);
             // parse for http links
@@ -185,7 +184,7 @@ require({baseUrl : '../lib'},
 
         onRemoteLogMessage : function(topic, value, type, pos, site) {
             var args = dojo.mixin({
-                username : attendance.getUserAtSite(site).username,
+                username : attendance.users[site].username,
                 pos : pos
             }, value);
             this._insertLogMessage(args);
@@ -211,7 +210,7 @@ require({baseUrl : '../lib'},
 
         onRemoteMapMarkerAdded: function(topic, value, type, pos, site) {
             var latLng = this.map.latLngFromString(value.latLng);
-            var creator = attendance.getUserAtSite(site).username;
+            var creator = attendance.users[site].username;
             this.map.addMarker(value.uuid, creator, latLng);
         },
 
@@ -306,5 +305,7 @@ require({baseUrl : '../lib'},
     };
 
     // initialize the app when all modules load and page is ready
-    dojo.ready(app.init);
+    dojo.ready(function() {
+        app.init();
+    });
 });
