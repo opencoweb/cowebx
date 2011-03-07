@@ -50,21 +50,78 @@
                     </webAppConfig>
                 </configuration>
             </plugin>
-            <plugin>
+            <!-- <plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
                     <overlays>
+                        <overlay />
                         <overlay>
                             <groupId>org.coweb</groupId>
                             <artifactId>coweb_javascript</artifactId>
                             <type>war</type>
-                            <targetPath>libs</targetPath>
+                            <targetPath>lib</targetPath>
                             <excludes>
                                 <exclude>META-INF/**</exclude>
                                 <exclude>WEB-INF/**</exclude>
                             </excludes>
                         </overlay>
                     </overlays>
+                </configuration>
+            </plugin> -->
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.coweb</groupId>
+                                    <artifactId>coweb_javascript</artifactId>
+                                    <version>0.4</version>
+                                    <type>war</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>target/javascript/lib</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <tasks>
+                                <copy todir="target/javascript/lib/cowebx">
+                                    <fileset dir="../widgets" />
+                                </copy>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <directory>target/javascript</directory>
+                            <excludes>
+                                <exclude>META-INF/**</exclude>
+                                <exclude>WEB-INF/**</exclude>
+                            </excludes>
+                        </resource>
+                    </webResources>
                 </configuration>
             </plugin>
         </plugins>
