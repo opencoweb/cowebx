@@ -14,7 +14,10 @@ import os.path
 
 def install(options, args):
     # invoke pycoweb to create an empty deployment 
-    subprocess.check_call(['pycoweb', 'deploy', args[1], '-f' if options.force else ''])
+    subprocess.check_call([
+        'pycoweb', 'deploy', args[1], 
+        '-f' if options.force else '',
+        '-t', 'src/main/python/run_server.tmpl'])
     # copy the webapps into place
     cmd = 'cp -r src/main/webapp/* ' + os.path.join(args[1], 'www/')
     subprocess.check_call(cmd, shell=True)
