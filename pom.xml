@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.coweb</groupId>
+    <artifactId>cowebx</artifactId>
+    <packaging>pom</packaging>
+    <name>OpenCoweb Extras</name>
+    <url>http://opencoweb.org</url>
+    <description>Example applications and widgets using the OpenCoweb Framework</description>
+    <version>0.4</version>
+    <inceptionYear>2011</inceptionYear>
+    <organization>
+        <name>The Dojo Foundation</name>
+        <url>http://dojofoundation.org</url>
+    </organization>
+
+    <properties>
+        <coweb-version>[0.4,]</coweb-version>
+    </properties>
+    
+    <modules>
+        <module>cowebx-apps</module>
+        <module>cowebx-widgets</module>
+    </modules>
+
+    <build>
+        <defaultGoal>install</defaultGoal>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <compilerArgument>-Xlint:all,-serial,-unchecked</compilerArgument>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

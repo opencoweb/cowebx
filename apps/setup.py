@@ -43,7 +43,7 @@ def deploy(options, args):
     cmd = 'cp -r src/main/python/bots/* ' + os.path.join(dest, 'bots/')
     subprocess.check_call(cmd, shell=True)
     # copy the widgets / styles into place
-    cmd = 'cp -r ../widgets ' + os.path.join(dest, 'www/lib/cowebx')
+    cmd = 'cp -r ../widgets ' + os.path.join(dest, 'www/cowebx-lib')
     subprocess.check_call(cmd, shell=True)
 
 def develop(options, args):

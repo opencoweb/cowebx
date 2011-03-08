@@ -15,14 +15,14 @@ var djConfig = {
         'cowebx' : 'cowebx/dojo',
         'colist' : '../colist'
     },
-    baseUrl : '../lib/'
+    baseUrl : '../cowebx-lib/'
 };
 
 // do the async load
 require({
     paths : {
-        coweb : '../lib/coweb',
-        org : '../lib/org'
+        coweb : '../coweb-lib/coweb',
+        org : '../coweb-lib/org'
     }
 }, [
     'coweb/main',

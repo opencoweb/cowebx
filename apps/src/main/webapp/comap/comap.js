@@ -15,11 +15,11 @@ var djConfig = {
         'cowebx' : 'cowebx/dojo',
         'comap' : '../comap'
     },
-    baseUrl : '../lib/'
+    baseUrl : '../cowebx-lib/'
 };
 
 // do the async load
-require({baseUrl : '../lib'},
+require({baseUrl : '../coweb-lib'},
 [
     'coweb/main',
     'coweb/ext/attendance',
