@@ -6,7 +6,7 @@
  */
 @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/resources/dojo.css";
 @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dijit/themes/claro/claro.css";
-@import "../cowebx-lib/cowebx/dojo/styles/claro/claro.css";
+@import "../cowebx-lib/dojo/styles/claro/claro.css";
 
 html, body {
     margin: 0px;

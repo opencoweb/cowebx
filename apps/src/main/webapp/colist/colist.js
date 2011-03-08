@@ -12,7 +12,7 @@ var cowebConfig = {
 };
 var djConfig = {
     modulePaths: {
-        'cowebx' : 'cowebx/dojo',
+        'cowebx' : 'dojo',
         'colist' : '../colist'
     },
     baseUrl : '../cowebx-lib/'
