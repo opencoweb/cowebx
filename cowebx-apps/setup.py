@@ -77,7 +77,7 @@ def develop(options, args):
 
     # symlink widgets into www/lib/cowebx
     try:
-        os.makedir(os.path.join(targetRoot, 'www/cowebx-lib'))
+        os.makedirs(os.path.join(targetRoot, 'www/cowebx-lib'))
     except OSError:
         pass
     target = os.path.join(targetRoot, 'www/cowebx-lib/dojo')
