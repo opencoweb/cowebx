@@ -6,7 +6,7 @@ class CoWebApp(coweb.AppContainer):
         # secret key for signing auth cookies
         self.webSecretKey = '${webSecretKey}'
         # match admin url to what java version uses
-        self.webAdminUrl = self.webRoot + 'cowebx_apps/admin'
+        self.webAdminUrl = self.webRoot + 'cowebx-apps/admin'
 
 if __name__ == '__main__':
     coweb.run_server(CoWebApp)

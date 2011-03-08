@@ -8,7 +8,7 @@
 
 // configure coweb and dojo libs before load
 var cowebConfig = {
-    adminUrl : '/cowebx_apps/admin'
+    adminUrl : '/cowebx-apps/admin'
 };
 var djConfig = {
     modulePaths: {

@@ -47,7 +47,7 @@ def deploy(options, args):
         os.makedirs(os.path.join(dest, 'www/cowebx-lib'))
     except OSError:
         pass
-    cmd = 'cp -r ../widgets/dojo/src/main/webapp ' + os.path.join(dest, 'www/cowebx-lib/dojo')
+    cmd = 'cp -r ../cowebx-widgets/cowebx-widgets-dojo/src/main/webapp ' + os.path.join(dest, 'www/cowebx-lib/dojo')
     subprocess.check_call(cmd, shell=True)
 
 def develop(options, args):
@@ -81,11 +81,11 @@ def develop(options, args):
     except OSError:
         pass
     target = os.path.join(targetRoot, 'www/cowebx-lib/dojo')
-    src = os.path.abspath('../widgets/dojo/src/main/webapp')
+    src = os.path.abspath('../cowebx-widgets/cowebx-widgets-dojo/src/main/webapp')
     try:
         os.symlink(src, target)
     except OSError, e:
-        print 'skipped: widgets'
+        print 'skipped: cowebx-widgets'
     
 if __name__ == '__main__':
     parser = optparse.OptionParser('usage: %prog <deploy|develop> [options] <PATH>')

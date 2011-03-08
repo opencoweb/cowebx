@@ -7,7 +7,7 @@
 /*global require*/
 // configure coweb lib before load
 var cowebConfig = {
-    adminUrl : '/cowebx_apps/admin'
+    adminUrl : '/cowebx-apps/admin'
 };
 
 var echo1, echo2, getTime1, getTime2;
