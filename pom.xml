@@ -16,12 +16,13 @@
     </organization>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <coweb-version>[0.4,]</coweb-version>
     </properties>
     
     <modules>
-        <module>cowebx-apps</module>
         <module>cowebx-widgets</module>
+        <module>cowebx-apps</module>
     </modules>
 
     <build>
