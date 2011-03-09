@@ -12,6 +12,7 @@
     <packaging>war</packaging>
 
     <build>
+        <defaultGoal>install</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.mortbay.jetty</groupId>
