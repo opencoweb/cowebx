@@ -4,6 +4,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global dojo dijit*/
 dojo.provide('comap.ChatBox');
 dojo.require('dijit._Widget');
 dojo.require('dijit._Templated');
@@ -48,36 +49,36 @@ dojo.declare('comap.ChatBox', [dijit._Widget, dijit._Templated, dijit._Contained
         return text.replace(this._linkRex, ' <a href="$1$2" target="_blank">$1$2</a>');
     },
     
-    onMessage: function(text, pos, isoDT) {
+    onMessage: function(text, position, isoDT) {
         // extension point
     },
 
     _onKeyDown: function(event) {
-        if(event.keyCode == dojo.keys.ENTER) {
+        if(event.keyCode === dojo.keys.ENTER) {
             // don't send blanks
-            if(!this.entryNode.value) return;
+            if(!this.entryNode.value) {return;}
             // sanitize the entered text
-            var text = this.sanitizeText(this.entryNode.value)
+            var text = this.sanitizeText(this.entryNode.value);
             // find and make http links
             text = this.parseLinks(text);
             // build iso datetime string
             var now = new Date();
             var isoDT = dojo.date.stamp.toISOString(now, {zulu: true});
             // insert the message in the history
-            var pos = this.insertMessage(this.app.username, text, isoDT);
+            var position = this.insertMessage(this.app.username, text, isoDT);
             // invoke extension point
-            this.onMessage(this.entryNode.value, pos, isoDT)
+            this.onMessage(this.entryNode.value, position, isoDT);
             // clear the entry box
             this.entryNode.value = '';
         }
     },
 
-    insertMessage: function(username, text, isoDT, pos) {
-        if(pos === undefined) {
-            var pos = dojo.query('div.wChatBoxMessage', this.historyNode).length;
+    insertMessage: function(username, text, isoDT, position) {
+        if(position === undefined) {
+            position = dojo.query('div.wChatBoxMessage', this.historyNode).length;
         }
         var msg = dojo.create('div', {className : 'wChatBoxMessage'}, 
-            this.historyNode, pos);
+            this.historyNode, position);
         var meta = dojo.create('div', {className : 'wChatBoxMessageMeta'}, msg);
         // include username
         if(username) {
@@ -111,7 +112,7 @@ dojo.declare('comap.ChatBox', [dijit._Widget, dijit._Templated, dijit._Contained
         // scroll to latest message
         msg.scrollIntoView(false);
 
-        return {pos : pos, isoDT : isoDT};
+        return {position : position, isoDT : isoDT};
     },
     
     setHtml: function(html) {

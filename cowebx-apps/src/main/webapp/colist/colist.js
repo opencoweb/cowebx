@@ -90,7 +90,6 @@ require({
         // use a dojo busy dialog to show progress joining/updating
         cowebx.createBusy(sess);
         // do the prep
-        var prep = {collab: true};
-        sess.prepareConference(prep);
+        sess.prepare();
     });
 });

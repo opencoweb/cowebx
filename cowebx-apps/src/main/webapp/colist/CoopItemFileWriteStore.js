@@ -142,7 +142,6 @@ define([
         var value = {};
         value.row = row;
         value.attr = attr;
-	    value.action = 'update';
 	    // name includes row id for conflict resolution
 	    var id = this.dataStore.getIdentity(item);
 	    var name = 'change.'+id;
@@ -161,7 +160,6 @@ define([
         var row = this._itemToRow(item);
         var value = {};
         value.row = row;
-	    value.action = 'insert';
 	    // name includes row id for conflict resolution
 	    var id = this.dataStore.getIdentity(item);
 	    var name = 'change.'+id;
@@ -177,7 +175,6 @@ define([
     proto.onLocalDelete = function(item) {
         // get all attribute values
         var value = {};
-        value.action = 'delete';
 	    // name includes row id for conflict resolution
 	    var id = this.dataStore.getIdentity(item);
 	    var name = 'change.'+id;
@@ -188,17 +185,17 @@ define([
      * Called when a remote data store changes in some manner. Dispatches to
      * local methods for insert, update, delete handling.
      *
-     * @param topic Full sync topic including the id of the item that changed
-     * @param value Item data sent by remote data store
+     * @param args Cooperative web event
      */
-    proto.onRemoteChange = function(topic, value) {
-        // retrieve the row id from the full topic
-        var id = this.collab.getSyncNameFromTopic(topic).split('.')[1];
-        if(value.action === 'insert') {
+    proto.onRemoteChange = function(args) {
+        var value = args.value;
+        // retrieve the row id from the name
+        var id = args.name.split('.')[1];
+        if(args.type === 'insert') {
             this.onRemoteInsert(id, value);
-        } else if(value.action === 'update') {
+        } else if(args.type === 'update') {
             this.onRemoteUpdate(id, value);
-        } else if(value.action === 'delete') {
+        } else if(args.type === 'delete') {
             this.onRemoteDelete(id);
         }
     };

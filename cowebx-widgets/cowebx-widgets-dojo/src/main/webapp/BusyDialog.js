@@ -92,7 +92,7 @@ dojo.declare('cowebx.BusySheet', [dijit._Widget, dijit._Templated], {
      */
     _onCancel: function(event) {
         // tell the session to abort
-        this.session.leaveConference();
+        this.session.leave();
     },
 
     /**

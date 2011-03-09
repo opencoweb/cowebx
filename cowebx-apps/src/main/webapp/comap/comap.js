@@ -4,7 +4,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-/*global require dojo dijit*/
+/*global require dojo dijit cowebx*/
 
 // configure coweb and dojo libs before load
 var cowebConfig = {
@@ -79,6 +79,7 @@ require({baseUrl : '../coweb-lib'},
 
             // listen to remote events
             this.collab = coweb.initCollab({id : 'comap'});
+            this.collab.subscribeReady(this, 'onCollabReady');
             this.collab.subscribeStateRequest(this, 'onStateRequest');
             this.collab.subscribeStateResponse(this, 'onStateResponse');
             this.collab.subscribeSync('chat.message', this, 'onRemoteChatMessage');
@@ -97,7 +98,7 @@ require({baseUrl : '../coweb-lib'},
             cowebx.createBusy(this.session);
             // do the prep
             var prep = {collab: true};
-            this.session.prepareConference(prep);
+            this.session.prepare(prep);
         },
 
         onHashChange: function(hash) {
@@ -131,7 +132,7 @@ require({baseUrl : '../coweb-lib'},
             this.map.setAllMarkers(state.markers);
             this.chat.setHtml(state.chatHtml);
             this.log.setHtml(state.logHtml);
-            this.onRemoteMapViewport(null, state.viewport);
+            this.onRemoteMapViewport({value : state.viewport});
         },
     
         onCollabReady: function(info) {
@@ -141,34 +142,36 @@ require({baseUrl : '../coweb-lib'},
             this.collab.subscribeService('zipvisits', this, 'onZipVisits');
         },
     
-        onZipVisits: function(counts, error) {
-            if(error) {
+        onZipVisits: function(args) {
+            if(args.error) {
                 console.error('could not subscribe to zipvisits service');
                 return;
             }
+            var counts = args.value;
             for(var uuid in counts) {
                 if(counts.hasOwnProperty(uuid)) {
                     var marker = this.map.getMarkerById(uuid);
-                    marker._visitCount = counts[uuid];
+                    marker._visitCount = args.value[uuid];
                 }
             }
             // refresh the current info popup
             this.map.refreshInfoPop();
         },
         
-        onChatMessage: function(text, pos, isoDT) {
+        onChatMessage: function(text, position, isoDT) {
             var value = {text : text, isoDT : isoDT};
             // send raw value, will be parsed / sanitized on the other side
-            this.collab.sendSync('chat.message', value, 'insert', pos);
+            this.collab.sendSync('chat.message', value, 'insert', position);
         },
 
-        onRemoteChatMessage : function(topic, value, type, pos, site) {
-            var username = attendance.users[site].username;
+        onRemoteChatMessage : function(args) {
+            var username = attendance.users[args.site].username;
             // sanitize received text
-            value.text = this.chat.sanitizeText(value.text);
+            args.value.text = this.chat.sanitizeText(args.value.text);
             // parse for http links
-            value.text = this.chat.parseLinks(value.text);
-            this.chat.insertMessage(username, value.text, value.isoDT, pos);
+            args.value.text = this.chat.parseLinks(args.value.text);
+            this.chat.insertMessage(username, args.value.text, 
+                args.value.isoDT, args.position);
         },
     
         _insertLogMessage: function(args) {
@@ -176,17 +179,17 @@ require({baseUrl : '../coweb-lib'},
             var latLng = this.log.sanitizeText(args.latLng);
             var text = dojo.replace(this.labels[args.template], [latLng]);
             var rv = this.log.insertMessage(args.username, text, args.isoDT, 
-                args.pos);
+                args.position);
             args.isoDT = rv.isoDT;
             delete args.username;
-            return rv.pos;
+            return rv.position;
         },
 
-        onRemoteLogMessage : function(topic, value, type, pos, site) {
-            var args = dojo.mixin({
-                username : attendance.users[site].username,
-                pos : pos
-            }, value);
+        onRemoteLogMessage : function(args) {
+            args = dojo.mixin({
+                username : attendance.users[args.site].username,
+                position : args.position
+            }, args.value);
             this._insertLogMessage(args);
         },
 
@@ -203,15 +206,15 @@ require({baseUrl : '../coweb-lib'},
                 username : this.username,
                 latLng : marker.getPosition().toUrlValue()
             };
-            var pos = this._insertLogMessage(args);
+            var position = this._insertLogMessage(args);
             // send to remote logs
-            this.collab.sendSync('log.message', args, 'insert', pos);
+            this.collab.sendSync('log.message', args, 'insert', position);
         },
 
-        onRemoteMapMarkerAdded: function(topic, value, type, pos, site) {
-            var latLng = this.map.latLngFromString(value.latLng);
-            var creator = attendance.users[site].username;
-            this.map.addMarker(value.uuid, creator, latLng);
+        onRemoteMapMarkerAdded: function(args) {
+            var latLng = this.map.latLngFromString(args.value.latLng);
+            var creator = attendance.users[args.site].username;
+            this.map.addMarker(args.value.uuid, creator, latLng);
         },
 
         onMapMarkerMoved: function(marker) {
@@ -231,16 +234,16 @@ require({baseUrl : '../coweb-lib'},
                 username : this.username,
                 latLng : marker.getPosition().toUrlValue()
             };
-            var pos = this._insertLogMessage(args);
+            var position = this._insertLogMessage(args);
             // send to remote logs
-            this.collab.sendSync('log.message', args, 'insert', pos);
+            this.collab.sendSync('log.message', args, 'insert', position);
         },
     
-        onRemoteMapMarkerMoved: function(topic, value) {
+        onRemoteMapMarkerMoved: function(args) {
             // could receive repeat value when resolve conflict which doesn't hurt
             // us; pass it along
-            var latLng = this.map.latLngFromString(value.latLng);
-            var marker = this.map.getMarkerById(value.uuid);
+            var latLng = this.map.latLngFromString(args.value.latLng);
+            var marker = this.map.getMarkerById(args.value.uuid);
             this.map.moveMarker(marker, latLng);
         },
 
@@ -257,13 +260,13 @@ require({baseUrl : '../coweb-lib'},
                 username : this.username,
                 latLng : marker.getPosition().toUrlValue()
             };
-            var pos = this._insertLogMessage(args);
+            var position = this._insertLogMessage(args);
             // send to remote logs
-            this.collab.sendSync('log.message', args, 'insert', pos);
+            this.collab.sendSync('log.message', args, 'insert', position);
         },
     
-        onRemoteMapMarkerAnimated: function(topic, value) {
-            var marker = this.map.getMarkerById(value.uuid);
+        onRemoteMapMarkerAnimated: function(args) {
+            var marker = this.map.getMarkerById(args.value.uuid);
             this.map.animateMarker(marker);
         },
 
@@ -296,10 +299,10 @@ require({baseUrl : '../coweb-lib'},
             this.collab.sendSync('map.viewport', args, type);
         },
     
-        onRemoteMapViewport: function(topic, value) {
-            var latLng = this.map.latLngFromString(value.center);
-            this.map.setMapType(value.type);
-            this.map.setZoom(value.zoom);
+        onRemoteMapViewport: function(args) {
+            var latLng = this.map.latLngFromString(args.value.center);
+            this.map.setMapType(args.value.type);
+            this.map.setZoom(args.value.zoom);
             this.map.setCenter(latLng);
         }
     };

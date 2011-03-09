@@ -15,15 +15,15 @@ require({baseUrl : '../coweb-lib'}, [
     'coweb/main'
 ], function(coweb) {
     /* Logs info about a response to a bot request. */
-    var _onBotResponse = function(serviceName, id, value, error) {
+    var _onBotResponse = function(serviceName, id, args) {
         console.log(serviceName, 'responded to collab.id:', id, 'value:', 
-            value, 'error:', error);
+            args.value, 'error:', args.error);
     };
 
     /* Logs info about a message published to all users by a bot. */
-    var _onBotPublish = function(serviceName, id, value, error) {
+    var _onBotPublish = function(serviceName, id, args) {
         console.log(serviceName, 'published to collab.id:', id, 'value:', 
-            value, 'error:', error);
+            args.value, 'error:', args.error);
     };
 
     /* Builds a function that invokes the echo bot using the given collab API
@@ -31,8 +31,8 @@ require({baseUrl : '../coweb-lib'}, [
      */
     var _makeEchoFunc = function(collab) {
         return function(text) {
-            collab.postService('echo', {message : text}, function(v, e) {
-                _onBotResponse('echo', collab.id, v, e);
+            collab.postService('echo', {message : text}, function(args) {
+                _onBotResponse('echo', collab.id, args);
             });
         };
     };
@@ -42,8 +42,8 @@ require({baseUrl : '../coweb-lib'}, [
      */
     var _makeTimeFunc = function(collab) {
         return function() {
-            collab.postService('utctime', {}, function(v, e) {
-                _onBotResponse('utctime', collab.id, v, e);
+            collab.postService('utctime', {}, function(args) {
+                _onBotResponse('utctime', collab.id, args);
             });
         };
     };
@@ -51,22 +51,22 @@ require({baseUrl : '../coweb-lib'}, [
     /* Subscribes the collab instances to the echo and utctime services. */
     var _onCollabReady = function(collab) {
         // listen on both interfaces to echo service
-        collab.subscribeService('echo', function(v, e) {
-            _onBotPublish('echo', collab.id, v, e);
+        collab.subscribeService('echo', function(args) {
+            _onBotPublish('echo', collab.id, args);
         });
-        collab.subscribeService('utctime', function(v, e) {
-            _onBotPublish('utctime', collab.id, v, e);
+        collab.subscribeService('utctime', function(args) {
+            _onBotPublish('utctime', collab.id, args);
         });
     };
 
     require.ready(function() {
         // build a couple collab interfaces
         var collab1 = coweb.initCollab({id : 'collab1'});
-        collab1.subscribeConferenceReady(function() {
+        collab1.subscribeReady(function() {
             _onCollabReady(collab1);
         });
         var collab2 = coweb.initCollab({id : 'collab2'});
-        collab2.subscribeConferenceReady(function() {
+        collab2.subscribeReady(function() {
             _onCollabReady(collab2);
         });         
         
@@ -79,6 +79,6 @@ require({baseUrl : '../coweb-lib'}, [
         // initialize a session
         var sess = coweb.initSession();
         var prep = {collab: false, autoJoin : true, autoUpdate: true};
-        sess.prepareConference(prep);
+        sess.prepare(prep);
     });
 });

@@ -31,7 +31,7 @@ define([
         this.collab.subscribeSync('focus', this, 'onFocusRemoteCell');
         // listen for when this app instance is in the session and ready to 
         // send and receive events
-        this.collab.subscribeConferenceReady(this, 'onConferenceReady');
+        this.collab.subscribeReady(this, 'onReady');
         // listen for other sites leaving the session so we can cleanup their
         // focus tracking information
         this.collab.subscribeSiteLeave(dojo.hitch(this, 'onSiteLeave'));
@@ -52,7 +52,7 @@ define([
      *
      * @param params Object with properties for the ready event (see doc)
      */
-    proto.onConferenceReady = function(params) {
+    proto.onReady = function(params) {
         this.site = params.site;
     };
 
@@ -147,15 +147,11 @@ define([
      * Stores the id of the item associated with the row that is now focused
      * so it can be styled the next time the grid renders itself.
      *
-     * @param topic Unused
-     * @param value Object sent from a remote widget in its onFocusLocalCell
-     * @param type Unused
-     * @param pos Unused
-     * @param site Unique site id of the sending widget instance
+     * @param args Received cooperative event
      */
-    proto.onFocusRemoteCell = function(topic, value, type, pos, site) {
+    proto.onFocusRemoteCell = function(args) {
         // store the selected id and the site that has it selected
-        this.focused[site] = value.id;
+        this.focused[args.site] = args.value.id;
         this.grid.render();
     };
     
