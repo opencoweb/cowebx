@@ -23,7 +23,7 @@ require({baseUrl : '../coweb-lib'},
 [
     'coweb/main',
     'coweb/ext/attendance',
-    'http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js'
+    'http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js'
 ], function(coweb, attendance, g) {
     dojo.require('comap.GMap');
     dojo.require('comap.ChatBox');

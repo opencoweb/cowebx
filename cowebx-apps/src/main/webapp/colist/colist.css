@@ -4,10 +4,10 @@
  * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
  * Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
  */
-@import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/resources/dojo.css";
-@import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dijit/themes/claro/claro.css";
-@import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojox/grid/resources/Grid.css";
-@import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojox/grid/resources/claroGrid.css";
+@import "http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/resources/dojo.css";
+@import "http://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/claro/claro.css";
+@import "http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojox/grid/resources/Grid.css";
+@import "http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojox/grid/resources/claroGrid.css";
 @import "../cowebx-lib/dojo/styles/claro/claro.css";
 
 html, body {
@@ -30,12 +30,6 @@ html, body {
 
 .dj_ie7 #controls {
     text-align: left;
-}
-
-#grid {
-    width: 80%;
-    border: 1px solid silver;
-    margin: 10px auto;
 }
 
 #grid .focused {

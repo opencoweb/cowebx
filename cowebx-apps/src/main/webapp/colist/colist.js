@@ -28,7 +28,7 @@ require({
     'coweb/main',
     'CoopGrid',
     'CoopItemFileWriteStore',
-    'http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js'
+    'http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js'
 ], function(coweb, CoopGrid, CoopItemFileWriteStore) {
     dojo.require('cowebx.BusyDialog');
     dojo.require('dojox.grid.DataGrid');

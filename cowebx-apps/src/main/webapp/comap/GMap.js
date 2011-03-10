@@ -55,7 +55,8 @@ dojo.declare('comap.GMap', dijit._Widget, {
             dojo.hitch(this, '_onTypeChange'));
     },
     
-    resize: function() {
+    resize: function(size) {
+        dojo.marginBox(this.domNode, size);
         // force map to resize
         google.maps.event.trigger(this._map, 'resize');
     },
