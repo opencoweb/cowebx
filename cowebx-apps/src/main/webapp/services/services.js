@@ -78,7 +78,8 @@ require({baseUrl : '../coweb-lib'}, [
         
         // initialize a session
         var sess = coweb.initSession();
-        var prep = {collab: false, autoJoin : true, autoUpdate: true};
+        // no user to user events needed, just bot traffic
+        var prep = {collab: false};
         sess.prepare(prep);
     });
 });

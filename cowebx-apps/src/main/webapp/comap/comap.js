@@ -96,9 +96,8 @@ require({baseUrl : '../coweb-lib'},
             this.session = coweb.initSession();
             // use a dojo busy dialog to show progress joining/updating
             cowebx.createBusy(this.session);
-            // do the prep
-            var prep = {collab: true};
-            this.session.prepare(prep);
+            // do the prep using defaults
+            this.session.prepare();
         },
 
         onHashChange: function(hash) {
