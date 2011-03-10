@@ -32,10 +32,11 @@ def deploy(options, args):
     except IndexError:
         raise SetupError('missing: destination path')
 
-    subprocess.check_call([
+    if subprocess.call([
         'pycoweb', 'deploy', dest, 
         '-f' if options.force else '',
-        '-t', 'src/main/python/run_server.tmpl'])
+        '-t', 'src/main/python/run_server.tmpl']):
+        raise SetupError('aborted: cowebx deploy')
     # copy the webapps into place
     cmd = 'cp -r src/main/webapp/* ' + os.path.join(dest, 'www/')
     subprocess.check_call(cmd, shell=True)
@@ -60,11 +61,12 @@ def develop(options, args):
     # create container script
     bin = os.path.join(targetRoot, 'bin')
     script = os.path.join(bin, 'run_server.py')
-    subprocess.check_call([
+    if subprocess.call([
         'pycoweb', 'container', script,
         '-f' if options.force else '',
-        '-t', 'src/main/python/run_server.tmpl'])
-    
+        '-t', 'src/main/python/run_server.tmpl']):
+        raise SetupError('aborted: cowebx develop')
+
     # symlink apps into www/
     target = os.path.join(targetRoot, 'www')
     srcRoot = 'src/main/webapp/'
