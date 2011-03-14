@@ -7,6 +7,8 @@ class CoWebApp(coweb.AppContainer):
         self.webSecretKey = '${webSecretKey}'
         # match admin url to what java version uses
         self.webAdminUrl = self.webRoot + 'cowebx-apps/admin'
+        # match static url to what java uses
+        self.webStaticRoot = self.webRoot + 'cowebx-apps/'
 
 if __name__ == '__main__':
     coweb.run_server(CoWebApp)
