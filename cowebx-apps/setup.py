@@ -45,10 +45,10 @@ def deploy(options, args):
     subprocess.check_call(cmd, shell=True)
     # copy the widgets / styles into place
     try:
-        os.makedirs(os.path.join(dest, 'www/cowebx-lib'))
+        os.makedirs(os.path.join(dest, 'www/lib/cowebx'))
     except OSError:
         pass
-    cmd = 'cp -r ../cowebx-widgets/cowebx-widgets-dojo/src/main/webapp ' + os.path.join(dest, 'www/cowebx-lib/dojo')
+    cmd = 'cp -r ../cowebx-widgets/cowebx-widgets-dojo/src/main/webapp ' + os.path.join(dest, 'www/lib/cowebx/dojo')
     subprocess.check_call(cmd, shell=True)
 
 def develop(options, args):
@@ -79,10 +79,10 @@ def develop(options, args):
 
     # symlink widgets into www/lib/cowebx
     try:
-        os.makedirs(os.path.join(targetRoot, 'www/cowebx-lib'))
+        os.makedirs(os.path.join(targetRoot, 'www/lib/cowebx'))
     except OSError:
         pass
-    target = os.path.join(targetRoot, 'www/cowebx-lib/dojo')
+    target = os.path.join(targetRoot, 'www/lib/cowebx/dojo')
     src = os.path.abspath('../cowebx-widgets/cowebx-widgets-dojo/src/main/webapp')
     try:
         os.symlink(src, target)

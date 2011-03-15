@@ -24,7 +24,7 @@
                     </webAppConfig>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
@@ -37,7 +37,7 @@
                                 <exclude>META-INF/**</exclude>
                                 <exclude>WEB-INF/**</exclude>
                             </excludes>
-                            <targetPath>coweb-lib</targetPath>
+                            <targetPath>lib</targetPath>
                         </overlay>
                         <overlay>
                             <groupId>org.coweb</groupId>
@@ -47,7 +47,7 @@
                                 <exclude>META-INF/**</exclude>
                                 <exclude>WEB-INF/**</exclude>
                             </excludes>
-                            <targetPath>cowebx-lib/dojo</targetPath>
+                            <targetPath>lib/cowebx/dojo</targetPath>
                         </overlay>
                     </overlays>
                 </configuration>

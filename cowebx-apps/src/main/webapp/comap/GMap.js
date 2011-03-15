@@ -4,6 +4,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global dojo dijit google dojox*/
 dojo.provide('comap.GMap');
 dojo.require('dijit._Widget');
 dojo.require('dojo.i18n');

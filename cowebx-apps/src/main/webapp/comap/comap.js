@@ -13,13 +13,13 @@ var cowebConfig = {
 var djConfig = {
     modulePaths: {
         'cowebx' : 'dojo',
-        'comap' : '../comap'
+        'comap' : '../../comap'
     },
-    baseUrl : '../cowebx-lib/'
+    baseUrl : '../lib/cowebx/'
 };
 
 // do the async load
-require({baseUrl : '../coweb-lib'},
+require({baseUrl : '../lib'},
 [
     'coweb/main',
     'coweb/ext/attendance',
