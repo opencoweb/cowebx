@@ -11,7 +11,7 @@ var cowebConfig = {
 };
 
 var echo1, echo2, getTime1, getTime2;
-require({baseUrl : '../coweb-lib'}, [
+require({baseUrl : '../lib'}, [
     'coweb/main'
 ], function(coweb) {
     /* Logs info about a response to a bot request. */
