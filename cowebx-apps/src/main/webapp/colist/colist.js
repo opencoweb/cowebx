@@ -5,24 +5,8 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 /*global require dojo dijit cowebx*/
-// configure coweb and dojo libs before load
-var cowebConfig = {
-    adminUrl : '../admin'
-};
-var djConfig = {
-    modulePaths: {
-        'cowebx' : 'dojo',
-    },
-    baseUrl : '../lib/cowebx/'
-};
-
 // do the async load
-require({
-    paths : {
-        coweb : '../lib/coweb',
-        org : '../lib/org'
-    }
-}, [
+define([
     'coweb/main',
     'CoopGrid',
     'CoopItemFileWriteStore',

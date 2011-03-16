@@ -1,30 +1,15 @@
 //
-// Cooperative map app.
+// Cooperative map application.
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-/*global require dojo dijit cowebx*/
-
-// configure coweb and dojo libs before load
-var cowebConfig = {
-    adminUrl : '../admin'
-};
-var djConfig = {
-    modulePaths: {
-        'cowebx' : 'dojo',
-        'comap' : '../../comap'
-    },
-    baseUrl : '../lib/cowebx/'
-};
-
-// do the async load
-require({baseUrl : '../lib'},
-[
+/*global define dojo dijit cowebx*/
+define([
     'coweb/main',
     'coweb/ext/attendance',
     'http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js'
-], function(coweb, attendance, g) {
+], function(coweb, attendance) {
     dojo.require('comap.GMap');
     dojo.require('comap.ChatBox');
     dojo.require('cowebx.BusyDialog');
