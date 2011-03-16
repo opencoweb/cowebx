@@ -2,18 +2,57 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.coweb</groupId>
+    <groupId>org.opencoweb</groupId>
     <artifactId>cowebx</artifactId>
     <packaging>pom</packaging>
+    
     <name>OpenCoweb Extras</name>
-    <url>http://opencoweb.org</url>
     <description>Example applications and widgets using the OpenCoweb Framework</description>
     <version>0.4</version>
+    <url>http://opencoweb.org</url>
     <inceptionYear>2011</inceptionYear>
     <organization>
         <name>The Dojo Foundation</name>
         <url>http://dojofoundation.org</url>
     </organization>
+    
+    <licenses>
+        <license>
+            <name>The New BSD License</name>
+            <url>http://www.opensource.org/licenses/bsd-license.html</url>
+        </license>
+        <license>
+            <name>The Academic Free License, v. 2.1</name>
+            <url>http://en.wikipedia.org/wiki/Academic_Free_License</url>
+        </license>
+    </licenses>
+    
+    <developers>
+        <developer>
+            <id>parente</id>
+            <name>Peter Parente</name>
+            <email>pparent@us.ibm.com</email>
+            <organization>IBM Corporation</organization>
+        </developer>
+        <developer>
+            <id>bpburns</id>
+            <name>Brian Burns</name>
+            <email>bburns@us.ibm.com</email>
+            <organization>IBM Corporation</organization>
+        </developer>
+        <developer>
+            <id>vinomaster</id>
+            <name>Dan Gisolfi</name>
+            <email>gisolfi@us.ibm.com</email>
+            <organization>IBM Corporation</organization>
+        </developer>
+    </developers>
+    
+    <scm>
+        <connection>scm:git:git@github.com:opencoweb/cowebx.git</connection>
+        <developerConnection>scm:git:git@github.com:opencoweb/cowebx.git</developerConnection>
+        <url>git@github.com:opencoweb/cowebx.git</url>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -31,7 +70,9 @@
         <defaultGoal>install</defaultGoal>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
