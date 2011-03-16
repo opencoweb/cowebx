@@ -36,12 +36,13 @@ dojo.declare('comap.GMap', dijit._Widget, {
           zoom: 10,
           center: latlng,
           mapTypeId: google.maps.MapTypeId.ROADMAP,
-          streetViewControl: false
+          streetViewControl: false,
+          disableDoubleClickZoom: true
         };
         this._map = new google.maps.Map(dojo.byId('map'), mapOpts);
         // connect to events
-        google.maps.event.addListener(this._map, 'rightclick', 
-            dojo.hitch(this, '_onMapRightClick'));
+        google.maps.event.addListener(this._map, 'dblclick', 
+            dojo.hitch(this, '_onMapDblClick'));
         google.maps.event.addListener(this._map, 'center_changed', 
             dojo.hitch(this, '_onCenterChange'));
         google.maps.event.addListener(this._map, 'dragstart', 
@@ -217,7 +218,7 @@ dojo.declare('comap.GMap', dijit._Widget, {
         }
     },
 
-    _onMapRightClick: function(event) {
+    _onMapDblClick: function(event) {
         // add a new marker
         var uuid = dojox.uuid.generateRandomUuid();
         var marker = this.addMarker(uuid, this.app.username, event.latLng);
