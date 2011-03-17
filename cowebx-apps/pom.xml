@@ -12,9 +12,6 @@
     <packaging>war</packaging>
 
     <build>
-        <defaultGoal>install</defaultGoal>
-        <finalName>cowebx-apps</finalName>
-
         <plugins>
             <plugin>
                 <groupId>org.mortbay.jetty</groupId>

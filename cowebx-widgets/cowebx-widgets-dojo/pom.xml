@@ -10,9 +10,4 @@
     <artifactId>cowebx-widgets-dojo</artifactId>
     <name>OpenCoweb Extras :: Widgets :: Dojo</name>
     <packaging>war</packaging>
-
-    <build>
-        <defaultGoal>install</defaultGoal>
-        <finalName>cowebx-widgets-dojo</finalName>
-    </build>
 </project>
