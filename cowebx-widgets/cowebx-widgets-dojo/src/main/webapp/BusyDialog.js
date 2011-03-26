@@ -31,11 +31,7 @@ dojo.declare('cowebx.BusySheet', [dijit._Widget, dijit._Templated], {
         this._frozen = false;
         // connect to session for status updates
         this.connect(this.session, 'onStatusChange', 'setState');
-    },
-
-    uninitialize: function() {
-        OpenAjax.hub.unsubscribe(this._tok);
-    },
+    }
     
     /**
      * Gets if the busy dialog is frozen after reaching a terminal state.
