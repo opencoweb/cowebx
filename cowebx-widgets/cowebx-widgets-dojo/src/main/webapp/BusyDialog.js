@@ -4,6 +4,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global dojo dijit window cowebx*/
 dojo.provide('cowebx.BusyDialog');
 dojo.require('dijit.Dialog');
 dojo.require('dijit.form.Button');
@@ -31,7 +32,7 @@ dojo.declare('cowebx.BusySheet', [dijit._Widget, dijit._Templated], {
         this._frozen = false;
         // connect to session for status updates
         this.connect(this.session, 'onStatusChange', 'setState');
-    }
+    },
     
     /**
      * Gets if the busy dialog is frozen after reaching a terminal state.
@@ -60,10 +61,10 @@ dojo.declare('cowebx.BusySheet', [dijit._Widget, dijit._Templated], {
      * Shows the failure or cancel actions.
      */
     _showActions: function(name) {
-        if(name == 'fail') {
+        if(name === 'fail') {
             dojo.style(this.cancel_actions, 'display', 'none');
             dojo.style(this.fail_actions, 'display', 'block');
-        } else if(name == 'busy') {
+        } else if(name === 'busy') {
             dojo.style(this.fail_actions, 'display', 'none');
             dojo.style(this.cancel_actions, 'display', 'block');
         }
@@ -73,11 +74,11 @@ dojo.declare('cowebx.BusySheet', [dijit._Widget, dijit._Templated], {
      * Shows the busy or failure icon.
      */
     _showIcon: function(name) {
-        if(name == 'fail') {
+        if(name === 'fail') {
             this._frozen = true;
             dojo.addClass(this.icon, 'cowebFailIcon');
             dojo.removeClass(this.icon, 'cowebBusyIcon');
-        } else if(name == 'busy') {
+        } else if(name === 'busy') {
             dojo.addClass(this.icon, 'cowebBusyIcon');
             dojo.removeClass(this.icon, 'cowebFailIcon');
         }
@@ -138,7 +139,7 @@ dojo.declare('cowebx.BusyDialog', dijit.Dialog, {
      * Override key handler to prevent closing with escape.
      */
     _onKey: function(evt) {
-        if(evt.charOrCode == dojo.keys.ESCAPE) {
+        if(evt.charOrCode === dojo.keys.ESCAPE) {
             return;
         }
         this.inherited(arguments);
@@ -161,7 +162,7 @@ dojo.declare('cowebx.BusyDialog', dijit.Dialog, {
      * @param state One of SessionInterface status strings
      */
     setState: function(state) {
-        if(state == 'ready' && !this._sheet.isFrozen()) {
+        if(state === 'ready' && !this._sheet.isFrozen()) {
             this.hide();
             // disable to move focus off cancel button to prevent next key 
             // stroke from triggering hidden cancel
