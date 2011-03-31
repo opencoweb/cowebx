@@ -60,9 +60,6 @@ public class ZipVisits implements Bot {
         	return;
    
         if(topic.startsWith("coweb.sync.marker")) {
-            Map<Object, Object> evtData = 
-                (Map<Object, Object>)data.get("eventData");
-
             //parse the topic field to find the item after 
             //coweb.sync.marker
         	String[] seqs = topic.split("\\.");
