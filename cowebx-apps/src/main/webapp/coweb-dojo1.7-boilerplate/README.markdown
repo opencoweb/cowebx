@@ -26,7 +26,6 @@ The structure of this directory is extremely straight forward. The following fil
 The following files are simply part of the configuration and shouldn't be modified:
 
 * ```i18n.js``` : the current Dojo i18n.js isn't supported by requireJS and AMD loading in general, so this i18n script file is AMD-specific plugin that allows for internationalization.
-* ```require.js``` : each AMD application needs its own copy of require.js to function properly.
 
 ##Developing
 
