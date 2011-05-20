@@ -12,11 +12,7 @@ var dependencies = [
 	'dijit',
 	'dojox',
 	
-	//App-specific
-	'coweb/main',
-	'dojo/parser',
-	'dijit/layout/BorderContainer',
-	'dijit/layout/ContentPane',
+	//App itself
 	'application'
 ];
 

@@ -12,7 +12,7 @@ define(
 		'dojo/parser',
 		'dijit/layout/BorderContainer',
 		'dijit/layout/ContentPane'
-	], 
+	],
 
 	function(
 		coweb,
