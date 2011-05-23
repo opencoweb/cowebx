@@ -1,11 +1,3 @@
-//
-// Adds focus tracking cooperative features to a dojox.grid control. Shows
-// where remote users currently have the input focus.
-//
-// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
-// Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
-//
-/*global define dojo*/
 define([
     'coweb/main',
 	'coweb/ext/attendance'
@@ -18,7 +10,7 @@ define([
 		this.site = null;
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this, 'onReady');
- 		attendance.subscribeChange(this, 'onUserChange');   
+ 		attendance.subscribeChange(this, 'onUserChange');
     };
     var proto = AttendeeList.prototype;
     
@@ -59,6 +51,10 @@ define([
 	
 	proto._userClick = function(e){
 		dijit.byId(e.target.id).select();
+		// dojo.publish("newSpeaker",[{
+		// 	username: e.target.innerHTML,
+		// 	site: e.target.id
+		// }]);
 	};
 	
     return AttendeeList;

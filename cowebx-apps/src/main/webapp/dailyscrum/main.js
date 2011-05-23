@@ -8,7 +8,7 @@
 var dependencies = [
 	//Global
 	'org/cometd',  //*Uncomment if using Developer Setup
-    'dojo', 
+    'dojo',
 	'dijit',
 	'dojox',
 	

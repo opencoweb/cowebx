@@ -19,3 +19,26 @@ html, body {
 	border-right:1px solid black;
 	width:300px;
 }
+
+.dailyscrum_top{
+	border-bottom:1px solid grey;
+	height: 120px;
+	overflow:auto;
+}
+
+.dailyscrum_clock_table{
+	width:100%;
+	height:100%;
+	font-family: “Lucida Grande”, sans-serif;
+	font-size: 90px;
+	color:grey;
+}
+
+.dailyscrum_clock_left{
+	text-align:center;
+	border-right:1px solid grey;
+}
+
+.dailyscrum_clock_right{
+	text-align:center;
+}

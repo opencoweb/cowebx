@@ -13,7 +13,8 @@ define(
 		'dojox/mobile',
 		'dojox/mobile/FixedSplitter',
 		'dojox/mobile/ScrollableView',
-		'AttendeeList'
+		'AttendeeList',
+		'Clock'
 	],
 
 	function(
@@ -22,14 +23,17 @@ define(
 		mobile,
 		FixedSplitter,
 		ScrollableView,
-		AttendeeList) {
+		AttendeeList,
+		Clock) {
 		
 		// parse declarative widgets
 	   	parser.parse(dojo.body());
 		
 		// set up AttendanceList instance
-		args = {id : 'dailyscrum_list'};
-        var attendeeList = new AttendeeList(args);
+        var attendeeList = new AttendeeList({id : 'dailyscrum_list'});
+
+		//Set up clocks
+		var userClock = new Clock({id : 'userClock', time: (1/4) });
 
 	   	// get a session instance
 	    var sess = coweb.initSession();
