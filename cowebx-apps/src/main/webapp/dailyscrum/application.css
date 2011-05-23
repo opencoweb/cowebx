@@ -1,0 +1,21 @@
+/*
+ * Cooperative list styles.
+ *
+ * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+ * Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
+ */
+@import "dojox/mobile/themes/iphone/iphone.css";
+@import "dojox/mobile/themes/iphone/ipad.css";
+
+html, body {
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.dailyscrum_left{
+	border-right:1px solid black;
+	width:300px;
+}

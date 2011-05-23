@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  	<head>
+    	<meta charset="utf-8" />
+    	<title>Cooperative App Example</title>
+    	<link rel="stylesheet" href="application.css" type="text/css" />
+    	<script data-main="main" src="../lib/require.js"></script>
+  	</head>
+  	<body class="claro">
+		<div dojoType="dojox.mobile.FixedSplitter" orientation="H">
+			<div dojoType="dojox.mobile.FixedSplitterPane" class="dailyscrum_left">
+				<div dojoType="dojox.mobile.ScrollableView" selected="true">
+					<h1 dojoType="dojox.mobile.Heading" fixed="top">Attendees</h1>
+					<ul dojoType="dojox.mobile.EdgeToEdgeList" id="listView" transition="none" stateful="true">
+						<!-- Attendees added here -->
+					</ul>
+				</div>
+			</div>
+			<div dojoType="dojox.mobile.FixedSplitterPane">
+				<div dojoType="dojox.mobile.ScrollableView" selected="true">
+					<h1 dojoType="dojox.mobile.Heading" fixed="top">Current Speaker: </h1>
+					
+				</div>
+			</div>
+		</div>
+  	</body>
+</html>
