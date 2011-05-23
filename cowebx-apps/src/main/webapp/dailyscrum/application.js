@@ -10,8 +10,6 @@ define(
 	[
 		'coweb/main',
 		'dojox/mobile/parser',
-		'dijit/layout/BorderContainer',
-		'dijit/layout/ContentPane',
 		'dojox/mobile',
 		'dojox/mobile/FixedSplitter',
 		'dojox/mobile/ScrollableView',
@@ -21,8 +19,6 @@ define(
 	function(
 		coweb,
 		parser,
-		BorderContainer,
-		ContentPane,
 		mobile,
 		FixedSplitter,
 		ScrollableView,

@@ -22,40 +22,44 @@ define([
     };
     var proto = AttendeeList.prototype;
     
-    /**
-     * Called when this local application instance is joined to a session and
-     * has already received full state from another attendee in the session.
-     * Stores the site id of this instance for later use.
-     *
-     * @param params Object with properties for the ready event (see doc)
-     */
     proto.onReady = function(params) {
         this.site = params.site;
     };
 
-    /**
-     * Called when either local user or remote user(s) join/leave session
-     * Adjusts AttendeeList entries accordingly
-     *
-     * @param params Object with properties for the attendance event (see doc)
-     */
     proto.onUserChange = function(params) {
 		//Break if empty object
 		if(!params.users[0])
 			return;
 		if(params.type == "join"){
 			//Locally create a new listItem for the user
-			var a = new dojox.mobile.ListItem({ 
-						innerHTML: params.users[0]['username'],
-						id: params.users[0]['site'].toString()
-					});
-			dijit.byId('listView').addChild(a);
+			this._userJoin(params.users);
 		}else if(params.type == "leave"){
 			//Locally delete listItem for the user
-			var a = dijit.byId(params.users[0]['site'].toString());
-			a.destroy(false);
+			this._userLeave(params.users);
 		}
     };
+
+	proto._userJoin = function(users){
+		for(var i=0; i<users.length; i++){
+			var a = new dojox.mobile.ListItem({ 
+						innerHTML: users[i]['username'],
+						id: users[i]['site'].toString()
+					});
+			dijit.byId('listView').addChild(a);
+			dojo.connect(a.domNode, 'onclick', this, '_userClick');
+		}
+	};
+	
+	proto._userLeave = function(users){
+		for(var i=0; i<users.length; i++){
+			var a = dijit.byId(users[i]['site'].toString());
+			a.destroy(false);
+		}
+	};
+	
+	proto._userClick = function(e){
+		dijit.byId(e.target.id).select();
+	};
 	
     return AttendeeList;
 });
