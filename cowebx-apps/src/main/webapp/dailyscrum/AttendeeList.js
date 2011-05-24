@@ -7,7 +7,12 @@ define([
         if(!this.id) {
             throw new Error('missing id argument');
         }
+
 		this.site = null;
+		this.count = null;
+		this.clicked = false;
+		this.selected = '';
+		
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this, 'onReady');
  		attendance.subscribeChange(this, 'onUserChange');
@@ -29,6 +34,8 @@ define([
 			//Locally delete listItem for the user
 			this._userLeave(params.users);
 		}
+		this.count = params.count;
+		console.log("count = "+this.count);
     };
 
 	proto._userJoin = function(users){
@@ -50,11 +57,9 @@ define([
 	};
 	
 	proto._userClick = function(e){
+		this.clicked = true;
+		this.selected = e.target.innerHTML;
 		dijit.byId(e.target.id).select();
-		// dojo.publish("newSpeaker",[{
-		// 	username: e.target.innerHTML,
-		// 	site: e.target.id
-		// }]);
 	};
 	
     return AttendeeList;

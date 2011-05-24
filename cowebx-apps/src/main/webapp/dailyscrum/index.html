@@ -18,16 +18,18 @@
 			</div>
 			<div dojoType="dojox.mobile.FixedSplitterPane">
 				<div dojoType="dojox.mobile.ScrollableView" selected="true">
-					<h1 dojoType="dojox.mobile.Heading" fixed="top">Current Speaker: </h1>
+					<h1 dojoType="dojox.mobile.Heading" fixed="top" id="speaker">Current Speaker:</h1>
 					<div dojoType="dojox.mobile.FixedSplitter" orientation="V">
 						<div dojoType="dojox.mobile.FixedSplitterPane" class="dailyscrum_top">
 						<table class="dailyscrum_clock_table">
 							<tr>
-								<td class="dailyscrum_clock_left" id="totalClock">
-									00:00
+								<td class="dailyscrum_clock_left">
+									<img src="images/start.png" class="dailyscrum_start" id="start"/>
+									<span id="totalClock">00:00</span>
 								</td>
-								<td class="dailyscrum_clock_right" id="userClock">
-									00:00
+								<td class="dailyscrum_clock_right">
+									<span id="userClock">00:00</span>
+									<img src="images/plusone.png" class="dailyscrum_plus" id="plusOne"/>
 								</td>
 							</tr>
 						</table>
