@@ -39,7 +39,10 @@ define(
 				// set up AttendanceList and Clocks
 		        this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
 				this.userClock = new Clock({id : 'userClock', type : 'user', time: 0 });
-				this.totalClock = new Clock({id : 'totalClock', type : 'total', time: 10 });
+				var length = 10;
+				if(this.aquireUrlParams('length') != null)
+					length = this.aquireUrlParams('length');
+				this.totalClock = new Clock({id : 'totalClock', type : 'total', time: length });
 
 				//Listen for local events
 				dojo.connect(this.attendeeList, '_userClick', this, 'onUserClick');
@@ -57,6 +60,17 @@ define(
 			    var sess = coweb.initSession();
 			    // do the prep
 			    sess.prepare();
+			},
+			
+			aquireUrlParams: function(param){
+				param = param.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+				var regexS = "[\\?&]"+param+"=([^&#]*)";
+				var regex = new RegExp( regexS );
+				var results = regex.exec( window.location.href );
+				if( results == null )
+					return null;
+				else
+					return results[1];
 			},
 			
 			onStateRequest: function(token){
