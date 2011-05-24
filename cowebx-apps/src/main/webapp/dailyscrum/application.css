@@ -44,12 +44,9 @@ html, body {
 	background-color:rgb(197, 204, 211);
 }
 
-.dailyscrum_start{
-	
-}
-
-.dailyscrum_plus{
-	
+.dailyscrum_minAdded{
+	font-size:14px;
+	color:red;
 }
 
 .dailyscrum_editor{

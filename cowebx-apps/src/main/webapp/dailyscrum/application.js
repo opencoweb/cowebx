@@ -15,7 +15,7 @@ define(
 		'dojox/mobile/ScrollableView',
 		'AttendeeList',
 		'Clock',
-		'dojo/fx',
+		'dojo/fx'
 	],
 
 	function(
@@ -26,7 +26,8 @@ define(
 		ScrollableView,
 		AttendeeList,
 		Clock,
-		fx) {
+		fx,
+		compat) {
 		
 		var app = {
 			init: function(){
@@ -92,7 +93,8 @@ define(
 					totalInitial : this.totalClock.initial,
 					userTest : this.userClock.test,
 					userSeconds : this.userClock.seconds,
-					userStatus : this.userClock.status
+					userStatus : this.userClock.status,
+					userExtraMins: this.userClock.extraMins
 	            };
 	            this.collab.sendStateResponse(state,token);
 			},
@@ -108,6 +110,7 @@ define(
 				this.userClock.test = state.userTest;
 				this.userClock.seconds = state.userSeconds;
 				this.userClock.status = state.userStatus;
+				this.userClock.extraMins = state.userExtraMins;
 				
 				this.totalClock._renderTime();
 				this.userClock._renderTime();
@@ -117,6 +120,7 @@ define(
 				if(this.userClock.status == 'started')
 					this.userClock.start();
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
+				//dojo.attr('minutesAdded','innerHTML',this.userClock.extraMins);
 			},
 			
 			onUserClick: function(){
@@ -124,6 +128,8 @@ define(
 				this.userClock.seconds = Math.floor(this.totalClock.seconds / this.attendeeList.count);
 				this.userClock.start(); 
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
+				//dojo.attr('minutesAdded','innerHTML','   ');
+				this.userClock.extraMins = 0;
 				if(this.totalClock.status == 'stopped')
 					this.totalClock.start();
 				this.collab.sendSync('userClick', { }, null);
@@ -134,6 +140,8 @@ define(
 				this.userClock.seconds = Math.floor(this.totalClock.seconds / this.attendeeList.count);
 				this.userClock.start();
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
+				//dojo.attr('minutesAdded','innerHTML','   ');
+				this.userClock.extraMins = 0;
 				if(this.totalClock.status == 'stopped')
 					this.totalClock.start();
 			},
@@ -163,10 +171,12 @@ define(
 			
 			onAddMinute: function(){
 				this.userClock.addMinute();
+				//dojo.attr('minutesAdded','innerHTML',this.userClock.extraMins);
 				this.collab.sendSync('addMinute', { }, null);
 			},
 			
 			onRemoteAddMinute: function(){
+				//dojo.attr('minutesAdded','innerHTML',this.userClock.extraMins);
 				this.userClock.addMinute();
 			}
 		};

@@ -15,6 +15,7 @@ define([
 		this.seconds = (args.time * 60);
 		this.status = 'stopped';
 		this.initial = true;
+		this.extraMins = 0;
 		this.t = new dojox.timing.Timer(1000);
 		dojo.connect(this.t, 'onTick', this, '_onTick');
 		this._renderTime();
@@ -48,6 +49,7 @@ define([
 	
 	proto.addMinute = function(){
 		this.seconds = this.seconds + 60;
+		this.extraMins++;
 		this._renderTime();
 	};
 	
