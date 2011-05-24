@@ -14,7 +14,8 @@ define(
 		'dojox/mobile/FixedSplitter',
 		'dojox/mobile/ScrollableView',
 		'AttendeeList',
-		'Clock'
+		'Clock',
+		'dojo/fx',
 	],
 
 	function(
@@ -24,7 +25,8 @@ define(
 		FixedSplitter,
 		ScrollableView,
 		AttendeeList,
-		Clock) {
+		Clock,
+		fx) {
 		
 		var app = {
 			init: function(){
@@ -37,12 +39,18 @@ define(
 			   	parser.parse(dojo.body());
 
 				// set up AttendanceList and Clocks
-		        this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
-				this.userClock = new Clock({id : 'userClock', type : 'user', time: 0 });
 				var length = 10;
 				if(this.aquireUrlParams('length') != null)
 					length = this.aquireUrlParams('length');
 				this.totalClock = new Clock({id : 'totalClock', type : 'total', time: length });
+				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
+				this.userClock = new Clock({id : 'userClock', type : 'user', time: 0 });
+				
+				//Setup iFrame
+				var url = '';
+				if(this.aquireUrlParams('url') != null)
+					url = 'http://'+this.aquireUrlParams('url');
+				dojo.attr('scrumFrame','src', url);
 
 				//Listen for local events
 				dojo.connect(this.attendeeList, '_userClick', this, 'onUserClick');

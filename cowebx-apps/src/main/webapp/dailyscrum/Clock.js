@@ -56,14 +56,32 @@ define([
 			this.test = "neg";
 		if(this.test == "pos")
 			this.seconds--;
-		if(this.test == "neg")
+		if(this.test == "neg"){
 			this.seconds++;
+			this.notify();
+		}
 			
 		this._renderTime();
 		
 		if((this.type == 'total') && (this.seconds == 0))
 			this.stop();
     };
+
+	proto.notify = function(){
+		var anim1 = dojo.animateProperty({
+		  				node:"userClockCell",
+		  				properties: {
+		      				backgroundColor: 'red'
+		  				}
+					});
+		var anim2 = dojo.animateProperty({
+					  	node:"userClockCell",
+					  	properties: {
+					    	backgroundColor: 'rgb(197, 204, 211)'
+					  	}
+					});
+		dojo.fx.chain([anim1,anim2]).play();
+	};
 	
 	proto._renderTime = function(){
 		var min = Math.floor(this.seconds/60);

@@ -41,6 +41,7 @@ html, body {
 
 .dailyscrum_clock_right{
 	text-align:center;
+	background-color:rgb(197, 204, 211);
 }
 
 .dailyscrum_start{
@@ -49,4 +50,9 @@ html, body {
 
 .dailyscrum_plus{
 	
+}
+
+.dailyscrum_editor{
+	width:100%;
+	height:100%;
 }

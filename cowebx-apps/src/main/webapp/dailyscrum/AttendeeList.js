@@ -11,7 +11,7 @@ define([
 		this.site = null;
 		this.count = null;
 		this.clicked = false;
-		this.selected = '';
+		this.selected = 'None';
 		
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this, 'onReady');
