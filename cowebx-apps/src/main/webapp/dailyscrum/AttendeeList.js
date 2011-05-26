@@ -12,6 +12,8 @@ define([
 		this.count = null;
 		this.clicked = false;
 		this.selected = 'None';
+		this.prevSelectedId = null;
+		this.selectedId = null;
 		
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this, 'onReady');
@@ -24,6 +26,7 @@ define([
     };
 
     proto.onUserChange = function(params) {
+		this.count = params.count;
 		//Break if empty object
 		if(!params.users[0])
 			return;
@@ -34,17 +37,21 @@ define([
 			//Locally delete listItem for the user
 			this._userLeave(params.users);
 		}
-		this.count = params.count;
-		console.log("count = "+this.count);
+
     };
 
 	proto._userJoin = function(users){
 		for(var i=0; i<users.length; i++){
 			var a = new dojox.mobile.ListItem({ 
 						innerHTML: users[i]['username'],
-						id: users[i]['site'].toString()
+						id: users[i]['site'].toString(),
 					});
 			dijit.byId('listView').addChild(a);
+			var b = dojo.create("span", { 
+						id: users[i]['site'].toString()+"_count",
+						innerHTML: '0',
+						'class':'dailyscrum_count'
+					}, a.domNode, 'last');
 			dojo.connect(a.domNode, 'onclick', this, '_userClick');
 		}
 	};
@@ -59,6 +66,7 @@ define([
 	proto._userClick = function(e){
 		this.clicked = true;
 		this.selected = e.target.innerHTML;
+		this.selectedId = e.target.id;
 		dijit.byId(e.target.id).select();
 	};
 	

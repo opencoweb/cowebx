@@ -53,3 +53,9 @@ html, body {
 	width:100%;
 	height:100%;
 }
+
+.dailyscrum_count{
+	float: right;
+	margin-right:5px;
+	color:grey;
+}

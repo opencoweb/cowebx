@@ -29,6 +29,7 @@ define([
     proto.start = function() {
 		this._renderTime();
         this.t.start();
+		console.log(this.seconds);
 		this.status = 'started';
 		if(this.type == 'total'){
 			dojo.attr('start','src','images/stop.png');
@@ -62,7 +63,6 @@ define([
 			this.seconds++;
 			this.notify();
 		}
-			
 		this._renderTime();
 		
 		if((this.type == 'total') && (this.seconds == 0))
@@ -72,12 +72,14 @@ define([
 	proto.notify = function(){
 		var anim1 = dojo.animateProperty({
 		  				node:"userClockCell",
+						duration: 5000,
 		  				properties: {
 		      				backgroundColor: 'red'
 		  				}
 					});
 		var anim2 = dojo.animateProperty({
 					  	node:"userClockCell",
+						duration: 5000,
 					  	properties: {
 					    	backgroundColor: 'rgb(197, 204, 211)'
 					  	}
