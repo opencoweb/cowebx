@@ -55,6 +55,9 @@ define([
 						'class':'dailyscrum_count'
 					}, a.domNode, 'last');
 			dojo.connect(a.domNode, 'onclick', this, '_userClick');
+			//INJECT HIGHLIGHTING HERE
+			if(users[i]['local'] == true)
+				dojo.style(a.domNode, 'color', 'orange');
 		}
 	};
 	
@@ -68,6 +71,8 @@ define([
 	proto._userClick = function(e){
 		this.clicked = true;
 		this.selected = e.target.innerHTML;
+		if(this.selected.indexOf('<') != -1)
+			this.selected = this.selected.substring(0,this.selected.indexOf('<'));
 		this.selectedId = e.target.id;
 		dijit.byId(e.target.id).select();
 	};

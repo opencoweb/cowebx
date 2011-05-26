@@ -82,9 +82,6 @@ define([
 			this.notify();
 		}
 		this._renderTime();
-		
-		if((this.type == 'total') && (this.seconds == 0))
-			this.stop();
     };
 	
 	proto._renderTime = function(){

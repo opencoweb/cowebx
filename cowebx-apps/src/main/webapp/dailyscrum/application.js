@@ -49,7 +49,7 @@ define(
 				//Setup iFrame
 				var url = '';
 				if(this.aquireUrlParams('url') != null)
-					url = 'http://'+this.aquireUrlParams('url');
+					url = this.aquireUrlParams('url');
 				dojo.attr('scrumFrame','src', url);
 				
 				//Subscribe to collab events
@@ -77,7 +77,7 @@ define(
 			
 			onUserJoin: function(objArray){
 				//Change the time allotted per user
-				this.timeAllotted = Math.floor((this.totalClock.time*60) / this.attendeeList.count);
+				this.timeAllotted = Math.floor((this.totalClock.seconds) / this.attendeeList.count);
 				
 				//If the users are new, add them the the user object
 				//and set their 'time spoken' to 0
@@ -106,7 +106,7 @@ define(
 				var render = true;	
 				
 				//Change the time allotted per user
-				this.timeAllotted = Math.floor((this.totalClock.time*60) / this.attendeeList.count);
+				this.timeAllotted = Math.floor((this.totalClock.seconds) / this.attendeeList.count);
 				
 				//Delete from users object. If the users are currently
 				//speaking, stop user clock and 'duration' timer
@@ -223,7 +223,7 @@ define(
 				
 				//Change the title bar
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
-				
+
 				//Reset the extraMins since we're on a new user
 				this.userClock.extraMins = 0;
 				
@@ -313,16 +313,12 @@ define(
 			
 			onAddMinute: function(){
 				this.userClock.addMinute();
-				if(this.userClock.seconds > this.totalClock.seconds)
-					this.userClock.seconds = this.totalClock.seconds;
 				this.collab.sendSync('addMinute', { }, null);
 				this.userClock._renderTime();
 			},
 			
 			onRemoteAddMinute: function(){
 				this.userClock.addMinute();
-				if(this.userClock.seconds > this.totalClock.seconds)
-					this.userClock.seconds = this.totalClock.seconds;
 				this.userClock._renderTime();
 			},
 			
