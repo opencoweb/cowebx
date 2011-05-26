@@ -23,7 +23,7 @@ html, body {
 .dailyscrum_top{
 	border-bottom:1px solid grey;
 	height: 100px;
-	overflow:auto;
+	overflow:hidden;
 }
 
 .dailyscrum_clock_table{
