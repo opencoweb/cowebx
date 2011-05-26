@@ -88,13 +88,15 @@ define(
 				
 				//Update the user clock with new calc'ed time
 				this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+				if(this.userClock.seconds > this.totalClock.seconds)
+					this.userClock.seconds = this.totalClock.seconds;
 				if(this.users[this.attendeeList.selectedId] != undefined)
 					this.userClock._renderTime();
 				
 				//Update time next to speakers
 				for(var entry in this.users){
 					if(dojo.byId(entry+"_count").innerHTML != this.users[entry]){
-						dojo.byId(entry+"_count").innerHTML = this.users[entry];
+						dojo.byId(entry+"_count").innerHTML = this._formatTime(this.users[entry]);
 					}
 				}
 			},
@@ -326,7 +328,18 @@ define(
 			
 			_onTick: function(){
 				this.users[this.attendeeList.selectedId] = this.users[this.attendeeList.selectedId]+1;
-				dojo.byId(this.attendeeList.selectedId+"_count").innerHTML = this.users[this.attendeeList.selectedId];
+				dojo.byId(this.attendeeList.selectedId+"_count").innerHTML = this._formatTime(this.users[this.attendeeList.selectedId]);
+				
+			},
+			
+			_formatTime: function(time){
+				var min = Math.floor(time/60);
+				if(min < 10)
+					min = "0"+min;
+				var secs = time%60;
+				if(secs<10)
+					secs = "0"+secs;
+				return min + ":" + secs;
 			}
 		};
 		

@@ -51,7 +51,7 @@ define([
 			dijit.byId('listView').addChild(a);
 			var b = dojo.create("span", { 
 						id: users[i]['site'].toString()+"_count",
-						innerHTML: '0',
+						innerHTML: '00:00',
 						'class':'dailyscrum_count'
 					}, a.domNode, 'last');
 			dojo.connect(a.domNode, 'onclick', this, '_userClick');
