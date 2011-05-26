@@ -311,11 +311,17 @@ define(
 			
 			onAddMinute: function(){
 				this.userClock.addMinute();
+				if(this.userClock.seconds > this.totalClock.seconds)
+					this.userClock.seconds = this.totalClock.seconds;
 				this.collab.sendSync('addMinute', { }, null);
+				this.userClock._renderTime();
 			},
 			
 			onRemoteAddMinute: function(){
 				this.userClock.addMinute();
+				if(this.userClock.seconds > this.totalClock.seconds)
+					this.userClock.seconds = this.totalClock.seconds;
+				this.userClock._renderTime();
 			},
 			
 			_onTick: function(){

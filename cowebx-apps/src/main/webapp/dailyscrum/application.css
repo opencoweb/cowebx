@@ -59,3 +59,25 @@ html, body {
 	margin-right:5px;
 	color:grey;
 }
+
+.dailyscrum_control{
+	position: absolute;
+	bottom: 0;
+	border:1px solid grey;
+	width: 100%;
+	height: 20%;
+}
+
+.dailyscrum_plus{
+	height:25px;
+	width:40px;
+}
+
+.dailyscrum_control_table{
+	height:70%;
+	width:100%;
+	font-family: “Lucida Grande”, sans-serif;
+	font-size: 45px;
+	color:grey;
+	text-align:center;
+}

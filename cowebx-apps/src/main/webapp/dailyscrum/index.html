@@ -9,11 +9,24 @@
   	<body class="claro">
 		<div dojoType="dojox.mobile.FixedSplitter" orientation="H">
 			<div dojoType="dojox.mobile.FixedSplitterPane" class="dailyscrum_left">
-				<div dojoType="dojox.mobile.ScrollableView" selected="true">
+				<div dojoType="dojox.mobile.ScrollableView" selected="true" height="80%">
 					<h1 dojoType="dojox.mobile.Heading" fixed="top">Attendees</h1>
-					<ul dojoType="dojox.mobile.EdgeToEdgeList" id="listView" transition="none" stateful="true">
+					<ul dojoType="dojox.mobile.EdgeToEdgeList" id="listView" transition="none" stateful="true" >
 						<!-- Attendees added here -->
 					</ul>
+				</div>
+				<div class="dailyscrum_control">
+					<h1 dojoType="dojox.mobile.Heading" fixed="top">Meeting Control</h1>
+					<table class="dailyscrum_control_table">
+						<tr>
+							<td>
+								<img src="images/start.png" class="dailyscrum_start" id="start"/>
+							</td>
+							<td>
+								<span id="totalClock">00:00</span>
+							</td>
+						</tr>
+					</table>
 				</div>
 			</div>
 			<div dojoType="dojox.mobile.FixedSplitterPane">
@@ -23,14 +36,9 @@
 						<div dojoType="dojox.mobile.FixedSplitterPane" class="dailyscrum_top">
 						<table class="dailyscrum_clock_table">
 							<tr>
-								<td class="dailyscrum_clock_left">
-									<img src="images/start.png" class="dailyscrum_start" id="start"/>
-									<span id="totalClock">00:00</span>
-								</td>
 								<td class="dailyscrum_clock_right" id="userClockCell">
-									<span id="userClock">00:00</span>
+									<span>&nbsp;&nbsp;&nbsp;<span id="userClock">00:00</span></span>
 									<img src="images/plusone.png" class="dailyscrum_plus" id="plusOne"/>
-									<span id="minutesAdded" class="dailyscrum_minAdded">&nbsp;&nbsp;&nbsp;</span>
 								</td>
 							</tr>
 						</table>

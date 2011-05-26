@@ -52,7 +52,6 @@ define([
 	proto.addMinute = function(){
 		this.seconds = this.seconds + 60;
 		this.extraMins++;
-		this._renderTime();
 	};
 	
 	proto.notify = function(){
