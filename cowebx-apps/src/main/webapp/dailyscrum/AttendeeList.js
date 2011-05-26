@@ -3,18 +3,20 @@ define([
 	'coweb/ext/attendance'
 ], function(coweb, attendance) {
     var AttendeeList = function(args) {
-        this.id = args.id;
-        if(!this.id) {
-            throw new Error('missing id argument');
-        }
-
+		//Params
 		this.site = null;
-		this.count = null;
-		this.clicked = false;
-		this.selected = 'None';
-		this.prevSelectedId = null;
-		this.selectedId = null;
+        this.id = args.id;
+        if(!this.id)
+            throw new Error('missing id argument');
+			
+		//List vars
+		this.count = null;				//How many users currently
+		this.clicked = false;			//Has a speaker been chosen yet?
+		this.selected = 'None';			//Currently selected username
+		this.selectedId = null;			//Currently selectd ID
+		this.prevSelectedId = null;		//Previously selected ID
 		
+		//Subscribe to syncs and listen
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this, 'onReady');
  		attendance.subscribeChange(this, 'onUserChange');

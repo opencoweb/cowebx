@@ -41,6 +41,7 @@ define(
 				this.totalClock = new Clock({id : 'totalClock', type : 'total', time: length });
 				this.userClock = new Clock({id : 'userClock', type : 'user', time: 0 });
 				this.t = new dojox.timing.Timer(1000);
+				dojo.connect(this.t, 'onTick', this, '_onTick');
 				
 				//Set up attendeeList
 				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
@@ -60,7 +61,6 @@ define(
 				dojo.connect(this.attendeeList, '_userLeave', this, 'onUserLeave');
 				dojo.connect(dojo.byId('start'), 'onclick', this, 'onStartClick');
 				dojo.connect(dojo.byId('plusOne'),'onclick',this,'onAddMinute');
-				dojo.connect(this.t, 'onTick', this, '_onTick');
 
 				//Listen for remote events
 				this.collab.subscribeSync('userClick', this, 'onRemoteUserClick');
@@ -76,27 +76,38 @@ define(
 			},
 			
 			onUserJoin: function(objArray){
+				//Change the time allotted per user
 				this.timeAllotted = Math.floor((this.totalClock.time*60) / this.attendeeList.count);
+				
+				//If the users are new, add them the the user object
+				//and set their 'time spoken' to 0
 				for(var i=0; i<objArray.length; i++){
 					if(!(this.users[objArray[i]['site']]))
 						this.users[objArray[i]['site']] = 0;
 				}
+				
+				//Update the user clock with new calc'ed time
 				this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
-				if(this.users[this.attendeeList.selectedId] != undefined){
+				if(this.users[this.attendeeList.selectedId] != undefined)
 					this.userClock._renderTime();
-				}
-				//Time next to speakers
+				
+				//Update time next to speakers
 				for(var entry in this.users){
 					if(dojo.byId(entry+"_count").innerHTML != this.users[entry]){
 						dojo.byId(entry+"_count").innerHTML = this.users[entry];
 					}
-					 
 				}
 			},
 			
 			onUserLeave: function(objArray){
-				var render = true;
+				//Housekeeping
+				var render = true;	
+				
+				//Change the time allotted per user
 				this.timeAllotted = Math.floor((this.totalClock.time*60) / this.attendeeList.count);
+				
+				//Delete from users object. If the users are currently
+				//speaking, stop user clock and 'duration' timer
 				for(var i=0; i<objArray.length; i++){
 					if(objArray[i]['site'] == this.attendeeList.selectedId){
 						this.userClock.stop();
@@ -106,9 +117,11 @@ define(
 					}
 					delete this.users[objArray[i]['site']];
 				}
+				
+				//Update user clock depending on whether user who
+				//left was speaking or not and render
 				if(render == true && (this.users[this.attendeeList.selectedId] != undefined)){
 					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
-					console.log(this.userClock.seconds);
 				}else{
 					this.userClock.seconds = 0;
 				}
@@ -117,8 +130,8 @@ define(
 			
 			aquireUrlParams: function(param){
 				param = param.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-				var regexS = "[\\?&]"+param+"=([^&#]*)";
-				var regex = new RegExp( regexS );
+				var pattern = "[\\?&]"+param+"=([^&#]*)";
+				var regex = new RegExp( pattern );
 				var results = regex.exec( window.location.href );
 				if( results == null )
 					return null;
@@ -127,113 +140,167 @@ define(
 			},
 			
 			onStateRequest: function(token){
-				console.log('request');
 				var state = {
+					//User/spokenTime object
 					thisUsers : this.users,
+					
+					//AttendeeList status vars
 	                attendeeClicked : this.attendeeList.clicked,
 	                attendeeSelected : this.attendeeList.selected,
 					attendeeSelectedId : this.attendeeList.selectedId,
 					attendeePrevSelectedId : this.attendeeList.prevSelectedId,
+					
+					//totalClock status vars
 					totalTest : this.totalClock.test,
 					totalSeconds : this.totalClock.seconds,
 					totalStatus : this.totalClock.status,
-					totalInitial : this.totalClock.initial,
+					
+					//userClock status vars
 					userTest : this.userClock.test,
 					userSeconds : this.userClock.seconds,
 					userStatus : this.userClock.status,
+					
+					//durationTimer status vars
 					status : this.status
 	            };
 	            this.collab.sendStateResponse(state,token);
 			},
 			
 			onStateResponse: function(state){
+				//User/spokenTime object
 				this.users = state.thisUsers;
+				
+				//AttendeeList status vars
 				this.attendeeList.clicked = state.attendeeClicked;
 				this.attendeeList.selected = state.attendeeSelected;
 				this.attendeeList.selectedId = state.attendeeSelectedId;
 				this.attendeeList.prevSelectedId = state.attendeePrevSelectedId;
+				
+				//totalClock status vars
 				this.totalClock.test = state.totalTest;
 				this.totalClock.seconds = state.totalSeconds;
 				this.totalClock.status = state.totalStatus;
-				this.totalClock.initial = state.totalInitial;
+				
+				//userClock status vars
 				this.userClock.test = state.userTest;
 				this.userClock.seconds = state.userSeconds;
 				this.userClock.status = state.userStatus;
+				
+				//durationTimer status vars
 				this.status = state.status;
 				
+				
+				//Once we have our state, update the clocks
 				this.totalClock._renderTime();
 				this.userClock._renderTime();
 				
+				//Start them if necessary
 				if(this.totalClock.status == 'started')
 					this.totalClock.start();			
 				if(this.userClock.status == 'started')
 					this.userClock.start();
 				if(this.status == 'started')
 					this.t.start();
+					
+				//Update the title bar
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
 			},
 			
 			onUserClick: function(){
+				//Restart the durationTimer timing the current speaker
 				this.t.stop();
 				this.t.start();
 				this.status = 'started';
+				
+				//Recalculate userClock seconds and restart
 				this.userClock.stop();
 				this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
 				if(this.userClock.seconds > this.totalClock.seconds)
 					this.userClock.seconds = this.totalClock.seconds;
 				this.userClock.start(); 
+				
+				//Change the title bar
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
+				
+				//Reset the extraMins since we're on a new user
 				this.userClock.extraMins = 0;
+				
+				//Start the total clock if it's stopped, and sync
 				if(this.totalClock.status == 'stopped')
 					this.totalClock.start();
-				this.prevSelected = this.attendeeList.selected;
 				this.collab.sendSync('userClick', { 
 					selected: this.attendeeList.selected,
 					selectedId: this.attendeeList.selectedId,
 					prevSelectedId: this.attendeeList.prevSelectedId
 				}, null);
+				
+				//Housekeeping
 				this.attendeeList.prevSelectedId = this.attendeeList.selectedId;
 			},
 			
 			onRemoteUserClick: function(obj){
+				//Populate vars based on sync obj
 				this.attendeeList.selected = obj.value.selected;
 				this.attendeeList.selectedId = obj.value.selectedId;
 				this.attendeeList.prevSelectedid = obj.value.prevSelectedId;
 				
-				this.t.stop();				
+				//Restart the durationTimer timing the current speaker
+				this.t.stop();			
 				this.t.start();
 				this.status = 'started';
+				
+				//Recalculate userClock seconds and restart
 				this.userClock.stop();				
 				this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
 				if(this.userClock.seconds > this.totalClock.seconds)
 					this.userClock.seconds = this.totalClock.seconds;
 				this.userClock.start();
+				
+				//Change the title bar
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
+				
+				//Reset the extraMins since we're on a new user
 				this.userClock.extraMins = 0;
+				
+				//Start the total clock if it's stopped
 				if(this.totalClock.status == 'stopped')
 					this.totalClock.start();
+					
+				//Housekeeping
 				this.attendeeList.prevSelectedId = this.attendeeList.selectedId;
 			},
 			
 			onStartClick: function(){
+				//Start (or stop) totalClock, userClock, 
+				//and durationTimer
 				if(this.totalClock.status == 'stopped'){
 					this.totalClock.start();
-					if(this.attendeeList.clicked == true)
+					if(this.attendeeList.clicked == true){
 						this.userClock.start();
+						this.t.start();
+						this.status = 'started';
+					}
 				}else if(this.totalClock.status == 'started'){
 					this.userClock.stop();
 					this.totalClock.stop();
 					this.t.stop();
 					this.status = 'stopped';
 				}
+				
+				//Sync
 				this.collab.sendSync('startClick', { }, null);
 			},
 			
 			onRemoteStartClick: function(){
+							//Start (or stop) totalClock, userClock, 
+							//and durationTimer
 				if(this.totalClock.status == 'stopped'){
 					this.totalClock.start();
-					if(this.attendeeList.clicked == true)
+					if(this.attendeeList.clicked == true){
 						this.userClock.start();
+						this.t.start();
+						this.status = 'started';
+					}
 				}else if(this.totalClock.status == 'started'){
 					this.userClock.stop();
 					this.totalClock.stop();
