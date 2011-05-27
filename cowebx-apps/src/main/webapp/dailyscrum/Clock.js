@@ -31,18 +31,12 @@ define([
     proto.start = function() {
 		this._renderTime();
         this.t.start();
-		this.status = 'started';
-		if(this.type == 'total'){
-			dojo.attr('start','src','images/stop.png');
-		}	
+		this.status = 'started';	
     };
 
 	proto.stop = function(){
 		this.t.stop();
 		this.status = 'stopped';
-		if(this.type == 'total'){
-			dojo.attr('start','src','images/start.png');
-		}
 	};
 	
 	proto.reset = function(){

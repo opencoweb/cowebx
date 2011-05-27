@@ -61,6 +61,8 @@ define(
 				dojo.connect(this.attendeeList, '_userLeave', this, 'onUserLeave');
 				dojo.connect(dojo.byId('start'), 'onclick', this, 'onStartClick');
 				dojo.connect(dojo.byId('plusOne'),'onclick',this,'onAddMinute');
+				dojo.connect(dojo.byId('start'),'onmousedown',this,'_onStartDown');
+				dojo.connect(dojo.byId('start'),'onmouseup',this,'_onStartUp');
 
 				//Listen for remote events
 				this.collab.subscribeSync('userClick', this, 'onRemoteUserClick');
@@ -202,8 +204,10 @@ define(
 				this.userClock._renderTime();
 				
 				//Start them if necessary
-				if(this.totalClock.status == 'started')
-					this.totalClock.start();			
+				if(this.totalClock.status == 'started'){
+					this.totalClock.start();
+					dojo.style('start','display','inline');
+				}			
 				if(this.userClock.status == 'started')
 					this.userClock.start();
 				if(this.status == 'started')
@@ -241,6 +245,8 @@ define(
 				//Start the total clock if it's stopped, and sync
 				if(this.totalClock.status == 'stopped')
 					this.totalClock.start();
+				dojo.style('start','display','inline');
+				
 				this.collab.sendSync('userClick', { 
 					selected: this.attendeeList.selected,
 					selectedId: this.attendeeList.selectedId,
@@ -283,6 +289,7 @@ define(
 				//Start the total clock if it's stopped
 				if(this.totalClock.status == 'stopped')
 					this.totalClock.start();
+				dojo.style('start','display','inline');
 					
 				//Housekeeping
 				this.attendeeList.prevSelectedId = this.attendeeList.selectedId;
@@ -352,6 +359,14 @@ define(
 				if(secs<10)
 					secs = "0"+secs;
 				return min + ":" + secs;
+			},
+			
+			_onStartDown: function(){
+				dojo.attr('start', 'src', 'images/stop_down.png')
+			},
+			
+			_onStartUp: function(){
+				dojo.attr('start', 'src', 'images/stop.png')
 			}
 		};
 		
