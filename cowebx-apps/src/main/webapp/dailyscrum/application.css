@@ -84,7 +84,8 @@ html, body {
 	height:70%;
 	width:100%;
 	font-family: “Lucida Grande”, sans-serif;
-	font-size: 45px;
+	font-size: 85px;
 	color:grey;
 	text-align:center;
+	overflow:hidden;
 }
