@@ -99,6 +99,11 @@ define(
 						dojo.byId(entry+"_count").innerHTML = this._formatTime(this.users[entry]);
 					}
 				}
+				
+				//Update this.attendeeList selection (not in state response because
+				// <li>s havent been added to the list until userjoins AFTER response)
+				if(dijit.byId(this.attendeeList.selectedId) != undefined)
+					dijit.byId(this.attendeeList.selectedId).select();
 			},
 			
 			onUserLeave: function(objArray){
@@ -219,10 +224,16 @@ define(
 				this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
 				if(this.userClock.seconds > this.totalClock.seconds)
 					this.userClock.seconds = this.totalClock.seconds;
+				if(this.userClock.test = 'neg'){
+					dojo.style('userClock','color','grey');
+					this.userClock.test = 'pos';
+				}
+					
 				this.userClock.start(); 
 				
 				//Change the title bar
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
+				
 
 				//Reset the extraMins since we're on a new user
 				this.userClock.extraMins = 0;
@@ -256,10 +267,15 @@ define(
 				this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
 				if(this.userClock.seconds > this.totalClock.seconds)
 					this.userClock.seconds = this.totalClock.seconds;
+				if(this.userClock.test = 'neg'){
+					dojo.style('userClock','color','grey');
+					this.userClock.test = 'pos';
+				}
 				this.userClock.start();
 				
-				//Change the title bar
+				//Change the title bar and attendeeList selection
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
+				dijit.byId(this.attendeeList.selectedId).select();
 				
 				//Reset the extraMins since we're on a new user
 				this.userClock.extraMins = 0;
