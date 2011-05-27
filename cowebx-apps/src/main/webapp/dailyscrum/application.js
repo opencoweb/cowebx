@@ -225,7 +225,12 @@ define(
 				
 				//Recalculate userClock seconds and restart
 				this.userClock.stop();
-				this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+				if(this.attendeeList.selectedId != this.attendeeList.prevSelectedId){
+					this.userClock.extraMins = 0;
+					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+				}else{
+					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60);
+				}
 				if(this.userClock.seconds > this.totalClock.seconds)
 					this.userClock.seconds = this.totalClock.seconds;
 				if(this.userClock.test = 'neg'){
@@ -237,10 +242,6 @@ define(
 				
 				//Change the title bar
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
-				
-
-				//Reset the extraMins since we're on a new user
-				this.userClock.extraMins = 0;
 				
 				//Start the total clock if it's stopped, and sync
 				if(this.totalClock.status == 'stopped')
@@ -269,8 +270,14 @@ define(
 				this.status = 'started';
 				
 				//Recalculate userClock seconds and restart
-				this.userClock.stop();				
-				this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+				this.userClock.stop();		
+				if(this.attendeeList.selectedId != this.attendeeList.prevSelectedId){
+					this.userClock.extraMins = 0;
+					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+				}else{
+					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60);
+				}
+							
 				if(this.userClock.seconds > this.totalClock.seconds)
 					this.userClock.seconds = this.totalClock.seconds;
 				if(this.userClock.test = 'neg'){
@@ -282,9 +289,6 @@ define(
 				//Change the title bar and attendeeList selection
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
 				dijit.byId(this.attendeeList.selectedId).select();
-				
-				//Reset the extraMins since we're on a new user
-				this.userClock.extraMins = 0;
 				
 				//Start the total clock if it's stopped
 				if(this.totalClock.status == 'stopped')
