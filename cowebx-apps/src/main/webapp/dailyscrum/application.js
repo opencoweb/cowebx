@@ -63,6 +63,7 @@ define(
 				dojo.connect(dojo.byId('plusOne'),'onclick',this,'onAddMinute');
 				dojo.connect(dojo.byId('start'),'onmousedown',this,'_onStartDown');
 				dojo.connect(dojo.byId('start'),'onmouseup',this,'_onStartUp');
+				dojo.connect(dojo.byId('urlSubmit'),'onmouseup',this,'_onUrlUp');
 
 				//Listen for remote events
 				this.collab.subscribeSync('userClick', this, 'onRemoteUserClick');
@@ -87,9 +88,9 @@ define(
 					if(!(this.users[objArray[i]['site']]))
 						this.users[objArray[i]['site']] = 0;
 				}
-				
+
 				//Update the user clock with new calc'ed time
-				this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+				this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]);
 				if(this.userClock.seconds > this.totalClock.seconds)
 					this.userClock.seconds = this.totalClock.seconds;
 				if(this.users[this.attendeeList.selectedId] != undefined)
@@ -114,7 +115,7 @@ define(
 				
 				//Change the time allotted per user
 				this.timeAllotted = Math.floor((this.totalClock.seconds) / this.attendeeList.count);
-				
+
 				//Delete from users object. If the users are currently
 				//speaking, stop user clock and 'duration' timer
 				for(var i=0; i<objArray.length; i++){
@@ -130,7 +131,7 @@ define(
 				//Update user clock depending on whether user who
 				//left was speaking or not and render
 				if(render == true && (this.users[this.attendeeList.selectedId] != undefined)){
-					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+					this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]);
 				}else{
 					this.userClock.seconds = 0;
 				}
@@ -228,14 +229,16 @@ define(
 				if(this.attendeeList.selectedId != this.attendeeList.prevSelectedId){
 					this.userClock.extraMins = 0;
 					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+					if(this.userClock.seconds < 0){
+						this.userClock.seconds = Math.abs(this.userClock.seconds);
+						this.userClock.test = 'neg';
+						dojo.style('userClock','color','red');
+					}else{
+						this.userClock.test = 'pos';
+						dojo.style('userClock','color','grey');
+					}
 				}else{
 					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60);
-				}
-				if(this.userClock.seconds > this.totalClock.seconds)
-					this.userClock.seconds = this.totalClock.seconds;
-				if(this.userClock.test = 'neg'){
-					dojo.style('userClock','color','grey');
-					this.userClock.test = 'pos';
 				}
 					
 				this.userClock.start(); 
@@ -274,16 +277,18 @@ define(
 				if(this.attendeeList.selectedId != this.attendeeList.prevSelectedId){
 					this.userClock.extraMins = 0;
 					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+					if(this.userClock.seconds < 0){
+						this.userClock.seconds = Math.abs(this.userClock.seconds);
+						dojo.style('userClock','color','red');
+						this.userClock.test = 'neg';
+					}else{
+						this.userClock.test = 'pos';
+						dojo.style('userClock','color','grey');
+					}
 				}else{
 					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60);
 				}
 							
-				if(this.userClock.seconds > this.totalClock.seconds)
-					this.userClock.seconds = this.totalClock.seconds;
-				if(this.userClock.test = 'neg'){
-					dojo.style('userClock','color','grey');
-					this.userClock.test = 'pos';
-				}
 				this.userClock.start();
 				
 				//Change the title bar and attendeeList selection
@@ -371,6 +376,12 @@ define(
 			
 			_onStartUp: function(){
 				dojo.attr('start', 'src', 'images/stop.png')
+			},
+			
+			_onUrlUp: function(){
+				var url = dojo.attr('urlBar','value');
+				console.log('url = '+url);
+				dojo.attr('scrumFrame','src', url);
 			}
 		};
 		
