@@ -91,8 +91,7 @@ define(
 
 				//Update the user clock with new calc'ed time
 				this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]);
-				if(this.userClock.seconds > this.totalClock.seconds)
-					this.userClock.seconds = this.totalClock.seconds;
+
 				if(this.users[this.attendeeList.selectedId] != undefined)
 					this.userClock._renderTime();
 				
@@ -115,7 +114,7 @@ define(
 				
 				//Change the time allotted per user
 				this.timeAllotted = Math.floor((this.totalClock.seconds) / this.attendeeList.count);
-
+				
 				//Delete from users object. If the users are currently
 				//speaking, stop user clock and 'duration' timer
 				for(var i=0; i<objArray.length; i++){
@@ -238,7 +237,7 @@ define(
 						dojo.style('userClock','color','grey');
 					}
 				}else{
-					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60);
+					this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60));
 				}
 					
 				this.userClock.start(); 
@@ -286,7 +285,7 @@ define(
 						dojo.style('userClock','color','grey');
 					}
 				}else{
-					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60);
+					this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60));
 				}
 							
 				this.userClock.start();
