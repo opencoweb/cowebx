@@ -68,6 +68,10 @@ html, body {
 	height: 150px;
 }
 
+.dailyscrum_addMin{
+	height: 100%;
+}
+
 .dailyscrum_plus{
 	height:25px;
 	width:40px;
