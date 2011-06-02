@@ -64,6 +64,10 @@ define(
 				dojo.connect(dojo.byId('start'),'onmousedown',this,'_onStartDown');
 				dojo.connect(dojo.byId('start'),'onmouseup',this,'_onStartUp');
 				dojo.connect(dojo.byId('urlSubmit'),'onmouseup',this,'_onUrlUp');
+				dojo.connect(dojo.byId('urlBar'),'onkeydown',this,function(e){
+					if(e.keyCode == 13)
+						this._onUrlUp();
+				});
 
 				//Listen for remote events
 				this.collab.subscribeSync('userClick', this, 'onRemoteUserClick');
