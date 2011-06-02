@@ -2,7 +2,7 @@
 // Cooperative app 
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
-// Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
+// 
 //
 
 define(
@@ -351,9 +351,11 @@ define(
 			},
 			
 			onAddMinute: function(){
-				this.userClock.addMinute();
-				this.collab.sendSync('addMinute', { }, null);
-				this.userClock._renderTime();
+				if(this.attendeeList.clicked == true){
+					this.userClock.addMinute();
+					this.collab.sendSync('addMinute', { }, null);
+					this.userClock._renderTime();
+				}
 			},
 			
 			onRemoteAddMinute: function(){
