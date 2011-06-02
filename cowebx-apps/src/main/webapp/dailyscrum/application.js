@@ -119,6 +119,7 @@ define(
 				
 				//Change the time allotted per user
 				this.timeAllotted = Math.floor((this.totalClock.seconds) / this.attendeeList.count);
+				console.log("New time allotted = "+this.timeAllotted);
 				
 				//Delete from users object. If the users are currently
 				//speaking, stop user clock and 'duration' timer
@@ -254,6 +255,7 @@ define(
 				if(this.totalClock.status == 'stopped')
 					this.totalClock.start();
 				dojo.style('start','display','inline');
+				dojo.style('selectTip','display','none');
 				
 				this.collab.sendSync('userClick', { 
 					selected: this.attendeeList.selected,
@@ -303,7 +305,8 @@ define(
 				if(this.totalClock.status == 'stopped')
 					this.totalClock.start();
 				dojo.style('start','display','inline');
-					
+				dojo.style('selectTip','display','none');
+				
 				//Housekeeping
 				this.attendeeList.prevSelectedId = this.attendeeList.selectedId;
 			},
