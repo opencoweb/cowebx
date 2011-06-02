@@ -64,6 +64,7 @@ define(
 				dojo.connect(dojo.byId('start'),'onmousedown',this,'_onStartDown');
 				dojo.connect(dojo.byId('start'),'onmouseup',this,'_onStartUp');
 				dojo.connect(dojo.byId('urlSubmit'),'onmouseup',this,'_onUrlUp');
+				dojo.connect(dijit.byId('scrumFrameView'),'resize',this,'_ffResize');
 				dojo.connect(dojo.byId('urlBar'),'onkeydown',this,function(e){
 					if(e.keyCode == 13)
 						this._onUrlUp();
@@ -385,6 +386,11 @@ define(
 				var url = dojo.attr('urlBar','value');
 				console.log('url = '+url);
 				dojo.attr('scrumFrame','src', url);
+			},
+			
+			_ffResize: function(e){
+				var height = dijit.byId('container').domNode.clientHeight-150;
+				dojo.style(dijit.byId('scrumFrameView').domNode,'height',height+"px");
 			}
 		};
 		

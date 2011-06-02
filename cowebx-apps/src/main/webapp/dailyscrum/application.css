@@ -77,6 +77,10 @@ html, body {
 	width:40px;
 }
 
+.dailyscrum_scrumFrameView{
+	overflow:hidden;
+}
+
 .dailyscrum_start{
 	display:none;
 	width:96%;
