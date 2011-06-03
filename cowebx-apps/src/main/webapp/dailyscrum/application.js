@@ -26,60 +26,34 @@ define(
 		
 		var app = {
 			init: function(){
-				//Housekeeping
-				this.timeAllotted = 0;
-				this.users = {};
-				this.status = 'stopped';
+				this.timeAllotted = 0;			//Speaking time for each user
+				this.users = {};				//User <-> spoken time map
+				this.status = 'stopped';		//Status of speaking duration timer
+				this.localId = null;
+				this.modName = (this.aquireUrlParams('mod') != null) ? this.aquireUrlParams('mod') : null;
+				this.modId = null;
 				
-				// parse declarative widgets
 			   	parser.parse(dojo.body());
 				
 				//Set up clocks (User, Total, and durationTimer)
-				var length = 10;
-				if(this.aquireUrlParams('length') != null)
-					length = this.aquireUrlParams('length');
+				var length = (this.aquireUrlParams('length') != null) ? this.aquireUrlParams('length') : 10;
 				this.totalClock = new Clock({id : 'totalClock', type : 'total', time: length });
 				this.userClock = new Clock({id : 'userClock', type : 'user', time: 0 });
 				this.t = new dojox.timing.Timer(1000);
-				dojo.connect(this.t, 'onTick', this, '_onTick');
 				
 				//Set up attendeeList
 				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
 				
-				//Setup iFrame
-				var url = '';
-				if(this.aquireUrlParams('url') != null)
-					url = this.aquireUrlParams('url');
+				//Setup iFrame URL
+				var url = (this.aquireUrlParams('url') != null) ? this.aquireUrlParams('url') : '';
 				dojo.attr('scrumFrame','src', url);
 				
-				//Subscribe to collab events
-				this.collab = coweb.initCollab({id : 'dailyscrum'}); 
-
-				//Listen for local events
-				dojo.connect(this.attendeeList, '_userClick', this, 'onUserClick');
-				dojo.connect(this.attendeeList, '_userJoin', this, 'onUserJoin');
-				dojo.connect(this.attendeeList, '_userLeave', this, 'onUserLeave');
-				dojo.connect(dojo.byId('start'), 'onclick', this, 'onStartClick');
-				dojo.connect(dojo.byId('plusOne'),'onclick',this,'onAddMinute');
-				dojo.connect(dojo.byId('start'),'onmousedown',this,'_onStartDown');
-				dojo.connect(dojo.byId('start'),'onmouseup',this,'_onStartUp');
-				dojo.connect(dojo.byId('urlSubmit'),'onmouseup',this,'_onUrlUp');
-				dojo.connect(dijit.byId('scrumFrameView'),'resize',this,'_ffResize');
-				dojo.connect(dojo.byId('urlBar'),'onkeydown',this,function(e){
-					if(e.keyCode == 13)
-						this._onUrlUp();
-				});
-
-				//Listen for remote events
-				this.collab.subscribeSync('userClick', this, 'onRemoteUserClick');
-				this.collab.subscribeSync('startClick', this, 'onRemoteStartClick');
-				this.collab.subscribeSync('addMinute', this, 'onRemoteAddMinute');
-				this.collab.subscribeStateRequest(this, 'onStateRequest');
-	            this.collab.subscribeStateResponse(this, 'onStateResponse');
-
-			   	// get a session instance
+				//Listen for local & remote events
+				this._listenLocally();
+				this._listenRemotely();
+				
+			   	// get a session instance & prep
 			    var sess = coweb.initSession();
-			    // do the prep
 			    sess.prepare();
 			},
 			
@@ -92,6 +66,10 @@ define(
 				for(var i=0; i<objArray.length; i++){
 					if(!(this.users[objArray[i]['site']]))
 						this.users[objArray[i]['site']] = 0;
+					if(objArray[i]['username'] == this.modName)
+						this.modId = objArray[i]['site'];
+					if(objArray[i].local == true)
+						this.localId = (this.modName == null) ? null : objArray[i]['site'];
 				}
 
 				//Update the user clock with new calc'ed time
@@ -111,6 +89,12 @@ define(
 				// <li>s havent been added to the list until userjoins AFTER response)
 				if(dijit.byId(this.attendeeList.selectedId) != undefined)
 					dijit.byId(this.attendeeList.selectedId).select();
+				
+				//Render elements based on MOD or notMOD
+				if((this.localId == this.modId) && (!this.attendeeList.clicked)){
+					dojo.style('selectTip','display','block');
+					dojo.style('plusOne','display','inline');
+				}
 			},
 			
 			onUserLeave: function(objArray){
@@ -213,6 +197,7 @@ define(
 				if(this.totalClock.status == 'started'){
 					this.totalClock.start();
 					dojo.style('start','display','inline');
+					dojo.style('selectTip','display','none');
 				}			
 				if(this.userClock.status == 'started')
 					this.userClock.start();
@@ -224,47 +209,49 @@ define(
 			},
 			
 			onUserClick: function(){
-				//Restart the durationTimer timing the current speaker
-				this.t.stop();
-				this.t.start();
-				this.status = 'started';
+				if(this.localId == this.modId){
+					//Restart the durationTimer timing the current speaker
+					this.t.stop();
+					this.t.start();
+					this.status = 'started';
 				
-				//Recalculate userClock seconds and restart
-				this.userClock.stop();
-				if(this.attendeeList.selectedId != this.attendeeList.prevSelectedId){
-					this.userClock.extraMins = 0;
-					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
-					if(this.userClock.seconds < 0){
-						this.userClock.seconds = Math.abs(this.userClock.seconds);
-						this.userClock.test = 'neg';
-						dojo.style('userClock','color','red');
+					//Recalculate userClock seconds and restart
+					this.userClock.stop();
+					if(this.attendeeList.selectedId != this.attendeeList.prevSelectedId){
+						this.userClock.extraMins = 0;
+						this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+						if(this.userClock.seconds < 0){
+							this.userClock.seconds = Math.abs(this.userClock.seconds);
+							this.userClock.test = 'neg';
+							dojo.style('userClock','color','red');
+						}else{
+							this.userClock.test = 'pos';
+							dojo.style('userClock','color','grey');
+						}
 					}else{
-						this.userClock.test = 'pos';
-						dojo.style('userClock','color','grey');
+						this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60));
 					}
-				}else{
-					this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60));
-				}
 					
-				this.userClock.start(); 
+					this.userClock.start(); 
 				
-				//Change the title bar
-				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
+					//Change the title bar
+					dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
 				
-				//Start the total clock if it's stopped, and sync
-				if(this.totalClock.status == 'stopped')
-					this.totalClock.start();
-				dojo.style('start','display','inline');
-				dojo.style('selectTip','display','none');
+					//Start the total clock if it's stopped, and sync
+					if(this.totalClock.status == 'stopped')
+						this.totalClock.start();
+					dojo.style('start','display','inline');
+					dojo.style('selectTip','display','none');
 				
-				this.collab.sendSync('userClick', { 
-					selected: this.attendeeList.selected,
-					selectedId: this.attendeeList.selectedId,
-					prevSelectedId: this.attendeeList.prevSelectedId
-				}, null);
+					this.collab.sendSync('userClick', { 
+						selected: this.attendeeList.selected,
+						selectedId: this.attendeeList.selectedId,
+						prevSelectedId: this.attendeeList.prevSelectedId
+					}, null);
 				
-				//Housekeeping
-				this.attendeeList.prevSelectedId = this.attendeeList.selectedId;
+					//Housekeeping
+					this.attendeeList.prevSelectedId = this.attendeeList.selectedId;
+				}
 			},
 			
 			onRemoteUserClick: function(obj){
@@ -272,12 +259,12 @@ define(
 				this.attendeeList.selected = obj.value.selected;
 				this.attendeeList.selectedId = obj.value.selectedId;
 				this.attendeeList.prevSelectedid = obj.value.prevSelectedId;
-				
+			
 				//Restart the durationTimer timing the current speaker
 				this.t.stop();			
 				this.t.start();
 				this.status = 'started';
-				
+			
 				//Recalculate userClock seconds and restart
 				this.userClock.stop();		
 				if(this.attendeeList.selectedId != this.attendeeList.prevSelectedId){
@@ -294,47 +281,24 @@ define(
 				}else{
 					this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60));
 				}
-							
+						
 				this.userClock.start();
-				
+			
 				//Change the title bar and attendeeList selection
 				dojo.attr('speaker','innerHTML',"Current Speaker: "+this.attendeeList.selected);
 				dijit.byId(this.attendeeList.selectedId).select();
-				
+			
 				//Start the total clock if it's stopped
 				if(this.totalClock.status == 'stopped')
 					this.totalClock.start();
-				dojo.style('start','display','inline');
-				dojo.style('selectTip','display','none');
-				
+			
 				//Housekeeping
 				this.attendeeList.prevSelectedId = this.attendeeList.selectedId;
 			},
 			
-			onStartClick: function(){
+			onRemoteStartClick: function(obj){
 				//Start (or stop) totalClock, userClock, 
 				//and durationTimer
-				if(this.totalClock.status == 'stopped'){
-					this.totalClock.start();
-					if(this.attendeeList.clicked == true){
-						this.userClock.start();
-						this.t.start();
-						this.status = 'started';
-					}
-				}else if(this.totalClock.status == 'started'){
-					this.userClock.stop();
-					this.totalClock.stop();
-					this.t.stop();
-					this.status = 'stopped';
-				}
-				
-				//Sync
-				this.collab.sendSync('startClick', { }, null);
-			},
-			
-			onRemoteStartClick: function(){
-							//Start (or stop) totalClock, userClock, 
-							//and durationTimer
 				if(this.totalClock.status == 'stopped'){
 					this.totalClock.start();
 					if(this.attendeeList.clicked == true){
@@ -363,6 +327,28 @@ define(
 				this.userClock._renderTime();
 			},
 			
+			_listenLocally: function(){
+				dojo.connect(this.attendeeList, '_userClick', this, 'onUserClick');
+				dojo.connect(this.attendeeList, '_userJoin', this, 'onUserJoin');
+				dojo.connect(this.attendeeList, '_userLeave', this, 'onUserLeave');
+				dojo.connect(dojo.byId('plusOne'),'onclick',this,'onAddMinute');
+				dojo.connect(dojo.byId('start'),'onmousedown',this,'_onStartDown');
+				dojo.connect(dojo.byId('start'),'onmouseup',this,'_onStartUp');
+				dojo.connect(dijit.byId('scrumFrameView'),'resize',this,'_ffResize');
+				dojo.connect(this.t, 'onTick', this, '_onTick');
+				dojo.connect(dojo.byId('urlSubmit'),'onmouseup',this,'_onUrlUp');
+				dojo.connect(dojo.byId('urlBar'),'onkeydown',this,function(e){ if(e.keyCode == 13){ this._onUrlUp(); }});
+			},
+			
+			_listenRemotely: function(){
+				this.collab = coweb.initCollab({id : 'dailyscrum'}); 
+				this.collab.subscribeSync('userClick', this, 'onRemoteUserClick');
+				this.collab.subscribeSync('startClick', this, 'onRemoteStartClick');
+				this.collab.subscribeSync('addMinute', this, 'onRemoteAddMinute');
+				this.collab.subscribeStateRequest(this, 'onStateRequest');
+	            this.collab.subscribeStateResponse(this, 'onStateResponse');
+			},
+			
 			_onTick: function(){
 				this.users[this.attendeeList.selectedId] = this.users[this.attendeeList.selectedId]+1;
 				dojo.byId(this.attendeeList.selectedId+"_count").innerHTML = this._formatTime(this.users[this.attendeeList.selectedId]);
@@ -379,12 +365,33 @@ define(
 				return min + ":" + secs;
 			},
 			
-			_onStartDown: function(){
-				dojo.attr('start', 'src', 'images/stop_down.png')
+			_onStartUp: function(){
+				if(this.localId == this.modId){
+					dojo.attr('start', 'src', 'images/stop.png')
+				
+					//Start (or stop) totalClock, userClock, 
+					//and durationTimer
+					if(this.totalClock.status == 'stopped'){
+						this.totalClock.start();
+						if(this.attendeeList.clicked == true){
+							this.userClock.start();
+							this.t.start();
+							this.status = 'started';
+						}
+					}else if(this.totalClock.status == 'started'){
+						this.userClock.stop();
+						this.totalClock.stop();
+						this.t.stop();
+						this.status = 'stopped';
+					}
+				
+					//Sync
+					this.collab.sendSync('startClick', { }, null);
+				}
 			},
 			
-			_onStartUp: function(){
-				dojo.attr('start', 'src', 'images/stop.png')
+			_onStartDown: function(){
+				dojo.attr('start', 'src', 'images/stop_down.png')
 			},
 			
 			_onUrlUp: function(){

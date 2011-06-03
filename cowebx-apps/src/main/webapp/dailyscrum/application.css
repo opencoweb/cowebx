@@ -75,6 +75,7 @@ html, body {
 .dailyscrum_plus{
 	height:25px;
 	width:40px;
+	display:none;
 }
 
 .dailyscrum_scrumFrameView{
@@ -86,6 +87,7 @@ html, body {
 	margin-top:5px;
 	color:grey;
 	text-shadow:#fff 0px 1px 0, #000 0 -1px 0;
+	display:none;
 }
 
 .dailyscrum_start{
