@@ -32,6 +32,7 @@ define(
 				this.localId = null;
 				this.modName = (this.aquireUrlParams('mod') != null) ? this.aquireUrlParams('mod') : null;
 				this.modId = null;
+				this.goneSpokenTime = 0;
 				
 			   	parser.parse(dojo.body());
 				
@@ -59,7 +60,7 @@ define(
 			
 			onUserJoin: function(objArray){
 				//Change the time allotted per user
-				this.timeAllotted = Math.floor((this.totalClock.seconds) / this.attendeeList.count);
+				this.timeAllotted = Math.floor(this.totalClock.seconds / this.attendeeList.count);
 				
 				//If the users are new, add them the the user object
 				//and set their 'time spoken' to 0
@@ -71,7 +72,7 @@ define(
 					if(objArray[i].local == true)
 						this.localId = (this.modName == null) ? null : objArray[i]['site'];
 				}
-
+				console.log('time allotted after join = '+this.timeAllotted);
 				//Update the user clock with new calc'ed time
 				this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]);
 
@@ -102,8 +103,7 @@ define(
 				var render = true;	
 				
 				//Change the time allotted per user
-				this.timeAllotted = Math.floor((this.totalClock.seconds) / this.attendeeList.count);
-				console.log("New time allotted = "+this.timeAllotted);
+				this.timeAllotted = Math.floor(this.totalClock.seconds / this.attendeeList.count);
 				
 				//Delete from users object. If the users are currently
 				//speaking, stop user clock and 'duration' timer
@@ -114,6 +114,7 @@ define(
 						this.status = 'stopped';
 						render = false;
 					}
+					this.goneSpokenTime = this.goneSpokenTime + this.users[objArray[i]['site']];
 					delete this.users[objArray[i]['site']];
 				}
 				
@@ -219,7 +220,7 @@ define(
 					this.userClock.stop();
 					if(this.attendeeList.selectedId != this.attendeeList.prevSelectedId){
 						this.userClock.extraMins = 0;
-						this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+						this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]);
 						if(this.userClock.seconds < 0){
 							this.userClock.seconds = Math.abs(this.userClock.seconds);
 							this.userClock.test = 'neg';
@@ -229,7 +230,8 @@ define(
 							dojo.style('userClock','color','grey');
 						}
 					}else{
-						this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60));
+						this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]);
+						console.log(this.goneSpokenTime/this.attendeeList.count);
 					}
 					
 					this.userClock.start(); 
@@ -269,7 +271,7 @@ define(
 				this.userClock.stop();		
 				if(this.attendeeList.selectedId != this.attendeeList.prevSelectedId){
 					this.userClock.extraMins = 0;
-					this.userClock.seconds = this.timeAllotted-this.users[this.attendeeList.selectedId];
+					this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]);
 					if(this.userClock.seconds < 0){
 						this.userClock.seconds = Math.abs(this.userClock.seconds);
 						dojo.style('userClock','color','red');
@@ -279,7 +281,7 @@ define(
 						dojo.style('userClock','color','grey');
 					}
 				}else{
-					this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]+(this.userClock.extraMins*60));
+					this.userClock.seconds = Math.abs(this.timeAllotted-this.users[this.attendeeList.selectedId]);
 				}
 						
 				this.userClock.start();
@@ -294,6 +296,9 @@ define(
 			
 				//Housekeeping
 				this.attendeeList.prevSelectedId = this.attendeeList.selectedId;
+				dojo.style('selectTip','display','none');
+				if(this.modId == this.localId)
+					dojo.style('start','display','inline');
 			},
 			
 			onRemoteStartClick: function(obj){
