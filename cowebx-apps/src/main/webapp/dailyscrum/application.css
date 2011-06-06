@@ -105,3 +105,7 @@ html, body {
 	text-align:center;
 	overflow:hidden;
 }
+
+.dailyscrum_inactive{
+	background-color:lightgrey;
+}

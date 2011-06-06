@@ -49,21 +49,6 @@ define([
 	};
 	
 	proto.notify = function(){
-		// var anim1 = dojo.animateProperty({
-		// 		  				node:"userClockCell",
-		// 						duration: 5000,
-		// 		  				properties: {
-		// 		      				backgroundColor: 'red'
-		// 		  				}
-		// 					});
-		// 		var anim2 = dojo.animateProperty({
-		// 					  	node:"userClockCell",
-		// 						duration: 5000,
-		// 					  	properties: {
-		// 					    	backgroundColor: 'rgb(197, 204, 211)'
-		// 					  	}
-		// 					});
-		// 		dojo.fx.chain([anim1,anim2]).play();
 		dojo.style([this.type]+'Clock', 'color', 'red');
 	};
 	
