@@ -25,7 +25,7 @@ define(
 		AttendeeList) {
 		
 		var app = {
-			init: function(){
+			init: function(){			
 				//Parse the invite list
 				this.invites = dojo.xhrGet({
 					url: 'invites.json',
@@ -44,6 +44,9 @@ define(
 				var length = (this.aquireUrlParams('length') != null) ? this.aquireUrlParams('length') : 10;
 				this.totalClock = new Clock({id : 'totalClock', type : 'total', time: length });
 				this.userClock = new Clock({id : 'userClock', type : 'user', time: 0 });
+				this.t = new dojox.timing.Timer(1000);
+				this.t.status = 'stopped';
+				dojo.connect(this.t, 'onTick', this, '_onTick');
 				
 				//Set up attendeeList & connect list activation to local func
 				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
@@ -54,9 +57,24 @@ define(
 				
 				//Connect to events
 				dojo.connect(this.attendeeList, 'onUserClick', this, 'onUserClick');
-				dojo.connect(this.attendeeList, 'onRemoteUserClick', this, 'onUserClick');
-				dojo.connect(this.attendeeList, '_activateUser', this, 'onActivateUser');
+				dojo.connect(this.attendeeList, '_onRemoteUserClick', this, 'onUserClick');
+				dojo.connect(this.attendeeList, '_onActivateUser', this, 'onActivateUser');
+				dojo.connect(this.attendeeList, '_onActivateRemoteUser', this, 'onActivateRemoteUser');
 				dojo.connect(this.attendeeList, '_deactivateUser', this, 'onDectivateUser');
+				dojo.connect(dijit.byId('scrumFrameView'),'resize',this,'_ffResize');
+				
+				//Sync
+				this.collab = coweb.initCollab({id : 'dailyscrum'});  
+				this.collab.subscribeStateRequest(this, 'onStateRequest');
+				this.collab.subscribeStateResponse(this, 'onStateResponse');
+				
+				//CLOCK
+				this.meetingTime = length*60;
+				this.meetingTimeTaken = 0;
+				this.userCount = 0;
+				this.users = {};
+				this.currentSpeakerTime = 0;
+				
 			   	// get a session instance & prep
 			    var sess = coweb.initSession();
 			    sess.prepare();
@@ -69,26 +87,158 @@ define(
 					dojo.connect(a.domNode, 'ondblclick', this, function(e){
 						if(dojo.attr(e.target, 'active') == false){
 							var name = e.target.id.substring(0, e.target.id.length-3);
-							this.attendeeList._activateUser(name);
+							this.attendeeList.onActivateUser(name);
 						}
 					});
 				}
 			},
 			
 			onActivateUser: function(e){
-				console.log("activate ",e);
+				if(this.users[e] != null){
+					var user = this.users[e];
+				}else{
+					this.users[e] = {};
+					var user = this.users[e];
+				}
+				user["present"] = true;
+				user["timeTaken"] = (user["timeTaken"] == undefined) ? 0 : user["timeTaken"];
+				this.userCount++;
 				
+				//Adjust user clock
+				var selected = this.attendeeList.selected;
+				if(selected != null){
+					this.userClock.seconds = this.getUserTimeRemaining(selected);
+					dijit.byId(this.attendeeList.selected+'_li').select();
+				}
+				return user;
+			},
+			
+			onActivateRemoteUser: function(obj){
+				var e = obj.value.activatedName;
+				console.log('obj byclick = '+obj.byClick);
+				if(obj.byClick == true){
+					if(this.users[e] != null){
+						var user = this.users[e];
+					}else{
+						this.users[e] = {};
+						var user = this.users[e];
+					}
+					user["present"] = true;
+					user["timeTaken"] = (user["timeTaken"] == undefined) ? 0 : user["timeTaken"];
+					this.userCount++;
+			
+					//Adjust user clock
+					var selected = this.attendeeList.selected;
+					if(selected != null){
+						this.userClock.seconds = this.getUserTimeRemaining(selected);
+						dijit.byId(this.attendeeList.selected+'_li').select();
+					}
+					return user;
+				}
 			},
 			
 			onDectivateUser: function(e){
-				console.log("deactivate ",e);
+				var user = this.users[e];
+				user['present'] = false;
+				this.userCount--;
 				
+				//Adjust user clock
+				var selected = this.attendeeList.selected;
+				if(selected != null){
+					this.userClock.seconds = this.getUserTimeRemaining(selected);
+					if(e == selected)
+						this.userClock.stop();
+				}
+				
+				return user
 			},
 			
 			onUserClick: function(){
 				var selected = this.attendeeList.selected;
-				console.log("selected ",selected);
+				var prevSelected = this.attendeeList.prevSelected;
+				//If we select someone new, restart the duration timer
+				if((selected != prevSelected)){
+					this.totalClock.stop();
+					this.userClock.stop();
+					this.t.stop();
+					this.userClock.seconds = this.getUserTimeRemaining(selected);
+					this.totalClock.start();
+					this.userClock.start();
+					this.t.start();
+					this.t.status = 'started';
+				}
+			},
+			
+			onStateRequest: function(token){
+				var state = {
+					meetingTime : this.meetingTime,
+					meetingTimeTaken : this.meetingTimeTaken,
+					users : this.users,
+					
+					userClockStatus : this.userClock.status,
+					totalClockStatus : this.totalClock.status,
+					tStatus : this.t.status,
+					
+					selected : this.attendeeList.selected,
+					prevSelected : this.attendeeList.prevSelected
+				};
 				
+				this.collab.sendStateResponse(state, token);
+			},
+			
+			onStateResponse: function(state){
+				this.meetingTime = state.meetingTime;
+				this.meetingTimeTaken = state.meetingTimeTaken;
+				this.users = state.users;
+				
+				this.totalClock.status = state.totalClockStatus;
+				this.userClock.status = state.userClockStatus;
+				this.t.status = state.tStatus;
+				
+				this.attendeeList.selected = state.selected;
+				this.attendeeList.prevSelected = state.prevSelected;
+				
+				if(this.totalClock.status == 'started'){
+					this.totalClock.seconds = this.getMeetingTimeRemaining();
+					this.totalClock.start();
+				}
+				
+				if(this.userClock.status == 'started'){
+					this.userClock.start();
+				}
+				
+				if(this.t.status == 'started'){
+					this.t.start();
+				}
+			},
+			
+			talkFor: function(e, seconds){
+				user = this.users[e];
+				user['timeTaken'] += seconds;
+				this.meetingTimeTaken += seconds;
+			},
+			
+			getInactiveTimeTaken: function(){
+				var sum = 0;
+				for(var i in this.users){
+					if(this.users[i]['present'] == false)
+						sum = sum + this.users[i]['timeTaken'];
+				}
+				return sum;
+			},
+			
+			getUserTimeRemaining: function(e){
+				var user = this.users[e]
+				return this.getUserTimeScheduled() - user['timeTaken'];
+			},
+			
+			getUserTimeScheduled: function(e){
+				var ms = (this.meetingTime - this.getInactiveTimeTaken()) / this.userCount;
+				return Math.round(ms);
+			},
+			
+			getMeetingTimeRemaining: function(){
+				return this.meetingTime - this.meetingTimeTaken;
 			},
 			
 			aquireUrlParams: function(param){
@@ -111,6 +261,10 @@ define(
 			_ffResize: function(e){
 				var height = dijit.byId('container').domNode.clientHeight-150;
 				dojo.style(dijit.byId('scrumFrameView').domNode,'height',height+"px");
+			},
+			
+			_onTick: function(){
+				this.talkFor(this.attendeeList.selected, 1);
 			}
 		};
 		
