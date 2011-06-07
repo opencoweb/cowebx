@@ -27,15 +27,19 @@ define(
 		var app = {
 			init: function(){			
 				//Parse the invite list
-				this.invites = dojo.xhrGet({
-					url: 'invites.json',
-					handleAs: 'json',
-					load: dojo.hitch(this, function(data){ 
-						this.populateExpectedList(data);  
-						this.mode = 'json'
-					}),
-					error: function(error) { console.log(error); }
-				});
+				var inviteList = (this.aquireUrlParams('invites') != null) ? this.aquireUrlParams('invites') : null;
+				if(inviteList != null){
+					this.invites = dojo.xhrGet({
+						url: 'invites.json',
+						handleAs: 'json',
+						load: dojo.hitch(this, function(data){ 
+							this.populateExpectedList(data);  
+							this.mode = 'json'
+						}),
+						error: function(error) { console.log(error); }
+					});
+				}
+				
 				
 				//Parse declarative widgets
 			   	parser.parse(dojo.body());
@@ -51,7 +55,12 @@ define(
 				//Set up attendeeList & connect list activation to local func
 				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
 				
-				//Setup iFrame URL
+				//Setup iFrame
+				var hide = (this.aquireUrlParams('hideUrl') != null) ? this.aquireUrlParams('hideUrl') : 'no';
+				if(hide == 'yes'){
+					dojo.style('urlBar', 'display', 'none');
+					dojo.style('urlSubmit', 'display', 'none');
+				}
 				var url = (this.aquireUrlParams('url') != null) ? this.aquireUrlParams('url') : '';
 				dojo.attr('scrumFrame','src', url);
 				
@@ -102,7 +111,9 @@ define(
 				}
 				user["present"] = true;
 				user["timeTaken"] = (user["timeTaken"] == undefined) ? 0 : user["timeTaken"];
+				user["count"] = (user["count"] == undefined) ? 1 : user["count"]+1;
 				this.userCount++;
+				console.log(this.users);
 				
 				//Adjust user clock
 				var selected = this.attendeeList.selected;
@@ -162,6 +173,15 @@ define(
 					this.userClock.stop();
 					this.t.stop();
 					this.userClock.seconds = this.getUserTimeRemaining(selected);
+					dojo.attr('speaker','innerHTML','Current Speaker: '+selected);
+					if(this.userClock.seconds < 0){
+						this.userClock.test = 'neg';
+						this.userClock.notify();
+						this.userClock.seconds = Math.abs(this.userClock.seconds);
+					}else if(this.userClock.seconds >= 0){
+						this.userClock.test = 'pos';
+						this.userClock.unNotify();
+					}
 					this.totalClock.start();
 					this.userClock.start();
 					this.t.start();

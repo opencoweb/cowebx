@@ -25,8 +25,12 @@ to:
 return mid;
 ```
 5. Start a coweb server instance.
-6. Visit the app in your browser.
-
+6. Visit the app in your browser, with the following optional url parameters for meeting control:
+	* ```length``` : n integer (or float), sets the total meeting time in minutes
+	* ```invites``` : filename.json string, specifies server-side JSON file of invites, allows for phone-only users to be counted
+	* ```url``` : http://... string, sets the url of the stand-in iFrame (to be replaced by Coweb Editor)
+	* ```hideUrl``` : 'yes' or 'no' string, allows for the hiding of the URL bar
+	
 ##A Brief Tour
 
 The structure of this directory is extremely straight forward. The following files are all you need to worry about when developing:

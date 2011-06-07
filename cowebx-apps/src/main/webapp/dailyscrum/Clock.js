@@ -52,6 +52,10 @@ define([
 		dojo.style([this.type]+'Clock', 'color', 'red');
 	};
 	
+	proto.unNotify = function(){
+		dojo.style([this.type]+'Clock', 'color', 'grey');
+	};
+	
 	proto._onTick = function() {
 		if(this.seconds == 0)
 			this.test = "neg";
