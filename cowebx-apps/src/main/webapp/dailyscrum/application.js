@@ -90,6 +90,7 @@ define(
 			},
 			
 			populateExpectedList: function(inviteObj){
+				console.log('populate');
 				this.attendeeList.inviteList = inviteObj;
 				for(var user in inviteObj){
 					var a = this.attendeeList._createInactiveUser(user);	
@@ -113,7 +114,6 @@ define(
 				user["timeTaken"] = (user["timeTaken"] == undefined) ? 0 : user["timeTaken"];
 				user["count"] = (user["count"] == undefined) ? 1 : user["count"]+1;
 				this.userCount++;
-				console.log(this.users);
 				
 				//Adjust user clock
 				var selected = this.attendeeList.selected;
@@ -126,7 +126,6 @@ define(
 			
 			onActivateRemoteUser: function(obj){
 				var e = obj.value.activatedName;
-				console.log('obj byclick = '+obj.byClick);
 				if(obj.byClick == true){
 					if(this.users[e] != null){
 						var user = this.users[e];
@@ -274,7 +273,6 @@ define(
 			
 			_onUrlUp: function(){
 				var url = dojo.attr('urlBar','value');
-				console.log('url = '+url);
 				dojo.attr('scrumFrame','src', url);
 			},
 			

@@ -32,6 +32,7 @@ define([
     };
 
     proto.onUserChange = function(params) {
+		console.log('change');
 		//Break if empty object
 		if(!params.users[0])
 			return;
@@ -93,26 +94,19 @@ define([
 	};
 	
 	proto.onStateResponse = function(state){
-		for(var i in state.phoneUsers){
-			if((dojo.byId(i+"_li") != null)){
-				this.onActivateUser(i);
-			}
-		}
-		var e = {
-			target : {
-				id: state.selected+"_li"
-			}
-		};
-		this.onUserClick(e);
+		
 	};
 
 	proto._userJoin = function(users){
+		//dojo.style(a.domNode, 'color', 'orange');
 		for(var i=0; i<users.length; i++){
 			var found = false;
 			for(var j in this.inviteList){
 				if(users[i]['username'] == j){
 					this.onActivateUser(j);
 					found = true;
+					if(users[i]["local"] == true)
+						dojo.style(dijit.byId(users[i]['username']+'_li').domNode, 'color', 'orange');
 				}
 			}
 			if(found == false){
@@ -123,7 +117,7 @@ define([
 	};
 	
 	proto._createInactiveUser = function(name, local){
-		console.log("making li for "+name);
+		console.log('inactive');
 		var a = new dojox.mobile.ListItem({ 
 					innerHTML: name,
 					id: name+"_li",
