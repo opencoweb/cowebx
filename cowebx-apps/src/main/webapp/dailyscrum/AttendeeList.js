@@ -117,7 +117,6 @@ define([
 	};
 	
 	proto._createInactiveUser = function(name, local){
-		console.log('inactive');
 		var a = new dojox.mobile.ListItem({ 
 					innerHTML: name,
 					id: name+"_li",
@@ -127,6 +126,7 @@ define([
 		dijit.byId('listView').addChild(a);
 		var b = dojo.create("span", { 
 					innerHTML: '00:00',
+					id: name+"_count",
 					'class':'dailyscrum_count'
 				}, a.domNode, 'last');
 		if(local == true)

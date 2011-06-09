@@ -90,7 +90,6 @@ define(
 			},
 			
 			populateExpectedList: function(inviteObj){
-				console.log('populate');
 				this.attendeeList.inviteList = inviteObj;
 				for(var user in inviteObj){
 					var a = this.attendeeList._createInactiveUser(user);	
@@ -121,6 +120,8 @@ define(
 					this.userClock.seconds = this.getUserTimeRemaining(selected);
 					dijit.byId(this.attendeeList.selected+'_li').select();
 				}
+				
+				dojo.attr(e+'_count', 'innerHTML',this._renderTime(this.users[e].timeTaken));
 				return user;
 			},
 			
@@ -156,8 +157,10 @@ define(
 				var selected = this.attendeeList.selected;
 				if(selected != null){
 					this.userClock.seconds = this.getUserTimeRemaining(selected);
-					if(e == selected)
+					if(e == selected){
 						this.userClock.stop();
+						this.t.stop();
+					}
 				}
 				
 				return user
@@ -283,6 +286,20 @@ define(
 			
 			_onTick: function(){
 				this.talkFor(this.attendeeList.selected, 1);
+				var time = this.users[this.attendeeList.selected].timeTaken;
+				var formattedTime = this._renderTime(time);
+				dojo.attr(this.attendeeList.selected+'_count','innerHTML',formattedTime);
+				
+			},
+			
+			_renderTime: function(n){
+				var min = Math.floor(n/60);
+				if(min < 10)
+					min = "0"+min;
+				var secs = n%60;
+				if(secs<10)
+					secs = "0"+secs;
+				return(min + ":" + secs);
 			}
 		};
 		
