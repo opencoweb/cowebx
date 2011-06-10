@@ -25,9 +25,9 @@ var TextEditor = function(args){
     this.util = new ld({});
     
     
-    console.log(this.util.ld('aaaa','aaaaa'));
+    //console.log(this.util.ld('aaa','a'));
     
-    //this.listen();
+    this.listen();
 };
 var proto = TextEditor.prototype;
 

@@ -54,34 +54,39 @@ define([], function() {
 		
 		for(var j=0; j<n; j++){
 			for(var i=0; i<m; i++){
-				if(s[i] == t[j]){
-					d[i+","+j] = d[(i-1)+","+(j-1)];
-				}else{
-					var cell = d[(i-1)+","+j];
-					var ty = 'delete';
-					var pos = j+1;
-					var ch = null;
-					if(d[i+','+(j-1)].size < cell.size){
-						cell = d[i+','+(j-1)];
-						ty = 'insert';
-						pos = j;
-						ch = t[j];
-					}
-					if(d[(i-1)+","+(j-1)].size < cell.size){
-						cell = d[(i-1)+','+(j-1)];
-						ty = 'update';
-						pos = j;
-						ch = t[j];
-					}
-					var arr = [ty, pos, ch];
-					if(cell.ops){			
-						var x = cell.ops.slice();
-						x.push(arr);
-						d[i+","+j] = {'size':cell.size+1, 'cell': cell, 'ops':x};
-					}else{
-						d[i+","+j] = {'size':cell.size+1, 'cell': cell, 'ops':[arr]};
-					}
+				var cell = d[(i-1)+","+j];
+				var ty = 'delete';
+				var pos = j+1;
+				var ch = null;
+				if(d[i+','+(j-1)].size < cell.size){
+					cell = d[i+','+(j-1)];
+					ty = 'insert';
+					pos = j;
+					ch = t[j];
 				}
+				if(d[(i-1)+","+(j-1)].size < cell.size){
+					cell = d[(i-1)+','+(j-1)];
+					ty = 'update';
+					pos = j;
+					ch = t[j];
+				}
+				if((s[i] == t[j]) && (ty=='update')){
+				    var op = null;
+				}else{
+				    var op = [ty, pos, ch];
+				}
+				
+				if(cell.ops){			
+                	var x = cell.ops.slice();
+                	x.push(op);
+                	d[i+","+j] = {'size':cell.size+1, 'cell': cell, 'ops':x};
+                }else{
+                    if(op!=null){
+                	    d[i+","+j] = {'size':cell.size+1, 'cell': cell, 'ops':[op]};
+                	}else{
+                	    d[i+","+j] = {'size':cell.size+1, 'cell': cell};
+                	}
+                }
 			}
 		}
 		return d[(m-1)+","+(n-1)];
