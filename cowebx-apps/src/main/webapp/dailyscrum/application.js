@@ -12,6 +12,7 @@ define(
 		'dojox/mobile/parser',
 		'Clock',
 		'AttendeeList',
+		'TextEditor',
 		'dojo/fx',
 		'dojox/mobile',
 		'dojox/mobile/FixedSplitter',
@@ -22,7 +23,8 @@ define(
 		coweb,
 		parser,
 		Clock,
-		AttendeeList) {
+		AttendeeList,
+		TextEditor) {
 		
 		var app = {
 			init: function(){			
@@ -83,6 +85,9 @@ define(
 				this.userCount = 0;
 				this.users = {};
 				this.currentSpeakerTime = 0;
+				
+				//EXERIMENTAL
+				var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor'});
 				
 			   	// get a session instance & prep
 			    var sess = coweb.initSession();
