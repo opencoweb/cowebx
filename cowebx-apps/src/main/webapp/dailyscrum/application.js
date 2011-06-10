@@ -30,7 +30,7 @@ define(
 				var inviteList = (this.aquireUrlParams('invites') != null) ? this.aquireUrlParams('invites') : null;
 				if(inviteList != null){
 					this.invites = dojo.xhrGet({
-						url: 'invites.json',
+						url: inviteList,
 						handleAs: 'json',
 						load: dojo.hitch(this, function(data){ 
 							this.populateExpectedList(data);  
