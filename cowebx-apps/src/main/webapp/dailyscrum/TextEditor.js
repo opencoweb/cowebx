@@ -1,4 +1,4 @@
-define(['coweb/main','ld'], function(coweb,ld) {
+define(['coweb/main','./ld'], function(coweb,ld) {
 var TextEditor = function(args){
     this.id = args.id;
     if(!this.id)
@@ -12,7 +12,7 @@ var TextEditor = function(args){
     this.newSnapshot = null;
     
     
-    this.collab = coweb.initCollab({id : 'dailyscrum'});  
+    this.collab = coweb.initCollab({id : this.id});  
     this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
     
     dojo.connect(this._textarea, 'onmousedown', this, '_updatePOR');
@@ -33,7 +33,7 @@ var proto = TextEditor.prototype;
 
     proto.listen = function() {
         this.collab.pauseSync();
-        setInterval(dojo.hitch(this, function(){
+        this.t = setInterval(dojo.hitch(this, function(){
             this.newSnapshot = this.snapshot();
             if(this.oldSnapshot != this.newSnapshot)
                 var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
@@ -47,11 +47,11 @@ var proto = TextEditor.prototype;
             this.collab.resumeSync();
             this.collab.pauseSync();
             this.oldSnapshot = this.snapshot();
-        }), 100);
+        }), 1000);
     };
     
     proto.onRemoteChange = function(obj){
-        console.log(obj);
+        //console.log(obj);
         if(obj.type == 'insert')
             this.insertChar(obj.value.char, obj.position);
         if(obj.type == 'delete')
@@ -132,6 +132,10 @@ var proto = TextEditor.prototype;
         
     proto._onBlur = function(event) {
         this._focused = false;
+    };
+    
+    proto.cleanup = function() {
+        clearTimeout(this.t);
     };
 
     return TextEditor;

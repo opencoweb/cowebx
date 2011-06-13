@@ -294,7 +294,6 @@ define(
 				var time = this.users[this.attendeeList.selected].timeTaken;
 				var formattedTime = this._renderTime(time);
 				dojo.attr(this.attendeeList.selected+'_count','innerHTML',formattedTime);
-				
 			},
 			
 			_renderTime: function(n){
