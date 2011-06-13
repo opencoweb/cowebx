@@ -96,7 +96,7 @@ define(
 					dojo.connect(a.domNode, 'ondblclick', this, function(e){
 						if(dojo.attr(e.target, 'active') == false){
 							var name = e.target.id.substring(0, e.target.id.length-3);
-							this.attendeeList.onActivateUser(name);
+							this.attendeeList.onActivateUser(name, true);
 						}
 					});
 				}
@@ -120,7 +120,7 @@ define(
 					this.userClock.seconds = this.getUserTimeRemaining(selected);
 					dijit.byId(this.attendeeList.selected+'_li').select();
 				}
-				
+
 				dojo.attr(e+'_count', 'innerHTML',this._renderTime(this.users[e].timeTaken));
 				return user;
 			},
@@ -204,7 +204,6 @@ define(
 					selected : this.attendeeList.selected,
 					prevSelected : this.attendeeList.prevSelected
 				};
-				
 				this.collab.sendStateResponse(state, token);
 			},
 			

@@ -32,7 +32,6 @@ define([
     };
 
     proto.onUserChange = function(params) {
-		console.log('change');
 		//Break if empty object
 		if(!params.users[0])
 			return;
@@ -64,7 +63,8 @@ define([
 	proto.onActivateRemoteUser = function(obj){
 		if(dojo.attr(obj.value.activatedName+"_li", 'active') != true){
 			this.count++;
-			this.phoneUsers[obj.value.activatedName] = true;
+			if(obj.value.clicked)
+			    this.phoneUsers[obj.value.activatedName] = true;
 			dojo.toggleClass(obj.value.activatedName+"_li", "dailyscrum_inactive");
 			dojo.attr(obj.value.activatedName+"_li", 'active', true);
 			dojo.connect(dijit.byId(obj.value.activatedName+'_li').domNode,'onclick',this,'onUserClick');	
@@ -73,14 +73,18 @@ define([
 		this._onActivateRemoteUser(obj);
 	};
 	
-	proto.onActivateUser = function(name){
+	proto.onActivateUser = function(name, click){
 		if(dojo.attr(name+"_li", 'active') != true){
 			this.count++;
-			this.phoneUsers[name] = true;
+			if(click)
+			    this.phoneUsers[name] = true;
 			dojo.toggleClass(name+"_li", "dailyscrum_inactive");
 			dojo.attr(name+"_li", 'active', true);
 			dojo.connect(dijit.byId(name+'_li').domNode,'onclick',this,'onUserClick');
-			this.collab.sendSync('userActivate', { activatedName: name }, null);	
+			this.collab.sendSync('userActivate', { 
+			    activatedName: name ,
+			    clicked: click
+			}, null);	
 		}
 		this._onActivateUser(name);	
 	};
@@ -94,7 +98,10 @@ define([
 	};
 	
 	proto.onStateResponse = function(state){
-		
+		this.phoneUsers = state.phoneUsers;
+		for(var i in this.phoneUsers){
+		    this._userJoin([{username: i, local: false}]);
+		}
 	};
 
 	proto._userJoin = function(users){
