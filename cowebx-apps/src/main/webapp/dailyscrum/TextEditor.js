@@ -39,17 +39,17 @@ var proto = TextEditor.prototype;
             this.newSnapshot = this.snapshot();
             if(this.oldSnapshot != this.newSnapshot)
                 var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
-            //console.log(syncs);
             //Send syncs
             if((syncs != undefined) && syncs.ops){
                 for(var i=0; i<syncs.ops.length; i++){
-                    this.collab.sendSync('editorUpdate', { 'char': syncs.ops[i][2] }, syncs.ops[i][0], syncs.ops[i][1]);
+                    if(syncs.ops[i] != undefined)
+                        this.collab.sendSync('editorUpdate', { 'char': syncs.ops[i][2] }, syncs.ops[i][0], syncs.ops[i][1]);
                 }
             }
             this.collab.resumeSync();
             this.collab.pauseSync();
             this.oldSnapshot = this.snapshot();
-        }), 1000);
+        }), 100);
     };
     
     proto.onRemoteChange = function(obj){
