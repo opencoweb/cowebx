@@ -16,19 +16,10 @@ define([
                 this.editor = new TextEditor({id:'test', domNode: testNode});
                 this.collab = new UnmanagedHubCollab();
                 this.collab.init({id : 'test'});
-                this._subs = [];
             },
             teardown: function() {
                 this.editor.cleanup();
                 dojo.destroy('testNode');
-                for(var i=0, l=this._subs.length; i<l; i++) {
-                  OpenAjax.hub.unsubscribe(this._subs[i]);
-                }
-            },
-            sub: function() {
-                var tok = OpenAjax.hub.subscribe.apply(OpenAjax.hub, arguments);
-                this._subs.push(tok);
-                return tok;
             }
         };
     };

@@ -14,6 +14,8 @@ var TextEditor = function(args){
     
     this.collab = coweb.initCollab({id : this.id});  
     this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
+    this.collab.subscribeStateRequest(this, 'onStateRequest');
+	this.collab.subscribeStateResponse(this, 'onStateResponse');
     
     dojo.connect(this._textarea, 'onmousedown', this, '_updatePOR');
     dojo.connect(this._textarea, 'onmouseup', this, '_updatePOR');
@@ -136,6 +138,17 @@ var proto = TextEditor.prototype;
     
     proto.cleanup = function() {
         clearTimeout(this.t);
+    };
+    
+    proto.onStateRequest = function(token){
+        var state = {snapshot: this.newSnapshot}
+        this.collab.sendStateResponse(state,token);
+    };
+    
+    proto.onStateResponse = function(obj){
+        this._textarea.value = obj.snapshot;
+        this.newSnapshot = obj.snapshot;
+        this.oldSnapshot = obj.snapshot;
     };
 
     return TextEditor;
