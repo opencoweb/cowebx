@@ -71,6 +71,7 @@ define(
 				dojo.connect(this.attendeeList, '_onActivateRemoteUser', this, 'onActivateRemoteUser');
 				dojo.connect(this.attendeeList, '_deactivateUser', this, 'onDectivateUser');
 				dojo.connect(dijit.byId('scrumFrameView'),'resize',this,'_ffResize');
+				dojo.connect(document, 'onkeypress', this, 'keystroke');
 				
 				//Sync
 				this.collab = coweb.initCollab({id : 'dailyscrum'});  
@@ -87,6 +88,7 @@ define(
 			   	// get a session instance & prep
 			    var sess = coweb.initSession();
 			    sess.prepare();
+			    
 			},
 			
 			populateExpectedList: function(inviteObj){
@@ -299,6 +301,15 @@ define(
 				if(secs<10)
 					secs = "0"+secs;
 				return(min + ":" + secs);
+			},
+			
+			keystroke: function(e){
+			    var code = e.keyCode;
+			    switch(code){
+			        //case 1:
+			            //doSomething();
+			            //break;
+			    }
 			}
 		};
 		
