@@ -24,11 +24,8 @@ var TextEditor = function(args){
     dojo.connect(this._textarea, 'onkeyup', this, '_updatePOR');
     dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
     dojo.connect(this._textarea, 'onblur', this, '_onBlur');
+    
     this.util = new ld({});
-    
-    
-    //console.log(this.util.ld('aaa','a'));
-    
     this.listen();
 };
 var proto = TextEditor.prototype;
@@ -40,7 +37,9 @@ var proto = TextEditor.prototype;
             if(this.oldSnapshot != this.newSnapshot)
                 var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
             //Send syncs
-            if((syncs != undefined) && syncs.ops){
+            if(syncs && syncs.ops){
+                console.log(syncs.ops);
+                //syncs.ops.reverse();
                 for(var i=0; i<syncs.ops.length; i++){
                     if(syncs.ops[i] != undefined)
                         this.collab.sendSync('editorUpdate', { 'char': syncs.ops[i][2] }, syncs.ops[i][0], syncs.ops[i][1]);
@@ -49,17 +48,18 @@ var proto = TextEditor.prototype;
             this.collab.resumeSync();
             this.collab.pauseSync();
             this.oldSnapshot = this.snapshot();
-        }), 100);
+        }), 10);
     };
     
     proto.onRemoteChange = function(obj){
-        //console.log(obj);
         if(obj.type == 'insert')
             this.insertChar(obj.value.char, obj.position);
         if(obj.type == 'delete')
             this.deleteChar(obj.position);
         if(obj.type == 'update')
             this.updateChar(obj.value.char, obj.position);
+            
+        this.oldSnapshot = this.snapshot();
     };
         
     proto.insertChar = function(c, pos) {

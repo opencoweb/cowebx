@@ -90,7 +90,6 @@ define([], function() {
 			}
 		}
 		return d[(m-1)+","+(n-1)];
-	
 	};
 	
 	proto.xrange = function(b0, b1, quantum) {
