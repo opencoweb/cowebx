@@ -71,12 +71,14 @@ define(
 				dojo.connect(this.attendeeList, '_onActivateRemoteUser', this, 'onActivateRemoteUser');
 				dojo.connect(this.attendeeList, '_deactivateUser', this, 'onDectivateUser');
 				dojo.connect(dijit.byId('scrumFrameView'),'resize',this,'_ffResize');
+				dojo.connect(dojo.byId('start'),'onclick',this,'stopMeeting');
 				dojo.connect(document, 'onkeypress', this, 'keystroke');
 				
 				//Sync
 				this.collab = coweb.initCollab({id : 'dailyscrum'});  
 				this.collab.subscribeStateRequest(this, 'onStateRequest');
 				this.collab.subscribeStateResponse(this, 'onStateResponse');
+				this.collab.subscribeSync('meetingStop', this, 'stopMeeting');
 				
 				//CLOCK
 				this.meetingTime = length*60;
@@ -161,6 +163,8 @@ define(
 					this.userClock.seconds = this.getUserTimeRemaining(selected);
 					if(e == selected){
 						this.userClock.stop();
+						this.userClock.seconds = 0;
+						this.userClock._renderTime();
 						this.t.stop();
 					}
 				}
@@ -191,6 +195,7 @@ define(
 					this.t.start();
 					this.t.status = 'started';
 				}
+				dojo.style('start','display','inline');
 			},
 			
 			onStateRequest: function(token){
@@ -310,7 +315,16 @@ define(
 			            //doSomething();
 			            //break;
 			    }
-			}
+			},
+			
+			stopMeeting: function(){
+			    this.totalClock.stop();
+			    this.userClock.stop();
+			    this.t.stop();
+                this.attendeeList.selected = null;
+                dojo.style('start','display','none');
+                this.collab.sendSync('meetingStop', { }, null);
+			},
 		};
 		
 		dojo.ready(function() {
