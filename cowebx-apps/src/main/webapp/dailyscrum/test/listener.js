@@ -82,13 +82,6 @@ define([
                 topic + '(' + z.message + ')');
         }
         this._mutex = false;
-
-        if(op) {
-            // we've gotten an operation from elsewhere, so we should sync 
-            // and/or purge the engine on the next interval
-            this._shouldPurge = true;
-            this._shouldSync = true;
-        }
     };
 
     /**
