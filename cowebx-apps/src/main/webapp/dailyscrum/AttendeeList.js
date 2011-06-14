@@ -15,6 +15,7 @@ define([
 		this.selected = null;			//Selected user name
 		this.prevSelected = null;		//Previously selectd user name
 		this.phoneUsers = {};			//active user list
+		this.users = {};
 		
 		//Subscribe to syncs and listen
         this.collab = coweb.initCollab({id : this.id});  
@@ -107,19 +108,24 @@ define([
 	proto._userJoin = function(users){
 		//dojo.style(a.domNode, 'color', 'orange');
 		for(var i=0; i<users.length; i++){
-			var found = false;
-			for(var j in this.inviteList){
-				if(users[i]['username'] == j){
-					this.onActivateUser(j);
-					found = true;
-					if(users[i]["local"] == true)
-						dojo.style(dijit.byId(users[i]['username']+'_li').domNode, 'color', 'orange');
-				}
-			}
-			if(found == false){
-				this._createInactiveUser(users[i]['username'], users[i]["local"]);
-				this.onActivateUser(users[i]['username']);
-			}
+		    if(this.users[users[i]['username']] == null){
+		        this.users[users[i]['username']] = 1;
+    			var found = false;
+    			for(var j in this.inviteList){
+    				if(users[i]['username'] == j){
+    					this.onActivateUser(j);
+    					found = true;
+    					if(users[i]["local"] == true)
+    						dojo.style(dijit.byId(users[i]['username']+'_li').domNode, 'color', 'orange');
+    				}
+    			}
+    			if(found == false){
+    				this._createInactiveUser(users[i]['username'], users[i]["local"]);
+    				this.onActivateUser(users[i]['username']);
+    			}
+    		}else{
+    		    this.users[users[i]['username']] = this.users[users[i]['username']]+1;
+    		}
 		}
 	};
 	
@@ -163,17 +169,21 @@ define([
 	
 	proto._userLeave = function(users){
 		for(var i=0; i<users.length; i++){
-			var found = false
-			this._deactivateUser(users[i]['username']);
-			for(var j in this.inviteList){
-				if(users[i]['username'] == j){
-					found = true;
-				}
-			}
-			if(found == false){
-				var li = dijit.byId(users[i]['username']+"_li");
-				li.destroy(false);
-			}
+		    if(this.users[users[i]['username']] == 1){
+			    var found = false
+    			this._deactivateUser(users[i]['username']);
+    			for(var j in this.inviteList){
+    				if(users[i]['username'] == j){
+    					found = true;
+    				}
+    			}
+    			if(found == false){
+    				var li = dijit.byId(users[i]['username']+"_li");
+    				li.destroy(false);
+    			}
+    		}else{
+    		    this.users[users[i]['username']] = this.users[users[i]['username']] - 1;
+    		}
 		}
 	};
 	
