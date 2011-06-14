@@ -124,7 +124,7 @@ define([
     				this.onActivateUser(users[i]['username']);
     			}
     		}else{
-    		    this.users[users[i]['username']] = this.users[users[i]['username']]+1;
+    		    this.users[users[i]['username']] = this.users[users[i]['username']] + 1;
     		}
 		}
 	};
