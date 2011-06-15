@@ -87,7 +87,7 @@ define(
 				this.currentSpeakerTime = 0;
 				
 				//EXERIMENTAL
-				var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor'});
+				var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
 				
 			   	// get a session instance & prep
 			    var sess = coweb.initSession();
