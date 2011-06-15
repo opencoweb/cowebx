@@ -47,6 +47,11 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     };
     
     proto.iterate = function() {
+        this.iterateSend();
+        this.iterateRecv();
+    };
+    
+    proto.iterateSend = function() {
         this.newSnapshot = this.snapshot();
         if(this.oldSnapshot != this.newSnapshot)
             var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
@@ -56,9 +61,12 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             //syncs.ops.reverse();
             for(var i=0; i<syncs.ops.length; i++){
                 if(syncs.ops[i] != undefined)
-                    this.collab.sendSync('editorUpdate', { 'char': syncs.ops[i][2] }, syncs.ops[i][0], syncs.ops[i][1]);
+                    this.collab.sendSync('editorUpdate', syncs.ops[i][2] , syncs.ops[i][0], syncs.ops[i][1]);
             }
         }
+    };
+    
+    proto.iterateRecv = function() {
         this.collab.resumeSync();
         this.collab.pauseSync();
         this.oldSnapshot = this.snapshot();
@@ -66,11 +74,11 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     
     proto.onRemoteChange = function(obj){
         if(obj.type == 'insert')
-            this.insertChar(obj.value.char, obj.position);
+            this.insertChar(obj.value, obj.position);
         if(obj.type == 'delete')
             this.deleteChar(obj.position);
         if(obj.type == 'update')
-            this.updateChar(obj.value.char, obj.position);
+            this.updateChar(obj.value, obj.position);
             
         this.oldSnapshot = this.snapshot();
     };
