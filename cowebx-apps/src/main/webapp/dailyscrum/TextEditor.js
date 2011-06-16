@@ -46,7 +46,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this.t = setInterval(dojo.hitch(this, 'iterate'), 10);
     };
     
-    proto.iterate = function() {
+    proto.iterate = function() { 
         this.iterateSend();
         this.iterateRecv();
     };
@@ -57,8 +57,6 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
         //Send syncs
         if(syncs && syncs.ops){
-            console.log(syncs.ops);
-            //syncs.ops.reverse();
             for(var i=0; i<syncs.ops.length; i++){
                 if(syncs.ops[i] != undefined)
                     this.collab.sendSync('editorUpdate', syncs.ops[i][2] , syncs.ops[i][0], syncs.ops[i][1]);
@@ -79,8 +77,6 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             this.deleteChar(obj.position);
         if(obj.type == 'update')
             this.updateChar(obj.value, obj.position);
-            
-        this.oldSnapshot = this.snapshot();
     };
         
     proto.insertChar = function(c, pos) {
@@ -102,6 +98,20 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         por.start = start;
         por.end = end;
         this._moveCaretToPOR();
+    };
+    
+    proto.insertString = function(string, pos) {
+        var x = pos;
+        for(var i=0; i<string.length; i++){
+            this.insertChar(string[i], x);
+            x++;
+        }
+    };
+    
+    proto.deleteString = function(start, end) {
+        for(var i=start; i<end; i++){
+            this.deleteChar(i);
+        }
     };
         
     proto.deleteChar = function(pos) {
@@ -143,6 +153,11 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             this._por.start = t.selectionStart;
             this._por.end = t.selectionEnd;
         }
+    };
+    
+    proto.setPOR = function(pos){
+        this._por.start = pos;
+        this._por.end = pos;
     };
         
     proto._onFocus = function(event) {

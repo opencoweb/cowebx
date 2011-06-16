@@ -21,7 +21,7 @@ define([
         };
     };
 
-    module('listener bootstrap', modOpts());
+    module('editor local', modOpts());
     
     test('insert char beginning', 1, function() {
         this.editor.insertChar("a",0);

@@ -24,11 +24,11 @@ define([
         };
     };
 
-    module('listener bootstrap', modOpts());
+    module('editor remote', modOpts());
     
     test('insert char inbound', 1, function() {
         //Simulate incoming sync
-        this.collab.sendSync('editorUpdate', { 'char': 'a' }, 'insert', '0');
+        this.collab.sendSync('editorUpdate', 'a', 'insert', '0');
         //Verify we got it
         equals(dojo.attr(this.editor._textarea,'value'),"a");
     });
@@ -37,7 +37,7 @@ define([
         //Insert char to replace
         this.editor.insertChar('a',0);
         //Simulate incoming sync
-        this.collab.sendSync('editorUpdate', { 'char': 'b' }, 'update', '0');
+        this.collab.sendSync('editorUpdate', 'b', 'update', '0');
         //Verify we got it
         equals(dojo.attr(this.editor._textarea,'value'),"b");
     });
