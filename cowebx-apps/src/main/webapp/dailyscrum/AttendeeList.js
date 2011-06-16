@@ -16,6 +16,7 @@ define([
 		this.prevSelected = null;		//Previously selectd user name
 		this.phoneUsers = {};			//active user list
 		this.users = {};
+		this.handles = {};
 		
 		//Subscribe to syncs and listen
         this.collab = coweb.initCollab({id : this.id});  
@@ -68,10 +69,11 @@ define([
 			    this.phoneUsers[obj.value.activatedName] = true;
 			dojo.toggleClass(obj.value.activatedName+"_li", "dailyscrum_inactive");
 			dojo.attr(obj.value.activatedName+"_li", 'active', true);
-			dojo.connect(dijit.byId(obj.value.activatedName+'_li').domNode,'onclick',this,'onUserClick');	
+			this.handles[obj.value.activatedName] = dojo.connect(dijit.byId(obj.value.activatedName+'_li').domNode,'onclick',this,'onUserClick');	
 			obj["byClick"] = true;
+		    this._onActivateRemoteUser(obj);
 		}
-		this._onActivateRemoteUser(obj);
+		
 	};
 	
 	proto.onActivateUser = function(name, click){
@@ -81,13 +83,14 @@ define([
 			    this.phoneUsers[name] = true;
 			dojo.toggleClass(name+"_li", "dailyscrum_inactive");
 			dojo.attr(name+"_li", 'active', true);
-			dojo.connect(dijit.byId(name+'_li').domNode,'onclick',this,'onUserClick');
+			this.handles[name] = dojo.connect(dijit.byId(name+'_li').domNode,'onclick',this,'onUserClick');
 			this.collab.sendSync('userActivate', { 
 			    activatedName: name ,
 			    clicked: click
 			}, null);	
+		    this._onActivateUser(name);	
 		}
-		this._onActivateUser(name);	
+		
 	};
 	
 	proto.onStateRequest = function(token){
@@ -164,6 +167,7 @@ define([
 			this.count--;
 			dojo.toggleClass(name+"_li", "dailyscrum_inactive");
 			dojo.attr(name+"_li", 'active', false);
+			dojo.disconnect(this.handles[name]);
 		}
 	};
 	
@@ -181,6 +185,7 @@ define([
     				var li = dijit.byId(users[i]['username']+"_li");
     				li.destroy(false);
     			}
+    			delete this.users[users[i]['username']];
     		}else{
     		    this.users[users[i]['username']] = this.users[users[i]['username']] - 1;
     		}

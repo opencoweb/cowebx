@@ -107,7 +107,7 @@ define(
 			},
 			
 			onActivateUser: function(e){
-				if(this.users[e] != null){
+			    if(this.users[e] != null){
 					var user = this.users[e];
 				}else{
 					this.users[e] = {};
@@ -117,7 +117,7 @@ define(
 				user["timeTaken"] = (user["timeTaken"] == undefined) ? 0 : user["timeTaken"];
 				user["count"] = (user["count"] == undefined) ? 1 : user["count"]+1;
 				this.userCount++;
-				
+
 				//Adjust user clock
 				var selected = this.attendeeList.selected;
 				if(selected != null){
@@ -153,6 +153,7 @@ define(
 			},
 			
 			onDectivateUser: function(e){
+			    console.log('deactivate');
 				var user = this.users[e];
 				user['present'] = false;
 				this.userCount--;
@@ -215,6 +216,7 @@ define(
 			},
 			
 			onStateResponse: function(state){
+			    console.log("state response");
 				this.meetingTime = state.meetingTime;
 				this.meetingTimeTaken = state.meetingTimeTaken;
 				this.users = state.users;
