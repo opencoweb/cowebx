@@ -37,7 +37,6 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     var proto = TextEditor.prototype;
     
     proto.onCollabReady = function(){
-        console.log('ready');
         this.collab.pauseSync();
     };
 
@@ -56,10 +55,9 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         if(this.oldSnapshot != this.newSnapshot)
             var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
         //Send syncs
-        if(syncs && syncs.ops){
-            for(var i=0; i<syncs.ops.length; i++){
-                if(syncs.ops[i] != undefined)
-                    this.collab.sendSync('editorUpdate', syncs.ops[i][2] , syncs.ops[i][0], syncs.ops[i][1]);
+        if(syncs){
+            for(var i=0; i<syncs.length; i++){
+                this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
             }
         }
     };

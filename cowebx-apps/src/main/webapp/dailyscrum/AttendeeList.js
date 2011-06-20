@@ -32,7 +32,6 @@ define([
     };
 
     proto.onUserChange = function(params) {
-		console.log('change');
 		//Break if empty object
 		if(!params.users[0])
 			return;
