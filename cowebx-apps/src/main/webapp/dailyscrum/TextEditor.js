@@ -13,6 +13,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         dojo.style(this._textarea, 'height', '100%');
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = null;
+        this.t = null;
     
     
         this.collab = coweb.initCollab({id : this.id});  
@@ -171,7 +172,10 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     };
     
     proto.cleanup = function() {
-        clearTimeout(this.t);
+        if(this.t != null){
+            clearTimeout(this.t);
+            this. t = null;
+        }
     };
     
     proto.onStateRequest = function(token){

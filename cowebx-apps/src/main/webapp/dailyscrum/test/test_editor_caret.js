@@ -43,7 +43,7 @@ define([
 
     module('editor caret pos', modOpts());
     
-    test('recv char stay in middle', 1, function() {
+    test('recv string stay at front', 2, function() {
         //Pause both, b/c no READY call is fired in testingin the editors...
         this.editor1.collab.pauseSync();
         this.editor2.collab.pauseSync();
@@ -51,14 +51,26 @@ define([
         this.editor2._onFocus();
            
         this.editor1.insertString('abcdefgh',0);
+        equals(this.editor1._por.start, 0);
+        this.editor1.iterate();
+        this.editor2.iterate();
+        equals(this.editor2._por.start, 0);
+    });
+    
+    test('recv string stay in middle', 1, function() {
+        //Pause both, b/c no READY call is fired in testingin the editors...
+        this.editor1.collab.pauseSync();
+        this.editor2.collab.pauseSync();
+        this.editor1._onFocus();
+        this.editor2._onFocus();
+        
+        this.editor1.insertString('abcdefgh',0);
         this.editor1.iterate();
         this.editor2.iterate();
         this.editor2.setPOR(2);
-        this.editor1.insertString('abc',0);
+        this.editor1.insertString('123',0);
         this.editor1.iterate();
         this.editor2.iterate();
-        
-        //Asserts
-        equals(this.editor1._por.start, 0);
+        equals(this.editor2._por.start, 5);
     });
 });
