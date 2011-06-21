@@ -15,7 +15,6 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this.newSnapshot = null;
         this.t = null;
     
-    
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
         this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
@@ -179,7 +178,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     };
     
     proto.onStateRequest = function(token){
-        var state = {snapshot: this.newSnapshot}
+        var state = {snapshot: this.newSnapshot};
         this.collab.sendStateResponse(state,token);
     };
     

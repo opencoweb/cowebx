@@ -31,16 +31,7 @@ define(
 				//3. Style...
 				dojo.addClass(textEditor._textarea, 'shadow');
 				
-				//4. Clear when clicked
-				dojo.connect(textEditor._textarea, 'onclick', this, function(e){
-				    if(this.clicked == false){
-				        this.clicked = true;
-				        e.target.value = '';
-			        }
-				});
-				
-				
-			   	//5. Get a session instance & prep
+			   	//4. Get a session instance & prep
 			    var sess = coweb.initSession();
 			    sess.prepare();
 			},
