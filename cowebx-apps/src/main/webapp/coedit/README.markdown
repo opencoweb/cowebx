@@ -1,4 +1,4 @@
-#Coweb Daily Scrum Application
+#Coweb Editor Application
 
 ##About
 
