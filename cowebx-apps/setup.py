@@ -87,6 +87,12 @@ def develop(options, args):
     try:
         os.symlink(src, target)
     except OSError, e:
+        print 'skipped: cowebx-widgets-dojo'
+    target = os.path.join(targetRoot, 'www/lib/cowebx/widgets')
+    src = os.path.abspath('../cowebx-widgets/src/main/webapp')
+    try:
+        os.symlink(src, target)
+    except OSError, e:
         print 'skipped: cowebx-widgets'
     
 if __name__ == '__main__':
