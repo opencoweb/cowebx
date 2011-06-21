@@ -22,24 +22,25 @@ define(
 			init: function(){
 			    this.clicked = false;
 			    	
-				//Create the editor
+				//1. Create the editor
 				var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
 				
-				//Populate with some placeholder text
+				//2. Populate with some placeholder text
 				textEditor._textarea.value = '\nHello, world!\n\nTry opening two browsers both pointing to this URL, or send this link to a friend, and start typing...';
 				
-				//Clear when clicked
+				//3. Style...
+				dojo.addClass(textEditor._textarea, 'shadow');
+				
+				//4. Clear when clicked
 				dojo.connect(textEditor._textarea, 'onclick', this, function(e){
-				    if(this.clicked = false){
+				    if(this.clicked == false){
 				        this.clicked = true;
 				        e.target.value = '';
 			        }
 				});
 				
-				//Style...
-				dojo.addClass(textEditor._textarea, 'shadow');
 				
-			   	// get a session instance & prep
+			   	//5. Get a session instance & prep
 			    var sess = coweb.initSession();
 			    sess.prepare();
 			},
