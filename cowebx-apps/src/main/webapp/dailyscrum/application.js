@@ -1,5 +1,5 @@
 //
-// Cooperative app 
+// Cooperative scrum app 
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // 
@@ -86,6 +86,8 @@ define(
 				this.userCount = 0;
 				this.users = {};
 				this.currentSpeakerTime = 0;
+				
+				
 				
 			   	// get a session instance & prep
 			    var sess = coweb.initSession();
@@ -297,7 +299,6 @@ define(
 				var time = this.users[this.attendeeList.selected].timeTaken;
 				var formattedTime = this._renderTime(time);
 				dojo.attr(this.attendeeList.selected+'_count','innerHTML',formattedTime);
-				
 			},
 			
 			_renderTime: function(n){
