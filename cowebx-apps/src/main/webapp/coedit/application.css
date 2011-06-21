@@ -23,7 +23,7 @@ html, body {
 }
 
 .shadow {
-  -moz-box-shadow: 5px 5px 5px black;
-  -webkit-box-shadow: 5px 5px 5px black;
-  box-shadow: 5px 5px 5px black;
+  -moz-box-shadow: 10px 10px 10px black;
+  -webkit-box-shadow: 10px 10px 10px black;
+  box-shadow: 10px 10px 10px black;
 }

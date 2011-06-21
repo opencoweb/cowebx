@@ -25,13 +25,11 @@ define(
 				//1. Create the editor
 				var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
 				
-				//2. Populate with some placeholder text
-				textEditor._textarea.value = '\nHello, world!\n\nTry opening two browsers both pointing to this URL, or send this link to a friend, and start typing...';
+				//2. Populate with some placeholder text and style
+				textEditor._textarea.value = 'Hello, world!\n\nTry opening two browsers both pointing to this URL, or send this link to a friend, and start typing...';
+				dojo.style(textEditor._textarea,'padding','5px');
 				
-				//3. Style...
-				dojo.addClass(textEditor._textarea, 'shadow');
-				
-			   	//4. Get a session instance & prep
+			   	//3. Get a session instance & prep
 			    var sess = coweb.initSession();
 			    sess.prepare();
 			},
