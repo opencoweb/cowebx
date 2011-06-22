@@ -14,6 +14,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = null;
         this.t = null;
+        this.q = [];
     
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
@@ -65,16 +66,25 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     proto.iterateRecv = function() {
         this.collab.resumeSync();
         this.collab.pauseSync();
+        if(this.q.length != 0)
+            this.runOps();
+        this.q = [];
         this.oldSnapshot = this.snapshot();
     };
     
     proto.onRemoteChange = function(obj){
-        if(obj.type == 'insert')
-            this.insertChar(obj.value, obj.position);
-        if(obj.type == 'delete')
-            this.deleteChar(obj.position);
-        if(obj.type == 'update')
-            this.updateChar(obj.value, obj.position);
+        this.q.push(obj);
+    };
+    
+    proto.runOps = function(){
+        for(var i=0; i<this.q.length; i++){
+            if(this.q[i].type == 'insert')
+                this.insertChar(this.q[i].value, this.q[i].position);
+            if(this.q[i].type == 'delete')
+                this.deleteChar(this.q[i].position);
+            if(this.q[i].type == 'update')
+                this.updateChar(this.q[i].value, this.q[i].position);
+        }
     };
         
     proto.insertChar = function(c, pos) {
@@ -187,6 +197,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this.newSnapshot = obj.snapshot;
         this.oldSnapshot = obj.snapshot;
     };
+    
 
     return TextEditor;
 });
