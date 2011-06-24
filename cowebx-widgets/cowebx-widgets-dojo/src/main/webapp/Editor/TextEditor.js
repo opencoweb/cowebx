@@ -15,6 +15,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this.newSnapshot = null;
         this.t = null;
         this.q = [];
+        this.value = '';
     
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
@@ -77,6 +78,8 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     };
     
     proto.runOps = function(){
+        this.value = this._textarea.value;
+        this._updatePOR();
         for(var i=0; i<this.q.length; i++){
             if(this.q[i].type == 'insert')
                 this.insertChar(this.q[i].value, this.q[i].position);
@@ -85,15 +88,18 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             if(this.q[i].type == 'update')
                 this.updateChar(this.q[i].value, this.q[i].position);
         }
+        this._textarea.value = this.value;
+        this._moveCaretToPOR();
     };
         
     proto.insertChar = function(c, pos) {
-        this._updatePOR();
+        //this._updatePOR();
         var t = this._textarea,
         por = this._por,
         start = por.start,
         end = por.end;
-        t.value = t.value.substr(0, pos) + c + t.value.substr(pos);
+        //t.value = t.value.substr(0, pos) + c + t.value.substr(pos);
+        this.value = this.value.substr(0, pos) + c + this.value.substr(pos);
         if(pos < por.end) {
             if(pos >= por.start && por.end != por.start) {
                 ++start;
@@ -105,7 +111,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         }
         por.start = start;
         por.end = end;
-        this._moveCaretToPOR();
+        //this._moveCaretToPOR();
     };
     
     proto.insertString = function(string, pos) {
@@ -123,22 +129,24 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     };
         
     proto.deleteChar = function(pos) {
-        this._updatePOR();
+        //this._updatePOR();
         var t = this._textarea;
-        t.value = t.value.substr(0, pos) + t.value.substr(pos+1);
+        //t.value = t.value.substr(0, pos) + t.value.substr(pos+1);
+        this.value = this.value.substr(0, pos) + this.value.substr(pos+1);
         if(pos < this._por.start) {
             --this._por.start;
         }
         if(pos < this._por.end) {
             --this._por.end;
         }
-        this._moveCaretToPOR();
+        //this._moveCaretToPOR();
     };
         
     proto.updateChar = function(c, pos) {
-        this._updatePOR();
+        //this._updatePOR();
         var t = this._textarea;
-        t.value = t.value.substr(0, pos) + c + t.value.substr(pos+1);
+        //t.value = t.value.substr(0, pos) + c + t.value.substr(pos+1);
+        this.value = this.value.substr(0, pos) + c + this.value.substr(pos+1);
     };
 
     proto.snapshot = function(){
