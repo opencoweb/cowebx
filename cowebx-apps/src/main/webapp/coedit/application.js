@@ -8,12 +8,14 @@
 define(
 	//App-specific dependencies
 	[
+	    'dojo',
 		'coweb/main',
 		'dojox/mobile/parser',
 		'cowebx/dojo/Editor/TextEditor'
 	],
 
 	function(
+	    dojo,
 		coweb,
 		parser,
 		TextEditor) {

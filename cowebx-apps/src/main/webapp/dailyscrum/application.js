@@ -8,6 +8,7 @@
 define(
 	//App-specific dependencies
 	[
+	    'dojo',
 		'coweb/main',
 		'dojox/mobile/parser',
 		'Clock',
@@ -19,6 +20,7 @@ define(
 	],
 
 	function(
+	    dojo,
 		coweb,
 		parser,
 		Clock,
