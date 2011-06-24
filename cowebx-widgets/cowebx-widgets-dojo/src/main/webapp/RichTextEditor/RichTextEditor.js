@@ -10,9 +10,11 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this._por = {start : 0, end: 0};
         this._toolbar = null;
         this._palette = null;
+        this._bgPalette = null;
         this._textarea = dojo.create('textarea', {id:'area'}, args.domNode);
         dojo.style(this._textarea, 'width', '100%');
         dojo.style(this._textarea, 'height', '95%');
+        dojo.style(this._textarea, 'border', '0px');
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = null;
         this.t = null;
@@ -24,6 +26,9 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this.underline = false;
         this.forecolor = false;
         this.currColor = null;
+        this.forecolor = false;
+        this.hilitecolor = false;
+        this.currBGColor = null;
     
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
@@ -97,6 +102,8 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             this.onUnderlineClick();
         if(obj.value.style == 'forecolor')
             this.changeColor(obj.value.value);
+        if(obj.value.style == 'bgcolor')
+            this.changeBGColor(obj.value.value);
     };
     
     proto.runOps = function(){
@@ -223,7 +230,8 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             bold: this.bold,
             italic: this.italic,
             underline: this.underline,
-            currColor: this.currColor
+            currColor: this.currColor,
+            currBGColor: this.currBGColor
         };
         this.collab.sendStateResponse(state,token);
     };
@@ -240,6 +248,8 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             this.onUnderlineClick();
         if(obj.currColor != null)
             this.changeColor(obj.currColor);
+        if(obj.currBGColor != null)
+            this.changeBGColor(obj.currBGColor);
     };
     
     proto.buildToolbar = function(){
@@ -256,7 +266,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         }));
         var sep = new dijit.ToolbarSeparator({});
         this._toolbar.addChild(sep);
-        dojo.forEach(["ForeColor"], dojo.hitch(this, function(label) {
+        dojo.forEach(["ForeColor","HiliteColor"], dojo.hitch(this, function(label) {
             var button = new dijit.form.Button({
                 label: label,
                 showLabel: false,
@@ -268,6 +278,9 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         var paletteNode = dojo.create('div',{style:'width:100%;'},this._toolbar.domNode,'after');
         this._palette = new dijit.ColorPalette({style:'position:fixed;display:none;'},paletteNode);
         dojo.connect(this._palette, 'onChange', this, 'changeColor');
+        var bgPaletteNode = dojo.create('div',{style:'width:100%;'},this._toolbar.domNode,'after');
+        this._bgPalette = new dijit.ColorPalette({style:'position:fixed;display:none;'},bgPaletteNode);
+        dojo.connect(this._bgPalette, 'onChange', this, 'changeBGColor');
     };
     
     proto.onBoldClick = function(){
@@ -314,6 +327,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     
     proto.onForeColorClick = function() {
         if(this.forecolor == false){
+            dojo.style(this._bgPalette.domNode, 'display', 'none');
             dojo.style(this._palette.domNode, 'display', 'block');
             this.forecolor = true;
         }else if(this.forecolor){
@@ -322,10 +336,27 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         }
     };
     
+    proto.onHiliteColorClick = function() {
+        if(this.hilitecolor == false){
+            dojo.style(this._palette.domNode, 'display', 'none');
+            dojo.style(this._bgPalette.domNode, 'display', 'block');
+            this.hilitecolor = true;
+        }else if(this.hilitecolor){
+            dojo.style(this._bgPalette.domNode, 'display', 'none');
+            this.hilitecolor = false;
+        }
+    };
+    
     proto.changeColor = function(color){
         dojo.style(this._textarea, 'color', color);
         this.currColor = color;
         this.collab.sendSync('styleUpdate', { style: 'forecolor',value:color }, null);
+    };
+    
+    proto.changeBGColor = function(color){
+        dojo.style(this._textarea, 'background', color);
+        this.currBGColor = color;
+        this.collab.sendSync('styleUpdate', { style: 'bgcolor',value:color }, null);
     };
     
 
