@@ -11,7 +11,11 @@ define(
 	    'dojo',
 		'coweb/main',
 		'dojox/mobile/parser',
-		'cowebx/dojo/Editor/TextEditor'
+		'cowebx/dojo/RichTextEditor/RichTextEditor',
+		'dijit/ColorPalette',
+		'dijit/Toolbar',
+		'dijit/form/Button',
+		'dijit/ToolbarSeparator'
 	],
 
 	function(
@@ -29,7 +33,6 @@ define(
 				
 				//2. Populate with some placeholder text and style
 				textEditor._textarea.value = 'Hello, world!\n\nTry opening two browsers both pointing to this URL, or send this link to a friend, and start typing...';
-				dojo.style(textEditor._textarea,'padding','5px');
 				
 			   	//3. Get a session instance & prep
 			    var sess = coweb.initSession();
