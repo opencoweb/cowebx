@@ -11,11 +11,7 @@ define(
 	    'dojo',
 		'coweb/main',
 		'dojox/mobile/parser',
-		'cowebx/dojo/RichTextEditor/RichTextEditor',
-		'dijit/ColorPalette',
-		'dijit/Toolbar',
-		'dijit/form/Button',
-		'dijit/ToolbarSeparator'
+		'cowebx/dojo/RichTextEditor/RichTextEditor'
 	],
 
 	function(
