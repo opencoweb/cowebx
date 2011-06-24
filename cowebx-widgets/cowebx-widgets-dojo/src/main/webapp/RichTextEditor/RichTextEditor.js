@@ -1,4 +1,11 @@
-define(['coweb/main','./ld'], function(coweb,ld) {
+define([
+    'coweb/main',
+    './ld',
+    'dijit/ColorPalette',
+    'dijit/Toolbar',
+    'dijit/form/Button',
+    'dijit/ToolbarSeparator'
+    ], function(coweb,ld,ColorPalette,Toolbar,Button,Separator) {
     var RichTextEditor = function(args){
         this.id = args.id;
         this.listen = args.listen;
@@ -254,9 +261,9 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     
     proto.buildToolbar = function(){
         var toolbarNode = dojo.create('div',{style:'width:100%;height:50px'},this._textarea,'before');
-        this._toolbar = new dijit.Toolbar({},toolbarNode);
+        this._toolbar = new Toolbar({},toolbarNode);
         dojo.forEach(["Bold", "Italic", "Underline"], dojo.hitch(this, function(label) {
-            var button = new dijit.form.Button({
+            var button = new Button({
                 label: label,
                 showLabel: false,
                 iconClass: "dijitEditorIcon dijitEditorIcon" + label
@@ -264,10 +271,10 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             this._toolbar.addChild(button);
             dojo.connect(button, 'onclick', this, 'on'+label+'Click');
         }));
-        var sep = new dijit.ToolbarSeparator({});
+        var sep = new Separator({});
         this._toolbar.addChild(sep);
         dojo.forEach(["ForeColor","HiliteColor"], dojo.hitch(this, function(label) {
-            var button = new dijit.form.Button({
+            var button = new Button({
                 label: label,
                 showLabel: false,
                 iconClass: "dijitEditorIcon dijitEditorIcon" + label
@@ -276,10 +283,10 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             dojo.connect(button, 'onclick', this, 'on'+label+'Click');
         }));
         var paletteNode = dojo.create('div',{style:'width:100%;'},this._toolbar.domNode,'after');
-        this._palette = new dijit.ColorPalette({style:'position:fixed;display:none;'},paletteNode);
+        this._palette = new ColorPalette({style:'position:fixed;display:none;'},paletteNode);
         dojo.connect(this._palette, 'onChange', this, 'changeColor');
         var bgPaletteNode = dojo.create('div',{style:'width:100%;'},this._toolbar.domNode,'after');
-        this._bgPalette = new dijit.ColorPalette({style:'position:fixed;display:none;'},bgPaletteNode);
+        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;'},bgPaletteNode);
         dojo.connect(this._bgPalette, 'onChange', this, 'changeBGColor');
     };
     
