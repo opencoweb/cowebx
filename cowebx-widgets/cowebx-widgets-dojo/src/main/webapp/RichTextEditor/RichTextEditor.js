@@ -20,7 +20,7 @@ define([
         this._bgPalette = null;
         this._textarea = dojo.create('textarea', {id:'area'}, args.domNode);
         dojo.style(this._textarea, 'width', '100%');
-        dojo.style(this._textarea, 'height', '95%');
+        dojo.style(this._textarea, 'height', '100%');
         dojo.style(this._textarea, 'border', '0px');
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = null;
@@ -46,6 +46,7 @@ define([
     
         dojo.connect(this._textarea, 'onmousedown', this, '_updatePOR');
         dojo.connect(this._textarea, 'onmouseup', this, '_updatePOR');
+		dojo.connect(this._textarea, 'onclick', this, 'hidePalette');
         dojo.connect(this._textarea, 'onmousemove', this, '_updatePOR');
         dojo.connect(this._textarea, 'onkeydown', this, '_updatePOR');
         dojo.connect(this._textarea, 'onkeyup', this, '_updatePOR');
@@ -293,11 +294,11 @@ define([
     proto.onBoldClick = function(){
         if(this.bold == false){
             var curr = dojo.attr(this._textarea,'style');
-            dojo.attr(this._textarea,'style',curr+'font-weight:bold;');
+            dojo.attr(this._textarea,'style',curr+'font-weight: bold;');
             this.bold = true;
         }else if(this.bold){
             var curr = dojo.attr(this._textarea,'style');
-            var newCurr = curr.replace('font-weight:bold;',' ');
+            var newCurr = curr.replace('font-weight: bold;',' ');
             dojo.attr(this._textarea,'style',newCurr);
             this.bold = false;
         }
@@ -307,11 +308,11 @@ define([
     proto.onItalicClick = function(){
         if(this.italic == false){
             var curr = dojo.attr(this._textarea,'style');
-            dojo.attr(this._textarea,'style',curr+'font-style:italic;');
+            dojo.attr(this._textarea,'style',curr+'font-style: italic;');
             this.italic = true;
         }else if(this.italic){
             var curr = dojo.attr(this._textarea,'style');
-            var newCurr = curr.replace('font-style:italic;',' ');
+            var newCurr = curr.replace('font-style: italic;',' ');
             dojo.attr(this._textarea,'style',newCurr);
             this.italic = false;
         }
@@ -321,11 +322,11 @@ define([
     proto.onUnderlineClick = function(){
         if(this.underline == false){
             var curr = dojo.attr(this._textarea,'style');
-            dojo.attr(this._textarea,'style',curr+'text-decoration:underline;');
+            dojo.attr(this._textarea,'style',curr+'text-decoration: underline;');
             this.underline = true;
         }else if(this.underline){
             var curr = dojo.attr(this._textarea,'style');
-            var newCurr = curr.replace('text-decoration:underline;',' ');
+            var newCurr = curr.replace('text-decoration: underline;',' ');
             dojo.attr(this._textarea,'style',newCurr);
             this.underline = false;
         }
@@ -358,13 +359,22 @@ define([
         dojo.style(this._textarea, 'color', color);
         this.currColor = color;
         this.collab.sendSync('styleUpdate', { style: 'forecolor',value:color }, null);
+		this.hidePalette();
     };
     
     proto.changeBGColor = function(color){
         dojo.style(this._textarea, 'background', color);
         this.currBGColor = color;
         this.collab.sendSync('styleUpdate', { style: 'bgcolor',value:color }, null);
+		this.hidePalette();
     };
+
+	proto.hidePalette = function(){
+		dojo.style(this._palette.domNode, 'display', 'none');
+		dojo.style(this._bgPalette.domNode, 'display', 'none');
+		this.hilitecolor = false;
+		this.forecolor = false;
+	};
     
 
     return RichTextEditor;
