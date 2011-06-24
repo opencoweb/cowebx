@@ -10,7 +10,7 @@ define(
 	[
 		'coweb/main',
 		'dojox/mobile/parser',
-		'cowebx/widgets/Editor/TextEditor'
+		'cowebx/dojo/Editor/TextEditor'
 	],
 
 	function(
