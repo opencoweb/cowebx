@@ -14,7 +14,6 @@
 					<ul dojoType="dojox.mobile.EdgeToEdgeList" id="listView" transition="none" stateful="true" >
 						<!-- Attendees added here -->
 					</ul>
-					<img src="images/stop.png" class="dailyscrum_start" id="start"/>
 					<div class="dailyscrum_tip" id="selectTip">Select a speaker to begin meeting</div>
 				</div>
 				<div class="dailyscrum_control">
@@ -22,7 +21,7 @@
 					<table class="dailyscrum_control_table">
 						<tr>
 							<td>
-								<span id="totalClock">00:00</span>
+								<span id="totalClock">00:00</span><img src="images/stop.png" class="dailyscrum_start" id="start"/>
 							</td>
 						</tr>
 					</table>
@@ -45,6 +44,7 @@
 						<div dojoType="dojox.mobile.FixedSplitterPane" class="dailyscrum_scrumFrameView" id="scrumFrameView">
 							<input id="urlBar" size="75" style="width:90%;" type="text" value="http://"><input type="submit" value="Submit" id="urlSubmit"/>
 							<iframe class="dailyscrum_editor" src="" id="scrumFrame"></iframe>
+							<div id="editorNode" class="dailyscrum_editor_node"></div>
 						</div>
 					</div>
 				</div>

@@ -1,5 +1,5 @@
 //
-// Cooperative app 
+// Cooperative scrum app 
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // 
@@ -8,6 +8,7 @@
 define(
 	//App-specific dependencies
 	[
+	    'dojo',
 		'coweb/main',
 		'dojox/mobile/parser',
 		'Clock',
@@ -19,6 +20,7 @@ define(
 	],
 
 	function(
+	    dojo,
 		coweb,
 		parser,
 		Clock,
@@ -30,7 +32,7 @@ define(
 				var inviteList = (this.aquireUrlParams('invites') != null) ? this.aquireUrlParams('invites') : null;
 				if(inviteList != null){
 					this.invites = dojo.xhrGet({
-						url: 'invites.json',
+						url: inviteList,
 						handleAs: 'json',
 						load: dojo.hitch(this, function(data){ 
 							this.populateExpectedList(data);  
@@ -71,11 +73,14 @@ define(
 				dojo.connect(this.attendeeList, '_onActivateRemoteUser', this, 'onActivateRemoteUser');
 				dojo.connect(this.attendeeList, '_deactivateUser', this, 'onDectivateUser');
 				dojo.connect(dijit.byId('scrumFrameView'),'resize',this,'_ffResize');
+				dojo.connect(dojo.byId('start'),'onclick',this,'stopMeeting');
+				dojo.connect(document, 'onkeypress', this, 'keystroke');
 				
 				//Sync
 				this.collab = coweb.initCollab({id : 'dailyscrum'});  
 				this.collab.subscribeStateRequest(this, 'onStateRequest');
 				this.collab.subscribeStateResponse(this, 'onStateResponse');
+				this.collab.subscribeSync('meetingStop', this, 'stopMeeting');
 				
 				//CLOCK
 				this.meetingTime = length*60;
@@ -84,9 +89,12 @@ define(
 				this.users = {};
 				this.currentSpeakerTime = 0;
 				
+				
+				
 			   	// get a session instance & prep
 			    var sess = coweb.initSession();
 			    sess.prepare();
+			    
 			},
 			
 			populateExpectedList: function(inviteObj){
@@ -96,14 +104,14 @@ define(
 					dojo.connect(a.domNode, 'ondblclick', this, function(e){
 						if(dojo.attr(e.target, 'active') == false){
 							var name = e.target.id.substring(0, e.target.id.length-3);
-							this.attendeeList.onActivateUser(name);
+							this.attendeeList.onActivateUser(name, true);
 						}
 					});
 				}
 			},
 			
 			onActivateUser: function(e){
-				if(this.users[e] != null){
+			    if(this.users[e] != null){
 					var user = this.users[e];
 				}else{
 					this.users[e] = {};
@@ -113,20 +121,20 @@ define(
 				user["timeTaken"] = (user["timeTaken"] == undefined) ? 0 : user["timeTaken"];
 				user["count"] = (user["count"] == undefined) ? 1 : user["count"]+1;
 				this.userCount++;
-				console.log(this.users);
-				
+
 				//Adjust user clock
 				var selected = this.attendeeList.selected;
 				if(selected != null){
 					this.userClock.seconds = this.getUserTimeRemaining(selected);
 					dijit.byId(this.attendeeList.selected+'_li').select();
 				}
+
+				dojo.attr(e+'_count', 'innerHTML',this._renderTime(this.users[e].timeTaken));
 				return user;
 			},
 			
 			onActivateRemoteUser: function(obj){
 				var e = obj.value.activatedName;
-				console.log('obj byclick = '+obj.byClick);
 				if(obj.byClick == true){
 					if(this.users[e] != null){
 						var user = this.users[e];
@@ -149,6 +157,7 @@ define(
 			},
 			
 			onDectivateUser: function(e){
+			    console.log('deactivate');
 				var user = this.users[e];
 				user['present'] = false;
 				this.userCount--;
@@ -157,8 +166,12 @@ define(
 				var selected = this.attendeeList.selected;
 				if(selected != null){
 					this.userClock.seconds = this.getUserTimeRemaining(selected);
-					if(e == selected)
+					if(e == selected){
 						this.userClock.stop();
+						this.userClock.seconds = 0;
+						this.userClock._renderTime();
+						this.t.stop();
+					}
 				}
 				
 				return user
@@ -187,6 +200,7 @@ define(
 					this.t.start();
 					this.t.status = 'started';
 				}
+				dojo.style('start','display','inline');
 			},
 			
 			onStateRequest: function(token){
@@ -202,11 +216,11 @@ define(
 					selected : this.attendeeList.selected,
 					prevSelected : this.attendeeList.prevSelected
 				};
-				
 				this.collab.sendStateResponse(state, token);
 			},
 			
 			onStateResponse: function(state){
+			    console.log("state response");
 				this.meetingTime = state.meetingTime;
 				this.meetingTimeTaken = state.meetingTimeTaken;
 				this.users = state.users;
@@ -274,7 +288,6 @@ define(
 			
 			_onUrlUp: function(){
 				var url = dojo.attr('urlBar','value');
-				console.log('url = '+url);
 				dojo.attr('scrumFrame','src', url);
 			},
 			
@@ -285,7 +298,38 @@ define(
 			
 			_onTick: function(){
 				this.talkFor(this.attendeeList.selected, 1);
-			}
+				var time = this.users[this.attendeeList.selected].timeTaken;
+				var formattedTime = this._renderTime(time);
+				dojo.attr(this.attendeeList.selected+'_count','innerHTML',formattedTime);
+			},
+			
+			_renderTime: function(n){
+				var min = Math.floor(n/60);
+				if(min < 10)
+					min = "0"+min;
+				var secs = n%60;
+				if(secs<10)
+					secs = "0"+secs;
+				return(min + ":" + secs);
+			},
+			
+			keystroke: function(e){
+			    var code = e.keyCode;
+			    switch(code){
+			        //case 1:
+			            //doSomething();
+			            //break;
+			    }
+			},
+			
+			stopMeeting: function(){
+			    this.totalClock.stop();
+			    this.userClock.stop();
+			    this.t.stop();
+                this.attendeeList.selected = null;
+                dojo.style('start','display','none');
+                this.collab.sendSync('meetingStop', { }, null);
+			},
 		};
 		
 		dojo.ready(function() {

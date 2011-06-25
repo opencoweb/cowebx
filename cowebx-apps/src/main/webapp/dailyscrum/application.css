@@ -1,5 +1,5 @@
 /*
- * Cooperative list styles.
+ * Cooperative scrum styles.
  *
  * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
  * 
@@ -52,6 +52,12 @@ html, body {
 .dailyscrum_editor{
 	width:100%;
 	height:100%;
+	
+}
+
+.dailyscrum_editor_node{
+	width:100%;
+	height:100%;
 }
 
 .dailyscrum_count{
@@ -92,8 +98,6 @@ html, body {
 
 .dailyscrum_start{
 	display:none;
-	width:96%;
-	margin:5px;	
 }
 
 .dailyscrum_control_table{
@@ -104,6 +108,7 @@ html, body {
 	color:grey;
 	text-align:center;
 	overflow:hidden;
+	background-color:rgb(197, 204, 211);
 }
 
 .dailyscrum_inactive{

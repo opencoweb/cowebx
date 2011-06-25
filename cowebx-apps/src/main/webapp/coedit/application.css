@@ -1,0 +1,29 @@
+/*
+ * Cooperative editor styles.
+ *
+ * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+ * 
+ */
+
+html, body {
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    background: grey;
+}
+
+.editor_node{
+	width:90%;
+	height:90%;
+	margin-top:15px;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.palette_node{
+    position:absolute;
+    top:100px;
+    z-index:1000;
+}

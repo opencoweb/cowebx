@@ -87,7 +87,7 @@ def develop(options, args):
     try:
         os.symlink(src, target)
     except OSError, e:
-        print 'skipped: cowebx-widgets'
+        print 'skipped: cowebx-widgets-dojo'
     
 if __name__ == '__main__':
     parser = optparse.OptionParser('usage: %prog <deploy|develop> [options] <PATH>')
