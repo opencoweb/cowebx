@@ -49,15 +49,21 @@ define([
 	proto.onUserClick = function(e){
 		if(dojo.byId(e.target.id) != null){
 			dijit.byId(e.target.id).select();
+			dijit.byId(e.target.id).selected = true;
 			this.collab.sendSync('userClick', { selectedId: e.target.id }, null);
 			this.prevSelected = this.selected;
+			if(dijit.byId(this.prevSelected+"_li"))
+				dijit.byId(this.prevSelected+"_li").selected = false;
 			this.selected = e.target.id.substring(0,e.target.id.length-3);
 		}
 	};	
 	
 	proto.onRemoteUserClick = function(obj){
 		dijit.byId(obj.value.selectedId).select();
+		dijit.byId(obj.value.selectedId).selected = true;
 		this.prevSelected = this.selected;
+		if(dijit.byId(this.prevSelected+"_li"))
+			dijit.byId(this.prevSelected+"_li").selected = false;
 		this.selected = obj.value.selectedId.substring(0,obj.value.selectedId.length-3);
 		this._onRemoteUserClick(obj);
 	};

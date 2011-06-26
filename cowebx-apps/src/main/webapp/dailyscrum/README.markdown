@@ -33,6 +33,12 @@ return mid;
 	
 ##A Brief Tour
 
+###Usage
+* CTRL + Left Arrow Key : shortcut to cycle the current speaker up one person
+* CTRL + Right Arrow Key : shortcut to cycle the current speaker down one person
+
+###Directory Structure 
+
 The structure of this directory is extremely straight forward. The following files are all you need to worry about when developing:
 
 * ```index.html``` : serves as the main html file of the application

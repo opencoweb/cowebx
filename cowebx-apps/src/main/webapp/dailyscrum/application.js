@@ -35,7 +35,6 @@ define(
 				this.buildClocks();
 				this.buildiFrame();
 				this.buildEditor();
-				
 				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
 				
 				this.connectEvents();
@@ -68,7 +67,8 @@ define(
 				dojo.connect(this.attendeeList, '_deactivateUser', this, 'onDectivateUser');
 				dojo.connect(dijit.byId('scrumFrameView'),'resize',this,'_ffResize');
 				dojo.connect(dojo.byId('start'),'onclick',this,'stopMeeting');
-				dojo.connect(document, 'onkeypress', this, 'keystroke');
+				dojo.connect(document, 'onkeyup', this, 'keyUp');
+				dojo.connect(document, 'onkeydown', this, 'keyDown');
 			},
 			
 			buildEditor: function(){
@@ -329,13 +329,47 @@ define(
 				return(min + ":" + secs);
 			},
 			
-			keystroke: function(e){
-			    var code = e.keyCode;
-			    switch(code){
-			        //case 1:
-			            //doSomething();
-			            //break;
-			    }
+			keyUp: function(e){
+				if(e.which == 17) 
+					this._isCtrl=false;
+			},
+			
+			keyDown: function(e){
+				if(e.which == 17) 
+					this._isCtrl=true;
+				//Right 
+				if(e.which == 39 && this._isCtrl == true) { 
+					var check = false;
+					var stop = false;
+					dojo.query('#listView li').forEach(dojo.hitch(this, function(node, index, arr){
+						if(dojo.attr(node, 'active') != false){
+							if(check == true && stop == false){
+								var e = {target:{id:node.id}};
+								this.attendeeList.onUserClick(e);
+								stop = true;
+							}
+							if(dijit.byId(node.id).selected == true)
+								check = true;
+						}
+					}));
+				//Left
+				}else if(e.which == 37 && this._isCtrl == true) { 
+					var prev = null;
+					var stop = false;
+					dojo.query('#listView li').forEach(dojo.hitch(this, function(node, index, arr){
+						if(dojo.attr(node, 'active') != false){
+							if(dijit.byId(node.id).selected == true && stop == false){
+								if(prev != null){ 
+									var e = {target:{id:prev}};
+									this.attendeeList.onUserClick(e);
+								}
+								stop = true;
+							}else if(stop == false){
+								prev = node.id;
+							}
+						}
+					}));
+				}
 			},
 			
 			stopMeeting: function(){
