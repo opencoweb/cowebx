@@ -13,6 +13,7 @@ define(
 		'dojox/mobile/parser',
 		'Clock',
 		'AttendeeList',
+		'cowebx/dojo/Editor/TextEditor',
 		'dojo/fx',
 		'dojox/mobile',
 		'dojox/mobile/FixedSplitter',
@@ -24,11 +25,86 @@ define(
 		coweb,
 		parser,
 		Clock,
-		AttendeeList) {
+		AttendeeList,
+		TextEditor) {
 		
 		var app = {
 			init: function(){			
 				//Parse the invite list
+				this.parseInviteList();
+				
+				//Parse declarative widgets
+			   	parser.parse(dojo.body());
+				
+				//Set up clocks (User, Total, and durationTimer)
+				this.buildClocks();
+				
+				//Set up attendeeList & connect list activation to local func
+				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
+				
+				//Setup iFrame
+				//this.buildiFrame();
+				
+				//Editor setup
+				this.buildEditor();
+				
+				//Connect to events
+				dojo.connect(this.attendeeList, 'onUserClick', this, 'onUserClick');
+				dojo.connect(this.attendeeList, '_onRemoteUserClick', this, 'onUserClick');
+				dojo.connect(this.attendeeList, '_onActivateUser', this, 'onActivateUser');
+				dojo.connect(this.attendeeList, '_onActivateRemoteUser', this, 'onActivateRemoteUser');
+				dojo.connect(this.attendeeList, '_deactivateUser', this, 'onDectivateUser');
+				dojo.connect(dijit.byId('scrumFrameView'),'resize',this,'_ffResize');
+				dojo.connect(dojo.byId('start'),'onclick',this,'stopMeeting');
+				dojo.connect(document, 'onkeypress', this, 'keystroke');
+				
+				//Syncs
+				this.collab = coweb.initCollab({id : 'dailyscrum'});  
+				this.collab.subscribeStateRequest(this, 'onStateRequest');
+				this.collab.subscribeStateResponse(this, 'onStateResponse');
+				this.collab.subscribeSync('meetingStop', this, 'stopMeeting');
+				
+				//Clock stuff
+				this.meetingTime = this._length*60;
+				this.meetingTimeTaken = 0;
+				this.userCount = 0;
+				this.users = {};
+				this.currentSpeakerTime = 0;
+				
+			   	// get a session instance & prep
+			    var sess = coweb.initSession();
+			    sess.prepare();
+			    
+			},
+			
+			buildEditor: function(){
+				this.textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
+				dojo.style(this.textEditor._textarea, 'border', '0px');
+				dojo.style(this.textEditor._textarea, 'margin', '0px');
+				dojo.style(this.textEditor._textarea, 'resize', 'none');
+				dojo.style(this.textEditor._textarea, 'padding', '5px');
+			},
+			
+			buildiFrame: function(){
+				var hide = (this.aquireUrlParams('hideUrl') != null) ? this.aquireUrlParams('hideUrl') : 'no';
+				if(hide == 'yes'){
+					dojo.style('urlBar', 'display', 'none');
+					dojo.style('urlSubmit', 'display', 'none');
+				}
+				var url = (this.aquireUrlParams('url') != null) ? this.aquireUrlParams('url') : '';
+				dojo.attr('scrumFrame','src', url);
+			},
+			
+			buildClocks: function(){
+				this._length = (this.aquireUrlParams('length') != null) ? this.aquireUrlParams('length') : 10;
+				this.totalClock = new Clock({id : 'totalClock', type : 'total', time: this._length });
+				this.userClock = new Clock({id : 'userClock', type : 'user', time: 0 });
+				this.t = new dojox.timing.Timer(1000);
+				this.t.status = 'stopped';
+				dojo.connect(this.t, 'onTick', this, '_onTick');
+			},
+			
+			parseInviteList: function(){
 				var inviteList = (this.aquireUrlParams('invites') != null) ? this.aquireUrlParams('invites') : null;
 				if(inviteList != null){
 					this.invites = dojo.xhrGet({
@@ -41,60 +117,6 @@ define(
 						error: function(error) { console.log(error); }
 					});
 				}
-				
-				
-				//Parse declarative widgets
-			   	parser.parse(dojo.body());
-				
-				//Set up clocks (User, Total, and durationTimer)
-				var length = (this.aquireUrlParams('length') != null) ? this.aquireUrlParams('length') : 10;
-				this.totalClock = new Clock({id : 'totalClock', type : 'total', time: length });
-				this.userClock = new Clock({id : 'userClock', type : 'user', time: 0 });
-				this.t = new dojox.timing.Timer(1000);
-				this.t.status = 'stopped';
-				dojo.connect(this.t, 'onTick', this, '_onTick');
-				
-				//Set up attendeeList & connect list activation to local func
-				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
-				
-				//Setup iFrame
-				var hide = (this.aquireUrlParams('hideUrl') != null) ? this.aquireUrlParams('hideUrl') : 'no';
-				if(hide == 'yes'){
-					dojo.style('urlBar', 'display', 'none');
-					dojo.style('urlSubmit', 'display', 'none');
-				}
-				var url = (this.aquireUrlParams('url') != null) ? this.aquireUrlParams('url') : '';
-				dojo.attr('scrumFrame','src', url);
-				
-				//Connect to events
-				dojo.connect(this.attendeeList, 'onUserClick', this, 'onUserClick');
-				dojo.connect(this.attendeeList, '_onRemoteUserClick', this, 'onUserClick');
-				dojo.connect(this.attendeeList, '_onActivateUser', this, 'onActivateUser');
-				dojo.connect(this.attendeeList, '_onActivateRemoteUser', this, 'onActivateRemoteUser');
-				dojo.connect(this.attendeeList, '_deactivateUser', this, 'onDectivateUser');
-				dojo.connect(dijit.byId('scrumFrameView'),'resize',this,'_ffResize');
-				dojo.connect(dojo.byId('start'),'onclick',this,'stopMeeting');
-				dojo.connect(document, 'onkeypress', this, 'keystroke');
-				
-				//Sync
-				this.collab = coweb.initCollab({id : 'dailyscrum'});  
-				this.collab.subscribeStateRequest(this, 'onStateRequest');
-				this.collab.subscribeStateResponse(this, 'onStateResponse');
-				this.collab.subscribeSync('meetingStop', this, 'stopMeeting');
-				
-				//CLOCK
-				this.meetingTime = length*60;
-				this.meetingTimeTaken = 0;
-				this.userCount = 0;
-				this.users = {};
-				this.currentSpeakerTime = 0;
-				
-				
-				
-			   	// get a session instance & prep
-			    var sess = coweb.initSession();
-			    sess.prepare();
-			    
 			},
 			
 			populateExpectedList: function(inviteObj){
