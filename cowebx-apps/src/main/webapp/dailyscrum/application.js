@@ -30,25 +30,37 @@ define(
 		
 		var app = {
 			init: function(){			
-				//Parse the invite list
 				this.parseInviteList();
-				
-				//Parse declarative widgets
 			   	parser.parse(dojo.body());
-				
-				//Set up clocks (User, Total, and durationTimer)
 				this.buildClocks();
-				
-				//Set up attendeeList & connect list activation to local func
-				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
-				
-				//Setup iFrame
-				//this.buildiFrame();
-				
-				//Editor setup
+				this.buildiFrame();
 				this.buildEditor();
 				
-				//Connect to events
+				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
+				
+				this.connectEvents();
+				this.connectSyncs();
+				
+				//Clock prep
+				this.meetingTime = this._length*60;
+				this.meetingTimeTaken = 0;
+				this.userCount = 0;
+				this.users = {};
+				this.currentSpeakerTime = 0;
+				
+			   	//Session prep
+			    var sess = coweb.initSession();
+			    sess.prepare();
+			},
+			
+			connectSyncs: function(){
+				this.collab = coweb.initCollab({id : 'dailyscrum'});  
+				this.collab.subscribeStateRequest(this, 'onStateRequest');
+				this.collab.subscribeStateResponse(this, 'onStateResponse');
+				this.collab.subscribeSync('meetingStop', this, 'stopMeeting');	
+			},
+			
+			connectEvents: function(){
 				dojo.connect(this.attendeeList, 'onUserClick', this, 'onUserClick');
 				dojo.connect(this.attendeeList, '_onRemoteUserClick', this, 'onUserClick');
 				dojo.connect(this.attendeeList, '_onActivateUser', this, 'onActivateUser');
@@ -57,24 +69,6 @@ define(
 				dojo.connect(dijit.byId('scrumFrameView'),'resize',this,'_ffResize');
 				dojo.connect(dojo.byId('start'),'onclick',this,'stopMeeting');
 				dojo.connect(document, 'onkeypress', this, 'keystroke');
-				
-				//Syncs
-				this.collab = coweb.initCollab({id : 'dailyscrum'});  
-				this.collab.subscribeStateRequest(this, 'onStateRequest');
-				this.collab.subscribeStateResponse(this, 'onStateResponse');
-				this.collab.subscribeSync('meetingStop', this, 'stopMeeting');
-				
-				//Clock stuff
-				this.meetingTime = this._length*60;
-				this.meetingTimeTaken = 0;
-				this.userCount = 0;
-				this.users = {};
-				this.currentSpeakerTime = 0;
-				
-			   	// get a session instance & prep
-			    var sess = coweb.initSession();
-			    sess.prepare();
-			    
 			},
 			
 			buildEditor: function(){
