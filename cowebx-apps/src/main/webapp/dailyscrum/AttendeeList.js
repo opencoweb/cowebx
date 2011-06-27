@@ -17,6 +17,9 @@ define([
 		this.phoneUsers = {};			//active user list
 		this.users = {};
 		this.handles = {};
+		this.mods = [];
+		this.local = null;
+		this.override = (!args.override) ? false : args.override;
 		
 		//Subscribe to syncs and listen
         this.collab = coweb.initCollab({id : this.id});  
@@ -47,15 +50,18 @@ define([
     };
 
 	proto.onUserClick = function(e){
-		if(dojo.byId(e.target.id) != null){
-			dijit.byId(e.target.id).select();
-			dijit.byId(e.target.id).selected = true;
-			this.collab.sendSync('userClick', { selectedId: e.target.id }, null);
-			this.prevSelected = this.selected;
-			if(dijit.byId(this.prevSelected+"_li"))
-				dijit.byId(this.prevSelected+"_li").selected = false;
-			this.selected = e.target.id.substring(0,e.target.id.length-3);
-		}
+	    if(this.mods.indexOf(this.local) != -1 || this.override == true){
+    		if(dojo.byId(e.target.id) != null){
+    			dijit.byId(e.target.id).select();
+    			dijit.byId(e.target.id).selected = true;
+    			this.collab.sendSync('userClick', { selectedId: e.target.id }, null);
+    			this.prevSelected = this.selected;
+    			if(dijit.byId(this.prevSelected+"_li"))
+    				dijit.byId(this.prevSelected+"_li").selected = false;
+    			this.selected = e.target.id.substring(0,e.target.id.length-3);
+    			this._onUserClick(e);
+    		}
+    	}
 	};	
 	
 	proto.onRemoteUserClick = function(obj){
@@ -83,20 +89,21 @@ define([
 	};
 	
 	proto.onActivateUser = function(name, click){
-		if(dojo.attr(name+"_li", 'active') != true){
-			this.count++;
-			if(click)
-			    this.phoneUsers[name] = true;
-			dojo.toggleClass(name+"_li", "dailyscrum_inactive");
-			dojo.attr(name+"_li", 'active', true);
-			this.handles[name] = dojo.connect(dijit.byId(name+'_li').domNode,'onclick',this,'onUserClick');
-			this.collab.sendSync('userActivate', { 
-			    activatedName: name ,
-			    clicked: click
-			}, null);	
-		    this._onActivateUser(name);	
+	    if(((this.mods.indexOf(this.local) != -1) || this.override == true) || (click == undefined)){
+		    if(dojo.attr(name+"_li", 'active') != true){
+    			this.count++;
+    			if(click)
+    			    this.phoneUsers[name] = true;
+    			dojo.toggleClass(name+"_li", "dailyscrum_inactive");
+    			dojo.attr(name+"_li", 'active', true);
+    			this.handles[name] = dojo.connect(dijit.byId(name+'_li').domNode,'onclick',this,'onUserClick');
+    			this.collab.sendSync('userActivate', { 
+    			    activatedName: name ,
+    			    clicked: click
+    			}, null);	
+    		    this._onActivateUser(name);	
+    		}
 		}
-		
 	};
 	
 	proto.onStateRequest = function(token){
@@ -124,8 +131,10 @@ define([
     				if(users[i]['username'] == j){
     					this.onActivateUser(j);
     					found = true;
-    					if(users[i]["local"] == true)
+    					if(users[i]["local"] == true){
     						dojo.style(dijit.byId(users[i]['username']+'_li').domNode, 'color', 'orange');
+    						this.local = users[i]['username'];
+    					}
     				}
     			}
     			if(found == false){
@@ -166,6 +175,10 @@ define([
 	
 	proto._onRemoteUserClick = function(obj){
 		
+	};
+	
+	proto._onUserClick = function(name){
+	    
 	};
 	
 	proto._deactivateUser = function(name){

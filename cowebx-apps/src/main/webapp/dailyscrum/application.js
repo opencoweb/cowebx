@@ -34,7 +34,9 @@ define(
 			   	parser.parse(dojo.body());
 				this.buildClocks();
 				this.buildEditor();
-				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
+				this.attendeeList = new AttendeeList({id : 'dailyscrum_list', override: this.override});
+				this.mods = [];
+				this.override = true;
 				
 				this.connectEvents();
 				this.connectSyncs();
@@ -55,11 +57,11 @@ define(
 				this.collab = coweb.initCollab({id : 'dailyscrum'});  
 				this.collab.subscribeStateRequest(this, 'onStateRequest');
 				this.collab.subscribeStateResponse(this, 'onStateResponse');
-				this.collab.subscribeSync('meetingStop', this, 'stopMeeting');	
+				this.collab.subscribeSync('meetingStop', this, 'onRemoteStopMeeting');	
 			},
 			
 			connectEvents: function(){
-				dojo.connect(this.attendeeList, 'onUserClick', this, 'onUserClick');
+				dojo.connect(this.attendeeList, '_onUserClick', this, 'onUserClick');
 				dojo.connect(this.attendeeList, '_onRemoteUserClick', this, 'onUserClick');
 				dojo.connect(this.attendeeList, '_onActivateUser', this, 'onActivateUser');
 				dojo.connect(this.attendeeList, '_onActivateRemoteUser', this, 'onActivateRemoteUser');
@@ -99,12 +101,16 @@ define(
 						}),
 						error: function(error) { console.log(error); }
 					});
+				}else{
+				    this.override = true;
 				}
 			},
 			
 			populateExpectedList: function(inviteObj){
 				this.attendeeList.inviteList = inviteObj;
 				for(var user in inviteObj){
+				    if(inviteObj[user] == true)
+				        this.mods.push(user);
 					var a = this.attendeeList._createInactiveUser(user);	
 					dojo.connect(a.domNode, 'ondblclick', this, function(e){
 						if(dojo.attr(e.target, 'active') == false){
@@ -113,6 +119,9 @@ define(
 						}
 					});
 				}
+				this.attendeeList.mods = this.mods;
+				this.totalClock.mods = this.mods;
+				this.userClock.mods = this.mods;
 			},
 			
 			onActivateUser: function(e){
@@ -357,7 +366,18 @@ define(
 			},
 			
 			stopMeeting: function(){
-			    this.totalClock.stop();
+			    if(this.mods.indexOf(this.attendeeList.local) != -1 || this.override == true){
+			        this.totalClock.stop();
+    			    this.userClock.stop();
+    			    this.t.stop();
+                    this.attendeeList.selected = null;
+                    dojo.style('start','display','none');
+                    this.collab.sendSync('meetingStop', { }, null);
+                }
+			},
+			
+			onRemoteStopMeeting: function(){
+		        this.totalClock.stop();
 			    this.userClock.stop();
 			    this.t.stop();
                 this.attendeeList.selected = null;

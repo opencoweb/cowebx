@@ -16,6 +16,7 @@ define([
 		this.test = "pos";					//Positive or negative?
 		this.seconds = (args.time * 60);	//Current time (in secs)
 		this.extraMins = 0;					//Current speaker's extra mins
+		this.mods = [];
 		
 		//Timer initialization
 		this.t = new dojox.timing.Timer(1000);
