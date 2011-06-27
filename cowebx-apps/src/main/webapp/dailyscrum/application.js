@@ -33,7 +33,6 @@ define(
 				this.parseInviteList();
 			   	parser.parse(dojo.body());
 				this.buildClocks();
-				this.buildiFrame();
 				this.buildEditor();
 				this.attendeeList = new AttendeeList({id : 'dailyscrum_list'});
 				
@@ -77,16 +76,6 @@ define(
 				dojo.style(this.textEditor._textarea, 'margin', '0px');
 				dojo.style(this.textEditor._textarea, 'resize', 'none');
 				dojo.style(this.textEditor._textarea, 'padding', '5px');
-			},
-			
-			buildiFrame: function(){
-				var hide = (this.aquireUrlParams('hideUrl') != null) ? this.aquireUrlParams('hideUrl') : 'no';
-				if(hide == 'yes'){
-					dojo.style('urlBar', 'display', 'none');
-					dojo.style('urlSubmit', 'display', 'none');
-				}
-				var url = (this.aquireUrlParams('url') != null) ? this.aquireUrlParams('url') : '';
-				dojo.attr('scrumFrame','src', url);
 			},
 			
 			buildClocks: function(){
@@ -300,11 +289,6 @@ define(
 					return null;
 				else
 					return results[1];
-			},
-			
-			_onUrlUp: function(){
-				var url = dojo.attr('urlBar','value');
-				dojo.attr('scrumFrame','src', url);
 			},
 			
 			_ffResize: function(e){
