@@ -29,14 +29,14 @@ define(
 		TextEditor) {
 		
 		var app = {
-			init: function(){			
+			init: function(){		
+			    this.override = false;	
 				this.parseInviteList();
 			   	parser.parse(dojo.body());
 				this.buildClocks();
 				this.buildEditor();
 				this.attendeeList = new AttendeeList({id : 'dailyscrum_list', override: this.override});
 				this.mods = [];
-				this.override = false;
 				
 				this.connectEvents();
 				this.connectSyncs();
@@ -249,6 +249,7 @@ define(
 				if(this.totalClock.status == 'started'){
 					this.totalClock.seconds = this.getMeetingTimeRemaining();
 					this.totalClock.start();
+					dojo.style('start','display','inline');
 				}
 				
 				if(this.userClock.status == 'started'){
