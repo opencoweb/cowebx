@@ -36,7 +36,7 @@ define(
 				this.buildEditor();
 				this.attendeeList = new AttendeeList({id : 'dailyscrum_list', override: this.override});
 				this.mods = [];
-				this.override = true;
+				this.override = false;
 				
 				this.connectEvents();
 				this.connectSyncs();
@@ -366,6 +366,8 @@ define(
 			},
 			
 			stopMeeting: function(){
+			    console.log(this.mods.indexOf(this.attendeeList.local));
+			    console.log(this.override);
 			    if(this.mods.indexOf(this.attendeeList.local) != -1 || this.override == true){
 			        this.totalClock.stop();
     			    this.userClock.stop();
