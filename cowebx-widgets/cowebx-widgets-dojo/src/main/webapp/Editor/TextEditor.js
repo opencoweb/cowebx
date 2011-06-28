@@ -46,7 +46,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
 
     proto.listenInit = function(){
         this.collab.pauseSync();
-        this.t = setTimeout(dojo.hitch(this, 'iterate'), 10);
+        this.t = setTimeout(dojo.hitch(this, 'iterate'), 100);
     };
     
     proto.iterate = function() { 
@@ -97,7 +97,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             this.runOps();
         this.q = [];
         this.oldSnapshot = this.snapshot();
-        this.t = setTimeout(dojo.hitch(this, 'iterate'), 10);
+        this.t = setTimeout(dojo.hitch(this, 'iterate'), 100);
         this.min = this._por.start;
         this.max = this._por.end;
     };
