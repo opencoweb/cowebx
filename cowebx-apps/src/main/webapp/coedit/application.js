@@ -11,7 +11,7 @@ define(
 	    'dojo',
 		'coweb/main',
 		'dojox/mobile/parser',
-		'cowebx/dojo/RichTextEditor/RichTextEditor'
+		'cowebx/dojo/Editor/TextEditor'
 	],
 
 	function(
