@@ -75,7 +75,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             
         }else if(newLength < oldLength){
             var mx = this.max+(oldLength-newLength);
-            var mn = this.min-1;
+            var mn = (this.min-1 > -1) ? this.min-1 : 0;
             if(this.oldSnapshot != this.newSnapshot)
                 var syncs = this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
             //console.log('old = '+this.oldSnapshot.substring(mn, mx));
