@@ -142,7 +142,14 @@ define(
 				//Adjust user clock
 				var selected = this.attendeeList.selected;
 				if(selected != null){
-					this.userClock.seconds = this.getUserTimeRemaining(selected);
+					var a = this.getUserTimeRemaining(selected);
+				    if(a>=0){
+				        this.userClock.test = 'pos';
+				        this.userClock.seconds = a;
+				    }else{
+				        this.userClock.test = 'neg';
+				        this.userClock.seconds = Math.abs(a);
+				    }
 					dijit.byId(this.attendeeList.selected+'_li').select();
 				}
                 
@@ -179,7 +186,14 @@ define(
 					//Adjust user clock
 					var selected = this.attendeeList.selected;
 					if(selected != null){
-						this.userClock.seconds = this.getUserTimeRemaining(selected);
+						var a = this.getUserTimeRemaining(selected);
+    				    if(a>=0){
+    				        this.userClock.test = 'pos';
+    				        this.userClock.seconds = a;
+    				    }else{
+    				        this.userClock.test = 'neg';
+    				        this.userClock.seconds = Math.abs(a);
+    				    }
 						dijit.byId(this.attendeeList.selected+'_li').select();
 					}
 					return user;
@@ -195,7 +209,14 @@ define(
 				//Adjust user clock
 				var selected = this.attendeeList.selected;
 				if(selected != null){
-					this.userClock.seconds = this.getUserTimeRemaining(selected);
+				    var a = this.getUserTimeRemaining(selected);
+				    if(a>=0){
+				        this.userClock.test = 'pos';
+				        this.userClock.seconds = a;
+				    }else{
+				        this.userClock.test = 'neg';
+				        this.userClock.seconds = Math.abs(a);
+				    }
 					if(e == selected){
 						this.userClock.stop();
 						this.userClock.seconds = 0;
@@ -235,7 +256,6 @@ define(
 			},
 			
 			onStateRequest: function(token){
-			    console.log(this.users);
 				var state = {
 					meetingTime : this.meetingTime,
 					meetingTimeTaken : this.meetingTime - this.totalClock.seconds,
@@ -243,6 +263,7 @@ define(
 					
 					userClockStatus : this.userClock.status,
 					totalClockStatus : this.totalClock.status,
+					totalClockTest : this.totalClock.test,
 					tStatus : this.t.status,
 					
 					selected : this.attendeeList.selected,
@@ -252,7 +273,6 @@ define(
 			},
 			
 			onStateResponse: function(state){
-			    console.log("state response");
 				this.meetingTime = state.meetingTime;
 				this.meetingTimeTaken = state.meetingTimeTaken;
 				this.users = state.users;
@@ -266,6 +286,7 @@ define(
 				
 				if(this.totalClock.status == 'started'){
 					this.totalClock.seconds = this.getMeetingTimeRemaining();
+					this.totalClock.test = state.totalClockTest;
 					this.totalClock.start();
 					dojo.style('start','display','inline');
 				}
