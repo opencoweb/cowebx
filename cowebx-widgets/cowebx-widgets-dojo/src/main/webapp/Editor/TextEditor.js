@@ -15,6 +15,8 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this.newSnapshot = null;
         this.t = null;
         this.q = [];
+        this.min = 0; 
+        this.max = 0;
         this.value = '';
     
         this.collab = coweb.initCollab({id : this.id});  
@@ -44,7 +46,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
 
     proto.listenInit = function(){
         this.collab.pauseSync();
-        this.t = setInterval(dojo.hitch(this, 'iterate'), 10);
+        this.t = setTimeout(dojo.hitch(this, 'iterate'), 100);
     };
     
     proto.iterate = function() { 
@@ -54,12 +56,36 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     
     proto.iterateSend = function() {
         this.newSnapshot = this.snapshot();
-        if(this.oldSnapshot != this.newSnapshot)
-            var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
-        //Send syncs
-        if(syncs){
-            for(var i=0; i<syncs.length; i++){
-                this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
+        var oldLength = this.oldSnapshot.length;
+        var newLength = this.newSnapshot.length;
+        
+        if(oldLength < newLength){
+            var mx = this.max+(newLength - oldLength);
+            if(this.oldSnapshot != this.newSnapshot)
+                var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
+            //console.log('old = '+this.oldSnapshot.substring(this.min, this.max));
+            //console.log('new = '+this.newSnapshot.substring(this.min, mx));
+            
+            if(syncs){
+                //console.log(syncs);
+                for(var i=0; i<syncs.length; i++){
+                    this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
+                }
+            }
+            
+        }else if(newLength < oldLength){
+            var mx = this.max+(oldLength-newLength);
+            var mn = (this.min-1 > -1) ? this.min-1 : 0;
+            if(this.oldSnapshot != this.newSnapshot)
+                var syncs = this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
+            //console.log('old = '+this.oldSnapshot.substring(mn, mx));
+            //console.log('new = '+this.newSnapshot.substring(mn, this.max));
+            
+            if(syncs){
+                //console.log(syncs);
+                for(var i=0; i<syncs.length; i++){
+                    this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+mn);
+                }
             }
         }
     };
@@ -71,6 +97,22 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             this.runOps();
         this.q = [];
         this.oldSnapshot = this.snapshot();
+        this.t = setTimeout(dojo.hitch(this, 'iterate'), 100);
+        this.min = this._por.start;
+        this.max = this._por.end;
+    };
+    
+    proto._updatePOR = function(e) {
+        if(this._focused) {
+            var t = e ? e.target : this._textarea;
+            this._por.start = t.selectionStart;
+            this._por.end = t.selectionEnd;
+        }
+        
+        if(this._por.start < this.min)
+            this.min = this._por.start;
+        if(this._por.end > this.max)
+            this.max = this._por.end;
     };
     
     proto.onRemoteChange = function(obj){
@@ -160,14 +202,6 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     proto._moveCaretToPOR = function() {
         if(this._focused) {
             this._textarea.setSelectionRange(this._por.start, this._por.end);
-        }
-    };
-        
-    proto._updatePOR = function(e) {
-        if(this._focused) {
-            var t = e ? e.target : this._textarea;
-            this._por.start = t.selectionStart;
-            this._por.end = t.selectionEnd;
         }
     };
     
