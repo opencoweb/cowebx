@@ -43,6 +43,10 @@ def deploy(options, args):
     # copy the bots into place
     cmd = 'cp -r src/main/python/bots/* ' + os.path.join(dest, 'bots/')
     subprocess.check_call(cmd, shell=True)
+    # copy updater example into place
+    os.makedirs(os.path.join(dest, 'bin/updater/'))
+    cmd = 'cp -r src/main/python/updater/* ' + os.path.join(dest, 'bin/updater/')
+    subprocess.check_call(cmd, shell=True)
     # copy the widgets / styles into place
     try:
         os.makedirs(os.path.join(dest, 'www/lib/cowebx'))
@@ -75,6 +79,12 @@ def develop(options, args):
     # symlink bots into bots/
     target = os.path.join(targetRoot, 'bots')
     srcRoot = 'src/main/python/bots'
+    _symlink_path(srcRoot, target)
+
+    # symlink updater into bin/updater/
+    target = os.path.join(targetRoot, 'bin/updater')
+    os.makedirs(target)
+    srcRoot = 'src/main/python/updater'
     _symlink_path(srcRoot, target)
 
     # symlink widgets into www/lib/cowebx

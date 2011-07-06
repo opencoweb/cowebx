@@ -37,6 +37,10 @@
   <servlet>
     <servlet-name>admin</servlet-name>
     <servlet-class>org.coweb.servlet.AdminServlet</servlet-class>
+    <init-param>
+      <param-name>updaterTypeMatcherClass</param-name>
+      <param-value>org.coweb.example.ExampleUpdaterTypeMatcher</param-value>
+    </init-param>
     <load-on-startup>2</load-on-startup>
   </servlet>
   <servlet-mapping>

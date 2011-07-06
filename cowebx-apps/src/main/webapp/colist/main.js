@@ -7,7 +7,7 @@
 /*global require*/
 
 // configure coweb and dojo libs before load
-var cowebConfig = {adminUrl : '../admin'};
+var cowebConfig = {adminUrl : '../admin', cacheState : true};
 var djConfig = {
     modulePaths: {cowebx : 'dojo'},
     baseUrl : '../lib/cowebx/'
