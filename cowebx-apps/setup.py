@@ -98,6 +98,18 @@ def develop(options, args):
         os.symlink(src, target)
     except OSError, e:
         print 'skipped: cowebx-widgets-dojo'
+        
+    # symlink dojo/dijit/dojox into www/lib/dojo-1.7-patched
+    try:
+        os.makedirs(os.path.join(targetRoot, 'www/lib/dojo-1.7-patched'))
+    except OSError:
+        pass
+    target = os.path.join(targetRoot, 'www/lib/dojo-1.7-patched')
+    src = os.path.abspath('../cowebx-apps/src/main/webapp/dojo-1.7-patched')
+    try:
+        os.symlink(src, target)
+    except OSError, e:
+        print 'skipped: dojo dijit dojox'
     
 if __name__ == '__main__':
     parser = optparse.OptionParser('usage: %prog <deploy|develop> [options] <PATH>')
