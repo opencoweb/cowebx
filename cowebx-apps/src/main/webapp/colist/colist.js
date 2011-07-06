@@ -18,6 +18,17 @@ define([
     dojo.require('dijit.form.Button');
     dojo.require('dijit.layout.BorderContainer');
     dojo.require('dijit.layout.ContentPane');
+    
+    function getURLParams() {
+        var urlParams = {};
+        var searchText = window.location.search.substring(1);
+        var searchSegs = searchText.split('&');
+        for(var i=0, l=searchSegs.length; i<l; i++) {
+            var tmp = searchSegs[i].split('=');
+            urlParams[decodeURIComponent(tmp[0])] = decodeURIComponent(tmp[1]);
+        }
+        return urlParams;
+    }
 
     // have to wrap class decl in ready when using dojo xd loader
     dojo.ready(function() {
@@ -71,7 +82,10 @@ define([
         var sess = coweb.initSession();
         // use a dojo busy dialog to show progress joining/updating
         cowebx.createBusy(sess);
+        
+        var urlParams = getURLParams(); 
+        var updaterType = urlParams['updaterType'] === undefined  ? 'default' : urlParams['updaterType'];
         // do the prep
-        sess.prepare();
+        sess.prepare({updaterType: updaterType});
     });
 });
