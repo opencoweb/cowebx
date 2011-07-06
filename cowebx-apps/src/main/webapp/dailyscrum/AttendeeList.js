@@ -14,11 +14,12 @@ define([
 		this.inviteList = null;			//User invite list
 		this.selected = null;			//Selected user name
 		this.prevSelected = null;		//Previously selectd user name
-		this.phoneUsers = {};			//active user list
-		this.users = {};
-		this.handles = {};
-		this.mods = [];
-		this.local = null;
+		this.phoneUsers = {};			//active phone user list
+		this.users = {};                //active user list
+		this.handles = {};              //dojo.connect handles for disconnect
+		this.mods = [];                 //Array of mod names
+		this.local = null;              //the local username
+		
 		this.override = (!args.override) ? false : args.override;
 		
 		//Subscribe to syncs and listen
@@ -77,8 +78,12 @@ define([
 	proto.onActivateRemoteUser = function(obj){
 		if(dojo.attr(obj.value.activatedName+"_li", 'active') != true){
 			this.count++;
-			if(obj.value.clicked)
+			if(obj.value.clicked){
 			    this.phoneUsers[obj.value.activatedName] = true;
+			    if(this.users[obj.value.activatedName] == null){
+    		        this.users[obj.value.activatedName] = 1;
+    		    }
+			}
 			dojo.toggleClass(obj.value.activatedName+"_li", "dailyscrum_inactive");
 			dojo.attr(obj.value.activatedName+"_li", 'active', true);
 			this.handles[obj.value.activatedName] = dojo.connect(dijit.byId(obj.value.activatedName+'_li').domNode,'onclick',this,'onUserClick');	
@@ -92,8 +97,12 @@ define([
 	    if(((this.mods.indexOf(this.local) != -1) || this.override == true) || (click == undefined)){
 		    if(dojo.attr(name+"_li", 'active') != true){
     			this.count++;
-    			if(click)
+    			if(click){
     			    this.phoneUsers[name] = true;
+    			    if(this.users[name] == null){
+        		        this.users[name] = 1;
+        		    }
+    			}
     			dojo.toggleClass(name+"_li", "dailyscrum_inactive");
     			dojo.attr(name+"_li", 'active', true);
     			this.handles[name] = dojo.connect(dijit.byId(name+'_li').domNode,'onclick',this,'onUserClick');
@@ -103,6 +112,16 @@ define([
     			}, null);	
     		    this._onActivateUser(name);	
     		}
+		}
+	};
+	
+	proto._deactivateUser = function(name){
+		if(dojo.attr(name+"_li", 'active') != false){
+			this.count--;
+			dojo.toggleClass(name+"_li", "dailyscrum_inactive");
+			dojo.attr(name+"_li", 'active', false);
+			dojo.disconnect(this.handles[name]);
+			delete this.handles[name];
 		}
 	};
 	
@@ -147,6 +166,36 @@ define([
 		}
 	};
 	
+	proto._userLeave = function(users){
+		for(var i=0; i<users.length; i++){
+		    if(this.users[users[i]['username']] == 1){
+			    var found = false
+    			this._deactivateUser(users[i]['username']);
+    			for(var j in this.inviteList){
+    				if(users[i]['username'] == j){
+    					found = true;
+    				}
+    			}
+    			if(found == false){
+    				var li = dijit.byId(users[i]['username']+"_li");
+    				li.destroy(false);
+    			}
+    			if(dijit.byId(users[i]['username']+"_li"))
+    			    dijit.byId(users[i]['username']+"_li").deselect();
+    			    
+    			delete this.users[users[i]['username']];
+    			
+    			if(this.phoneUsers[users[i]['username']])
+    			    delete this.phoneUsers[users[i]['username']];
+    			    
+    			if(this.selected == users[i]['username'])
+    			    this.selected = null;
+    		}else{
+    		    this.users[users[i]['username']] = this.users[users[i]['username']] - 1;
+    		}
+		}
+	};
+	
 	proto._createInactiveUser = function(name, local){
 		var a = new dojox.mobile.ListItem({ 
 					innerHTML: name,
@@ -179,36 +228,6 @@ define([
 	
 	proto._onUserClick = function(name){
 	    
-	};
-	
-	proto._deactivateUser = function(name){
-		if(dojo.attr(name+"_li", 'active') != false){
-			this.count--;
-			dojo.toggleClass(name+"_li", "dailyscrum_inactive");
-			dojo.attr(name+"_li", 'active', false);
-			dojo.disconnect(this.handles[name]);
-		}
-	};
-	
-	proto._userLeave = function(users){
-		for(var i=0; i<users.length; i++){
-		    if(this.users[users[i]['username']] == 1){
-			    var found = false
-    			this._deactivateUser(users[i]['username']);
-    			for(var j in this.inviteList){
-    				if(users[i]['username'] == j){
-    					found = true;
-    				}
-    			}
-    			if(found == false){
-    				var li = dijit.byId(users[i]['username']+"_li");
-    				li.destroy(false);
-    			}
-    			delete this.users[users[i]['username']];
-    		}else{
-    		    this.users[users[i]['username']] = this.users[users[i]['username']] - 1;
-    		}
-		}
 	};
 	
     return AttendeeList;

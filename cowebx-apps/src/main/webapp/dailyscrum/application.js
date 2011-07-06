@@ -35,8 +35,10 @@ define(
 			   	parser.parse(dojo.body());
 				this.buildClocks();
 				this.buildEditor();
+				
 				this.attendeeList = new AttendeeList({id : 'dailyscrum_list', override: this.override});
 				this.mods = [];
+				this._tempHndl = {};
 				
 				this.connectEvents();
 				this.connectSyncs();
@@ -58,6 +60,7 @@ define(
 				this.collab.subscribeStateRequest(this, 'onStateRequest');
 				this.collab.subscribeStateResponse(this, 'onStateResponse');
 				this.collab.subscribeSync('meetingStop', this, 'onRemoteStopMeeting');	
+				this.collab.subscribeSync('deactivateUser', this, 'onClickDeactivateRemoteUser');	
 			},
 			
 			connectEvents: function(){
@@ -142,9 +145,22 @@ define(
 					this.userClock.seconds = this.getUserTimeRemaining(selected);
 					dijit.byId(this.attendeeList.selected+'_li').select();
 				}
-
+                
+                //Connect to deactivate
+                this._tempHndl[e] = dojo.connect(dijit.byId(e+'_li').domNode, 'ondblclick', this, function(e){
+					var name = e.target.id.substring(0, e.target.id.length-3);
+					this.attendeeList._userLeave([{username:name}]);
+					this.collab.sendSync('deactivateUser', name, null);
+					dojo.disconnect(this._tempHndl[name]);
+					delete this._tempHndl[name];
+				});
+                
 				dojo.attr(e+'_count', 'innerHTML',this._renderTime(this.users[e].timeTaken));
 				return user;
+			},
+			
+			onClickDeactivateRemoteUser: function(obj){
+			    this.attendeeList._userLeave([{username:obj.value}]);
 			},
 			
 			onActivateRemoteUser: function(obj){
@@ -185,6 +201,7 @@ define(
 						this.userClock.seconds = 0;
 						this.userClock._renderTime();
 						this.t.stop();
+						this.t.status = 'stopped';
 					}
 				}
 				
@@ -218,9 +235,10 @@ define(
 			},
 			
 			onStateRequest: function(token){
+			    console.log(this.users);
 				var state = {
 					meetingTime : this.meetingTime,
-					meetingTimeTaken : this.meetingTimeTaken,
+					meetingTimeTaken : this.meetingTime - this.totalClock.seconds,
 					users : this.users,
 					
 					userClockStatus : this.userClock.status,
