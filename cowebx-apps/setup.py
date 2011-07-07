@@ -44,7 +44,10 @@ def deploy(options, args):
     cmd = 'cp -r src/main/python/bots/* ' + os.path.join(dest, 'bots/')
     subprocess.check_call(cmd, shell=True)
     # copy updater example into place
-    os.makedirs(os.path.join(dest, 'bin/updater/'))
+    try:
+        os.makedirs(os.path.join(dest, 'bin/updater/'))
+    except OSError:
+       pass
     cmd = 'cp -r src/main/python/updater/* ' + os.path.join(dest, 'bin/updater/')
     subprocess.check_call(cmd, shell=True)
     # copy the widgets / styles into place
