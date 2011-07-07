@@ -155,6 +155,7 @@ define(
                 
                 //Connect to deactivate
                 this._tempHndl[e] = dojo.connect(dijit.byId(e+'_li').domNode, 'ondblclick', this, function(e){
+                    this.totalClock.stop();
 					var name = e.target.id.substring(0, e.target.id.length-3);
 					this.attendeeList._userLeave([{username:name}]);
 					this.collab.sendSync('deactivateUser', name, null);
@@ -167,6 +168,7 @@ define(
 			},
 			
 			onClickDeactivateRemoteUser: function(obj){
+			    this.totalClock.stop();
 			    this.attendeeList._userLeave([{username:obj.value}]);
 			},
 			
