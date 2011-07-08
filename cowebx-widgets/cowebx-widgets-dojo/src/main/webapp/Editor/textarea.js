@@ -67,8 +67,11 @@ define([], function() {
     
     proto.deleteChar = function() {
         var v = this.value;
+        var beforeLength = this.value.string.length+0;
         this.value.string = v.string.substring(0,v.start-1)+v.string.substring(v.start,v.string.length);
-        this.value.start--;
+        var afterLength = this.value.string.length+0;
+        if(beforeLength != afterLength)
+            this.value.start--;
         this.render();
     };
     
@@ -85,7 +88,7 @@ define([], function() {
     };
     
     proto.getValue = function() {
-        
+        return this.value.string;
     };
     
     proto._styleDiv = function(){

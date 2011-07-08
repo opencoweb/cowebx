@@ -8,14 +8,11 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
             throw new Error('missing id argument');
     
         this._por = {start : 0, end: 0};
-        
-        // this._textarea = dojo.create('textarea', {}, args.domNode);
-        // dojo.style(this._textarea, 'width', '100%');
-        // dojo.style(this._textarea, 'height', '100%');
+
         this._textarea = new textarea({domNode:args.domNode});
         
         this.oldSnapshot = this.snapshot();
-        this.newSnapshot = null;
+        this.newSnapshot = '';
         this.t = null;
         this.q = [];
         this.min = 0; 
@@ -28,13 +25,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         this.collab.subscribeStateRequest(this, 'onStateRequest');
     	this.collab.subscribeStateResponse(this, 'onStateResponse');
     
-        dojo.connect(this._textarea, 'onmousedown', this, '_updatePOR');
-        dojo.connect(this._textarea, 'onmouseup', this, '_updatePOR');
-        dojo.connect(this._textarea, 'onmousemove', this, '_updatePOR');
-        dojo.connect(this._textarea, 'onkeydown', this, '_updatePOR');
-        dojo.connect(this._textarea, 'onkeyup', this, '_updatePOR');
-        dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
-        dojo.connect(this._textarea, 'onblur', this, '_onBlur');
+        dojo.connect(this._textarea.div, 'onkeypress', this, '_updatePOR');
     
         this.util = new ld({});
 
@@ -105,12 +96,9 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         this.max = this._por.end;
     };
     
-    proto._updatePOR = function(e) {
-        if(this._focused) {
-            var t = e ? e.target : this._textarea;
-            this._por.start = t.selectionStart;
-            this._por.end = t.selectionEnd;
-        }
+    proto._updatePOR = function() {
+        this._por.start = this._textarea.value.start;
+        this._por.end = this._textarea.value.start;
         
         if(this._por.start < this.min)
             this.min = this._por.start;
@@ -144,7 +132,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         start = por.start,
         end = por.end;
         //t.value = t.value.substr(0, pos) + c + t.value.substr(pos);
-        this.value = this.value.substr(0, pos) + c + this.value.substr(pos);
+        t.value.string = t.value.string.substr(0, pos) + c + t.value.string.substr(pos);
         if(pos < por.end) {
             if(pos >= por.start && por.end != por.start) {
                 ++start;
@@ -177,7 +165,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         //this._updatePOR();
         var t = this._textarea;
         //t.value = t.value.substr(0, pos) + t.value.substr(pos+1);
-        this.value = this.value.substr(0, pos) + this.value.substr(pos+1);
+        t.value.string = t.value.string.substr(0, pos) + t.value.string.substr(pos+1);
         if(pos < this._por.start) {
             --this._por.start;
         }
@@ -191,7 +179,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         //this._updatePOR();
         var t = this._textarea;
         //t.value = t.value.substr(0, pos) + c + t.value.substr(pos+1);
-        this.value = this.value.substr(0, pos) + c + this.value.substr(pos+1);
+        t.value = t.value.substr(0, pos) + c + t.value.substr(pos+1);
     };
 
     proto.snapshot = function(){
@@ -203,26 +191,14 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     };
 
     proto._moveCaretToPOR = function() {
-        if(this._focused) {
-            this._textarea.setSelectionRange(this._por.start, this._por.end);
-        }
+        this._textarea.value.start = this._por.start;
+        this._textarea.value.end = this._por.end;
+        this._textarea.render();
     };
     
     proto.setPOR = function(pos){
         this._por.start = pos;
         this._por.end = pos;
-    };
-        
-    proto._onFocus = function(event) {
-        this._focused = true;
-        var self = this;
-        setTimeout(function() {
-            self._moveCaretToPOR();
-        },0);
-    };
-        
-    proto._onBlur = function(event) {
-        this._focused = false;
     };
     
     proto.cleanup = function() {
@@ -233,14 +209,11 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     };
     
     proto.onStateRequest = function(token){
-        var state = {snapshot: this.newSnapshot};
-        this.collab.sendStateResponse(state,token);
+
     };
     
     proto.onStateResponse = function(obj){
-        this._textarea.value = obj.snapshot;
-        this.newSnapshot = obj.snapshot;
-        this.oldSnapshot = obj.snapshot;
+
     };
     
 
