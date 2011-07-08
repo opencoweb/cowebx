@@ -1,4 +1,4 @@
-define(['coweb/main','./ld'], function(coweb,ld) {
+define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     var TextEditor = function(args){
         this.id = args.id;
         this.listen = args.listen;
@@ -8,9 +8,12 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             throw new Error('missing id argument');
     
         this._por = {start : 0, end: 0};
-        this._textarea = dojo.create('textarea', {}, args.domNode);
-        dojo.style(this._textarea, 'width', '100%');
-        dojo.style(this._textarea, 'height', '100%');
+        
+        // this._textarea = dojo.create('textarea', {}, args.domNode);
+        // dojo.style(this._textarea, 'width', '100%');
+        // dojo.style(this._textarea, 'height', '100%');
+        this._textarea = new textarea({domNode:args.domNode});
+        
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = null;
         this.t = null;
@@ -67,7 +70,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             //console.log('new = '+this.newSnapshot.substring(this.min, mx));
             
             if(syncs){
-                //console.log(syncs);
+                console.log(syncs);
                 for(var i=0; i<syncs.length; i++){
                     this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
                 }
@@ -82,7 +85,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             //console.log('new = '+this.newSnapshot.substring(mn, this.max));
             
             if(syncs){
-                //console.log(syncs);
+                console.log(syncs);
                 for(var i=0; i<syncs.length; i++){
                     this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+mn);
                 }
@@ -196,7 +199,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     };
 
     proto._getValueAttr = function() {
-        return this._textarea.value;
+        return this._textarea.getValue();
     };
 
     proto._moveCaretToPOR = function() {

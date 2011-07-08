@@ -28,7 +28,7 @@ define(
 				var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
 				
 				//2. Populate with some placeholder text and style
-				textEditor._textarea.value = 'Hello, world!\n\nTry opening two browsers both pointing to this URL, or send this link to a friend, and start typing...';
+				//textEditor._textarea.value = 'Hello, world!\n\nTry opening two browsers both pointing to this URL, or send this link to a friend, and start typing...';
 				
 			   	//3. Get a session instance & prep
 			    var sess = coweb.initSession();
