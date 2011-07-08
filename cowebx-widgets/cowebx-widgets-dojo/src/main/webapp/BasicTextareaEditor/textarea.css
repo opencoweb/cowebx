@@ -1,0 +1,65 @@
+.textarea{
+    width: 100%;
+    height: 100%;
+    position:relative;
+    z-index: 1;
+}
+
+.share{
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    text-shadow:1px 1px #666;
+    cursor:hand;cursor:pointer;
+    font: 18px arial;
+    background-color: darkred;
+    color: white;
+    padding-top:10px;
+    padding-bottom:10px;
+    padding-left:5px;
+    padding-right:5px;
+    position:relative;
+    float:right;
+    top:62px;
+    left:45px;
+    z-index:0;
+}
+
+.share:hover{
+    -webkit-transition: background-color 1s linear;
+    transition: background-color 1s linear;
+    background-color:red;
+}
+
+.emailBox{
+    float:right;
+    background:lightgrey;
+    font: 14px arial;
+    position:relative;
+    top:56px;
+    left:57px;
+    z-index:2;
+    padding:8px;
+    opacity:0;
+}
+
+.send{
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    text-shadow:1px 1px #666;
+    cursor:hand;cursor:pointer;
+    font: 14px arial;
+    background-color: darkred;
+    color: white;
+    padding:5px;
+    margin-left:3px;
+}
+
+.send:hover{
+    -webkit-transition: background-color 1s linear;
+    transition: background-color 1s linear;
+    background-color:red;
+}
