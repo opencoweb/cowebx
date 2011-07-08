@@ -6,7 +6,7 @@ define([
     'dijit/form/Button',
     'dijit/ToolbarSeparator'
     ], function(coweb,ld,ColorPalette,Toolbar,Button,Separator) {
-    var RichTextEditor = function(args){
+    var TextEditor = function(args){
         this.id = args.id;
         this.listen = args.listen;
         if(!this.go)
@@ -60,7 +60,7 @@ define([
         if(this.go == true)
             this.listenInit();
     };
-    var proto = RichTextEditor.prototype;
+    var proto = TextEditor.prototype;
     
     proto.onCollabReady = function(){
         this.collab.pauseSync();
@@ -377,5 +377,5 @@ define([
 	};
     
 
-    return RichTextEditor;
+    return TextEditor;
 });

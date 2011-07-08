@@ -13,7 +13,7 @@ define(
 		'dojox/mobile/parser',
 		'Clock',
 		'AttendeeList',
-		'cowebx/dojo/Editor/TextEditor',
+		'cowebx/dojo/BasicTextareaEditor/TextEditor',
 		'dojo/fx',
 		'dojox/mobile',
 		'dojox/mobile/FixedSplitter',
