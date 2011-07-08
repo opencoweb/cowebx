@@ -14,10 +14,6 @@ define([], function() {
         this.load_template('../lib/cowebx/dojo/ShareButton/textarea.css');
         this._buildShareButton();
         
-        this.shareButton = null;
-        this.sendButton = null;
-        this.emailBox = null;
-        this.emailInput = null;
         this.shareShowing = false;
     };
     var proto = Button.prototype;
