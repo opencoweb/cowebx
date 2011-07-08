@@ -23,6 +23,7 @@ define([], function() {
     var proto = textarea.prototype;
     
     proto.onKeyPress = function(e) {
+        console.log(e)
         //backwards
         if(e.keyCode == 37){
             this.moveCaretLeft(); 
@@ -31,21 +32,22 @@ define([], function() {
             this.moveCaretRight();
         }else if(e.keyCode == 13){
             this.insertChar('^'); 
+        //space
+        }else if(e.charCode == 32){
+            this.insertChar('_'); 
         //delete
         }else if(e.keyCode == 8){
             this.deleteChar(e);
             return false; 
         //tab    
-        }else if(e.keyCode == 9){
-        //shift    
-        }else if(e.keyCode == 16){
+        }else if(e.keyCode == 9){  
         //ctrl    
         }else if(e.keyCode == 17){
         //up    
         }else if(e.keyCode == 38){
         //down    
         }else if(e.keyCode == 40){
-        //insert    
+            
         }else{
             this.insertChar(String.fromCharCode(e.which));
         }
@@ -53,9 +55,11 @@ define([], function() {
     
     proto.render = function() {
         var b = this._replaceAll(this.value.string.substring(0,this.value.start), '^', '<br>');
+        var bb = this._replaceAll(b, '_', '&nbsp;');
         var a = this._replaceAll(this.value.string.substring(this.value.start,this.value.string.length), '^', '<br>');
-        this.before.innerHTML = b;
-        this.after.innerHTML = a;
+        var aa = this._replaceAll(a, '_', '&nbsp;');
+        this.before.innerHTML = bb;
+        this.after.innerHTML = aa;
     };
     
     proto.insertChar = function(c) {
