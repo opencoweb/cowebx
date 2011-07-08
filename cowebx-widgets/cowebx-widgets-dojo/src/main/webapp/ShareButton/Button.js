@@ -1,9 +1,7 @@
 define([], function() {
     var Button = function(args){
-        this.load_template('../lib/cowebx/dojo/ShareButton/textarea.css');
         this.id = args.id;
         this.domNode = args.domNode;
-        this.shareShowing = false;
         this.listenTo = args.listenTo;
         
         if(!this.domNode)
@@ -13,7 +11,14 @@ define([], function() {
         if(!this.listenTo)
             throw new Error('missing listenTo argument');
         
+        this.load_template('../lib/cowebx/dojo/ShareButton/textarea.css');
         this._buildShareButton();
+        
+        this.shareButton = null;
+        this.sendButton = null;
+        this.emailBox = null;
+        this.emailInput = null;
+        this.shareShowing = false;
     };
     var proto = Button.prototype;
     
@@ -86,8 +91,6 @@ define([], function() {
         // Insert <script> into DOM
         document.getElementsByTagName('head')[0].appendChild(script);
     };
-    
-    
 
     return Button;
 });

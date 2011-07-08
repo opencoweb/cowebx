@@ -7,7 +7,6 @@ define([
     'dijit/ToolbarSeparator'
     ], function(coweb,ld,ColorPalette,Toolbar,Button,Separator) {
     var TextEditor = function(args){
-        this.load_template('../lib/cowebx/dojo/EnhancedTextareaEditor/textarea.css');
         this.id = args.id;
         this.listen = args.listen;
         if(!this.go)
@@ -20,6 +19,9 @@ define([
         this._palette = null;
         this._bgPalette = null;
         this._textarea = dojo.create('textarea', {'class':'textarea',id:'area'}, args.domNode);
+        dojo.style(this._textarea, 'width', '100%');
+        dojo.style(this._textarea, 'height', '100%');
+        dojo.style(this._textarea, 'border', '0px');
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = null;
         this.t = null;
@@ -27,8 +29,6 @@ define([
         this.min = 0; 
         this.max = 0;
         this.value = '';
-        this.shareShowing = false;
-        this._buildShareButton();
         
         this.bold = false;
         this.italic = false;
@@ -318,10 +318,10 @@ define([
             dojo.connect(button, 'onclick', this, 'on'+label+'Click');
         }));
         var paletteNode = dojo.create('div',{style:'width:100%;'},this._toolbar.domNode,'after');
-        this._palette = new ColorPalette({'class':'palette'},paletteNode);
+        this._palette = new ColorPalette({style:'position:fixed;display:none;'},paletteNode);
         dojo.connect(this._palette, 'onChange', this, 'changeColor');
         var bgPaletteNode = dojo.create('div',{style:'width:100%;'},this._toolbar.domNode,'after');
-        this._bgPalette = new ColorPalette({'class':'palette'},bgPaletteNode);
+        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;'},bgPaletteNode);
         dojo.connect(this._bgPalette, 'onChange', this, 'changeBGColor');
     };
     
@@ -415,77 +415,5 @@ define([
 		this.forecolor = false;
 	};
     
-    proto._buildShareButton = function() {
-        var a = dojo.create('a',{innerHTML:'share', 'class':'share', id:'shareButton'}, this._textarea, 'before');
-        dojo.connect(a, 'onclick', this, 'onShareClick');
-        var b = dojo.create('div',{innerHTML:'email to send to:<br>','class':'emailBox',id:'sendBox'},this._textarea,'before');
-        var c = dojo.create('input',{type:'text',id:'sendInput'},b,'last');
-        var d = dojo.create('a',{innerHTML:'send', 'class':'send'}, c, 'after');
-        dojo.connect(d, 'onclick', this, 'onSendClick');
-    };
-    
-    proto.onShareClick = function(e) {
-        if(this.shareShowing == false){
-            this.shareShowing = true;
-            dojo.fadeIn({node:'sendBox'}).play();
-        }else{
-            dojo.fadeOut({node:'sendBox'}).play();
-        }
-    };
-    
-    proto.onSendClick = function(e) {
-        var email = dojo.byId('sendInput').value;
-        if(email != ''){
-            var username = 'Username=opencoweb';
-            var password = '&Password=777132XK';
-            var fromName = '&FromName=OpenCoweb';
-            var fromEmail = '&FromEmail=opencoweb@us.ibm.com';
-            var toEmail = '&ToEmailAddress='+email;
-            var subject = '&Subject=OpenCoweb Document';
-            var messagePlain = '&MessagePlain=';
-            var messageHTML = '&MessageHTML='+this.formatShareMsg();
-            var options = '&Options=';
-            var base = 'http://api.jangomail.com/api.asmx/SendTransactionalEmail?';
-            this.load_script(base+username+password+fromName+fromEmail+toEmail+subject+messagePlain+messageHTML+options);
-            dojo.fadeOut({node:'sendBox'}).play();
-        }
-    };
-    
-    proto.formatShareMsg = function(){
-        var date = new Date();
-        
-        var title = '<strong><span style="font-size:14px">OpenCoweb Document</span><br><br>';
-        var time = 'Shared at:<br></strong>'+date+'<br><br>';
-        var doc = '<strong>Document:<br></strong>'+this.snapshot();
-        return title+time+doc;
-    };
-    
-    proto.load_template = function(url) {
-       var e = document.createElement("link");
-       e.href = url;
-       e.type = "text/css";
-       e.rel = "stylesheet";
-       e.media = "screen";
-       document.getElementsByTagName("head")[0].appendChild(e);
-    };
-    
-    proto.load_script = function(url) {
-        var script_id = null;
-        var script = document.createElement('script');
-        script.setAttribute('type', 'text/javascript');
-        script.setAttribute('src', url);
-        script.setAttribute('id', 'script_id');
-
-        script_id = document.getElementById('script_id');
-        if(script_id){
-            document.getElementsByTagName('head')[0].removeChild(script_id);
-        }
-
-        // Insert <script> into DOM
-        document.getElementsByTagName('head')[0].appendChild(script);
-    };
-    
-    
-
     return TextEditor;
 });
