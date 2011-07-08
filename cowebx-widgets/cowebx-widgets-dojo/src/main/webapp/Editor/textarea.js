@@ -12,13 +12,15 @@ define([], function() {
         this.caretTimer = setInterval(dojo.hitch(this, '_blink'), 500);
         
         //Do stuff
-        this._styleDiv();
+        this._style();
         this._connect();
         
         //Properties
         this.displayCaret = false;
         this.domNode = args.domNode;
         this.value = {start:0,end:0,string:''};
+        this.newLine = '^';
+        this.newSpace = '_';
     };
     var proto = textarea.prototype;
     
@@ -31,10 +33,10 @@ define([], function() {
         }else if(e.keyCode == 39){
             this.moveCaretRight();
         }else if(e.keyCode == 13){
-            this.insertChar('^'); 
+            this.insertChar(this.newLine); 
         //space
         }else if(e.charCode == 32){
-            this.insertChar('_'); 
+            this.insertChar(this.newSpace); 
         //delete
         }else if(e.keyCode == 8){
             this.deleteChar(e);
@@ -54,10 +56,11 @@ define([], function() {
     };
     
     proto.render = function() {
-        var b = this._replaceAll(this.value.string.substring(0,this.value.start), '^', '<br>');
-        var bb = this._replaceAll(b, '_', '&nbsp;');
-        var a = this._replaceAll(this.value.string.substring(this.value.start,this.value.string.length), '^', '<br>');
-        var aa = this._replaceAll(a, '_', '&nbsp;');
+        var b = this._replaceAll(this.value.string.substring(0,this.value.start), this.newLine, '<br>');
+        var bb = this._replaceAll(b, this.newSpace, '&nbsp;');
+        var a = this._replaceAll(this.value.string.substring(this.value.start,this.value.string.length), this.newLine, '<br>');
+        var aa = this._replaceAll(a, this.newSpace, '&nbsp;');
+        
         this.before.innerHTML = bb;
         this.after.innerHTML = aa;
     };
@@ -95,7 +98,7 @@ define([], function() {
         return this.value.string;
     };
     
-    proto._styleDiv = function(){
+    proto._style = function(){
         dojo.style(this.div, 'width', '100%');
         dojo.style(this.div, 'height', '100%');
         dojo.style(this.div, 'background', 'white');
