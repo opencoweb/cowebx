@@ -23,8 +23,8 @@
 }
 
 .share:hover{
-    -webkit-transition: background-color 1s linear;
-    transition: background-color 1s linear;
+    -webkit-transition: background-color .25s linear;
+    transition: background-color .25s linear;
     background-color:red;
 }
 
@@ -52,7 +52,7 @@
 }
 
 .send:hover{
-    -webkit-transition: background-color 1s linear;
-    transition: background-color 1s linear;
+    -webkit-transition: background-color .25s linear;
+    transition: background-color .25s linear;
     background-color:red;
 }

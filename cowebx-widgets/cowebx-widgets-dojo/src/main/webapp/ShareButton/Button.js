@@ -1,8 +1,9 @@
 define([], function() {
     var Button = function(args){
-        this.id = args.id;
-        this.domNode = args.domNode;
-        this.listenTo = args.listenTo;
+        this.id = args.id;              //Widget id
+        this.domNode = args.domNode;    //domNode to attach to
+        this.listenTo = args.listenTo;  //domNode to listen to or 'share'
+        this.shareShowing = false;
         
         if(!this.domNode)
             throw new Error('missing node argument');
@@ -13,8 +14,6 @@ define([], function() {
         
         this.load_template('../lib/cowebx/dojo/ShareButton/textarea.css');
         this._buildShareButton();
-        
-        this.shareShowing = false;
     };
     var proto = Button.prototype;
     
@@ -32,6 +31,7 @@ define([], function() {
             this.shareShowing = true;
             dojo.fadeIn({node:'sendBox'}).play();
         }else{
+            this.shareShowing = false;
             dojo.fadeOut({node:'sendBox'}).play();
         }
     };
