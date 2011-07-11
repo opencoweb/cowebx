@@ -53,7 +53,7 @@ define(
 				this.currentSpeakerTime = 0;
 				
 			   	//Session prep
-			    var sess = coweb.initSession();
+			    this.sess = coweb.initSession();
 			    sess.prepare();
 			},
 			
@@ -78,18 +78,28 @@ define(
 			},
 			
 			buildToolbar: function(){
+			    //Help button
 			    this.help = dojo.create('img',{'src':'images/help.png',style:'cursor:hand;cursor:pointer;'},'speaker','last');
 			    dojo.style(this.help, 'float', 'right');
 			    dojo.style(this.help, 'width', '35px');
 			    dojo.style(this.help, 'height', '35px');
 			    dojo.style(this.help, 'margin', '4px');
+			    //Logout button
+			    this.logout = dojo.create('img',{'src':'images/logout.png',style:'cursor:hand;cursor:pointer;'},'speaker','last');
+			    dojo.style(this.logout, 'float', 'right');
+			    dojo.style(this.logout, 'width', '35px');
+			    dojo.style(this.logout, 'height', '35px');
+			    dojo.style(this.logout, 'margin', '4px');
+			    dojo.connect(this.logout, 'onclick', this, function(){
+                    this.sess.logout();
+                });
+			    //Help pane
                 this.helpPane = dojo.create('iframe',{style:'width:300px;height:420px;border:1px solid black;z-index:100000;'},'speaker','after');
                 dojo.style(this.helpPane,'float','right');
                 dojo.style(this.helpPane, 'position', 'relative');
                 dojo.style(this.helpPane, 'opacity', '0');
                 dojo.style(this.helpPane, 'background', 'white');
                 dojo.attr(this.helpPane, 'src', 'help.html');
-                
                 dojo.connect(this.help, 'onclick', this, function(){
                     if(this.helpShowing == false){
                         this.helpShowing = true;
