@@ -30,11 +30,13 @@ define(
 		
 		var app = {
 			init: function(){		
-			    this.override = false;	
+			    this.override = false;
+			    this.helpShowing = false;
 				this.parseInviteList();
 			   	parser.parse(dojo.body());
 				this.buildClocks();
 				this.buildEditor();
+				this.buildToolbar();
 				
 				this.attendeeList = new AttendeeList({id : 'dailyscrum_list', override: this.override});
 				this.mods = [];
@@ -73,6 +75,30 @@ define(
 				dojo.connect(dojo.byId('start'),'onclick',this,'stopMeeting');
 				dojo.connect(document, 'onkeyup', this, 'keyUp');
 				dojo.connect(document, 'onkeydown', this, 'keyDown');
+			},
+			
+			buildToolbar: function(){
+			    this.help = dojo.create('img',{'src':'images/help.png',style:'cursor:hand;cursor:pointer;'},'speaker','last');
+			    dojo.style(this.help, 'float', 'right');
+			    dojo.style(this.help, 'width', '35px');
+			    dojo.style(this.help, 'height', '35px');
+			    dojo.style(this.help, 'margin', '4px');
+                this.helpPane = dojo.create('iframe',{style:'width:300px;height:420px;border:1px solid black;z-index:100000;'},'speaker','after');
+                dojo.style(this.helpPane,'float','right');
+                dojo.style(this.helpPane, 'position', 'relative');
+                dojo.style(this.helpPane, 'opacity', '0');
+                dojo.style(this.helpPane, 'background', 'white');
+                dojo.attr(this.helpPane, 'src', 'help.html');
+                
+                dojo.connect(this.help, 'onclick', this, function(){
+                    if(this.helpShowing == false){
+                        this.helpShowing = true;
+                        dojo.fadeIn({node:this.helpPane}).play();
+                    }else if(this.helpShowing == true){
+                        this.helpShowing = false;
+                        dojo.fadeOut({node:this.helpPane}).play();
+                    }
+                });
 			},
 			
 			buildEditor: function(){
