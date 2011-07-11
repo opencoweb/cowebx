@@ -35,6 +35,7 @@ define(
 				dojo.style(button.emailBox, 'float', 'right');
 				dojo.style(button.emailBox, 'top', '56px');
 				dojo.style(button.emailBox, 'left', '57px');
+				dojo.style(textEditor._textarea, 'height', '90%');
 				
 				//2. Populate with some placeholder text and style
 				textEditor._textarea.value = 'Hello, world!\n\nTry opening two browsers both pointing to this URL, or send this link to a friend, and start typing...';
