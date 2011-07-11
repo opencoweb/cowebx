@@ -54,7 +54,7 @@ define(
 				
 			   	//Session prep
 			    this.sess = coweb.initSession();
-			    sess.prepare();
+			    this.sess.prepare();
 			},
 			
 			connectSyncs: function(){
