@@ -80,12 +80,14 @@ define(
 			buildToolbar: function(){
 			    //Help button
 			    this.help = dojo.create('img',{'src':'images/help.png',style:'cursor:hand;cursor:pointer;'},'speaker','last');
+			    dojo.attr(this.help, 'title', 'Help');
 			    dojo.style(this.help, 'float', 'right');
 			    dojo.style(this.help, 'width', '35px');
 			    dojo.style(this.help, 'height', '35px');
 			    dojo.style(this.help, 'margin', '4px');
 			    //Logout button
 			    this.logout = dojo.create('img',{'src':'images/logout.png',style:'cursor:hand;cursor:pointer;'},'speaker','last');
+			    dojo.attr(this.logout, 'title', 'Logout');
 			    dojo.style(this.logout, 'float', 'right');
 			    dojo.style(this.logout, 'width', '35px');
 			    dojo.style(this.logout, 'height', '35px');
