@@ -21,17 +21,17 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
-        this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
-        this.collab.subscribeStateRequest(this, 'onStateRequest');
-    	this.collab.subscribeStateResponse(this, 'onStateResponse');
+        //this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
+        //this.collab.subscribeStateRequest(this, 'onStateRequest');
+    	//this.collab.subscribeStateResponse(this, 'onStateResponse');
     
-        dojo.connect(this._textarea, 'onmousedown', this, '_updatePOR');
-        dojo.connect(this._textarea, 'onmouseup', this, '_updatePOR');
-        dojo.connect(this._textarea, 'onmousemove', this, '_updatePOR');
-        dojo.connect(this._textarea, 'onkeydown', this, '_updatePOR');
-        dojo.connect(this._textarea, 'onkeyup', this, '_updatePOR');
-        dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
-        dojo.connect(this._textarea, 'onblur', this, '_onBlur');
+        // dojo.connect(this._textarea, 'onmousedown', this, '_updatePOR');
+        //         dojo.connect(this._textarea, 'onmouseup', this, '_updatePOR');
+        //         dojo.connect(this._textarea, 'onmousemove', this, '_updatePOR');
+        //         dojo.connect(this._textarea, 'onkeydown', this, '_updatePOR');
+        //         dojo.connect(this._textarea, 'onkeyup', this, '_updatePOR');
+        //         dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
+        //         dojo.connect(this._textarea, 'onblur', this, '_onBlur');
     
         this.util = new ld({});
 
