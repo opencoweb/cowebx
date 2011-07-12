@@ -110,12 +110,10 @@ define([
     			dojo.attr(name+"_li", 'active', true);
     			this.handles[name] = dojo.connect(dijit.byId(name+'_li').domNode,'onclick',this,'onUserClick');
     			
-    			if(this.ready == true){
-        			this.collab.sendSync('userActivate', { 
-        			    activatedName: name ,
-        			    clicked: click
-        			}, null);	
-        		}
+    			this.collab.sendSync('userActivate', { 
+    			    activatedName: name ,
+    			    clicked: click
+    			}, null);
 
     		    this._onActivateUser(name);
     		}
