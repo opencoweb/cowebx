@@ -21,6 +21,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
+        console.log('newest');
         //this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
         //this.collab.subscribeStateRequest(this, 'onStateRequest');
     	//this.collab.subscribeStateResponse(this, 'onStateResponse');
