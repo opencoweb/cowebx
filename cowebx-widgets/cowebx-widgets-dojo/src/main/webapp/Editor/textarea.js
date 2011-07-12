@@ -20,36 +20,40 @@ define([], function() {
         this.domNode = args.domNode;
         this.value = {start:0,end:0,string:''};
         this.newLine = '^';
-        this.newSpace = '_';
+        this.newSpace = ' ';
+        this.cancelKeys = {
+            9  : 'tab',
+            27 : 'esc',
+            91 : 'meta',
+            18 : 'option',
+            17 : 'control'
+        }
     };
     var proto = textarea.prototype;
     
     proto.onKeyPress = function(e) {
         console.log(e)
-        //backwards
+        //Special actions for certain key-catches
         if(e.keyCode == 37){
-            this.moveCaretLeft(); 
-        //forwards    
+            this.moveCaretLeft();    
         }else if(e.keyCode == 39){
             this.moveCaretRight();
         }else if(e.keyCode == 13){
             this.insertChar(this.newLine); 
-        //space
         }else if(e.charCode == 32){
             this.insertChar(this.newSpace); 
-        //delete
+        }else if(e.keyCode == 38){
+            this.moveCaretUp();
+        }else if(e.keyCode == 40){
+            this.moveCaretDown();
         }else if(e.keyCode == 8){
             this.deleteChar(e);
-            return false; 
-        //tab    
-        }else if(e.keyCode == 9){  
-        //ctrl    
-        }else if(e.keyCode == 17){
-        //up    
-        }else if(e.keyCode == 38){
-        //down    
-        }else if(e.keyCode == 40){
+            return false;
             
+        //Cancel default actions for this.cancelKeys
+        }else if(this.cancelKeys[e.keyCode]){  
+
+        //Otherwise, insert
         }else{
             this.insertChar(String.fromCharCode(e.which));
         }
@@ -57,9 +61,9 @@ define([], function() {
     
     proto.render = function() {
         var b = this._replaceAll(this.value.string.substring(0,this.value.start), this.newLine, '<br>');
-        var bb = this._replaceAll(b, this.newSpace, '&nbsp;');
+        var bb = this._replaceAll(b, this.newSpace, '&nbsp; ');
         var a = this._replaceAll(this.value.string.substring(this.value.start,this.value.string.length), this.newLine, '<br>');
-        var aa = this._replaceAll(a, this.newSpace, '&nbsp;');
+        var aa = this._replaceAll(a, this.newSpace, '&nbsp; ');
         
         this.before.innerHTML = bb;
         this.after.innerHTML = aa;
@@ -82,6 +86,27 @@ define([], function() {
         this.render();
     };
     
+    proto.moveCaretUp = function() {
+        var count = 0;
+        var stop = false;
+        var i = this.value.start-1;
+        var c = '';
+        while(i >= 0 && stop == false){
+            var c = this.value.string[i];
+            i--;
+            if(c != this.newLine){
+                count++;
+            }else{
+                stop = true;
+            }
+        }
+        this.moveCaretTo((i+1));
+    };
+    
+    proto.moveCaretDown = function() {
+        console.log('down');
+    };
+    
     proto.moveCaretLeft = function() {
         if(this.value.start>0)
             this.value.start--;
@@ -91,6 +116,15 @@ define([], function() {
     proto.moveCaretRight = function() {
         if(this.value.start<this.value.string.length)
             this.value.start++;
+        this.render();
+    };
+    
+    proto.moveCaretTo = function(pos) {
+        if(pos <= this.value.string.length){
+            this.value.start = pos;
+        }else{
+            this.value.start = this.value.string.length;
+        }
         this.render();
     };
     
@@ -106,7 +140,7 @@ define([], function() {
     
     proto._connect = function(){
         dojo.connect(this.div, 'onfocus', this, '_onFocus');
-        dojo.connect(this.div, 'onfocus', this, '_onBlur');
+        dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
         document.onkeydown = this._overrideKeys;
     };
