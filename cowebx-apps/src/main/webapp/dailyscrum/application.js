@@ -190,16 +190,18 @@ define(
 				    }
 					dijit.byId(this.attendeeList.selected+'_li').select();
 				}
+                if(this.attendeeList.inviteList[e]){
+                    //Connect to deactivate
+                    this._tempHndl[e] = dojo.connect(dijit.byId(e+'_li').domNode, 'ondblclick', this, function(e){
+                        this.totalClock.stop();
+    					var name = e.target.id.substring(0, e.target.id.length-3);
+    					this.attendeeList._userLeave([{username:name}]);
+    					this.collab.sendSync('deactivateUser', name, null);
+    					dojo.disconnect(this._tempHndl[name]);
+    					delete this._tempHndl[name];
+    				});
+                }
                 
-                //Connect to deactivate
-                this._tempHndl[e] = dojo.connect(dijit.byId(e+'_li').domNode, 'ondblclick', this, function(e){
-                    this.totalClock.stop();
-					var name = e.target.id.substring(0, e.target.id.length-3);
-					this.attendeeList._userLeave([{username:name}]);
-					this.collab.sendSync('deactivateUser', name, null);
-					dojo.disconnect(this._tempHndl[name]);
-					delete this._tempHndl[name];
-				});
                 
 				dojo.attr(e+'_count', 'innerHTML',this._renderTime(this.users[e].timeTaken));
 				return user;
