@@ -104,7 +104,25 @@ define([], function() {
     };
     
     proto.moveCaretDown = function() {
-        console.log('down');
+        var count = 0;
+        var next = false;
+        var stop = false;
+        var i = this.value.start;
+        var c = '';
+        while(i <= this.value.string.length && stop == false){
+            var c = this.value.string[i];
+            i++;
+            if(c != this.newLine){
+                count++;
+            }else{
+                if(next == true){
+                    stop = true;
+                }else{
+                    next = true;
+                }
+            }
+        }
+        this.moveCaretTo((i-1));
     };
     
     proto.moveCaretLeft = function() {
@@ -133,6 +151,7 @@ define([], function() {
     };
     
     proto._style = function(){
+        dojo.attr(this.div, 'style', 'word-wrap:break-word;');
         dojo.style(this.div, 'width', '100%');
         dojo.style(this.div, 'height', '100%');
         dojo.style(this.div, 'background', 'white');
@@ -150,7 +169,7 @@ define([], function() {
     };
     
     proto._onBlur = function(){
-        
+        this.displayCaret = false;
     };
     
     proto._blink = function(){
