@@ -18,10 +18,10 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this.min = 0; 
         this.max = 0;
         this.value = '';
-    
+        console.log('newest');
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
-        console.log('newest');
+        
         //this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
         //this.collab.subscribeStateRequest(this, 'onStateRequest');
     	//this.collab.subscribeStateResponse(this, 'onStateResponse');
