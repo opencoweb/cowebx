@@ -19,6 +19,8 @@ define([
 		this.handles = {};              //dojo.connect handles for disconnect
 		this.mods = [];                 //Array of mod names
 		this.local = null;              //the local username
+		this.ready = false;             //onReady?
+		this.queue = [];                //queue for joiners if not ready
 		
 		this.override = (!args.override) ? false : args.override;
 		
@@ -34,11 +36,12 @@ define([
     var proto = AttendeeList.prototype;
     
     proto.onReady = function(params) {
+        this.ready = true;
         this.site = params.site;
     };
 
     proto.onUserChange = function(params) {
-		//Break if empty object
+        //Break if empty object
 		if(!params.users[0])
 			return;
 		if(params.type == "join"){
@@ -106,11 +109,15 @@ define([
     			dojo.toggleClass(name+"_li", "dailyscrum_inactive");
     			dojo.attr(name+"_li", 'active', true);
     			this.handles[name] = dojo.connect(dijit.byId(name+'_li').domNode,'onclick',this,'onUserClick');
-    			this.collab.sendSync('userActivate', { 
-    			    activatedName: name ,
-    			    clicked: click
-    			}, null);	
-    		    this._onActivateUser(name);	
+    			
+    			if(this.ready == true){
+        			this.collab.sendSync('userActivate', { 
+        			    activatedName: name ,
+        			    clicked: click
+        			}, null);	
+        		}
+
+    		    this._onActivateUser(name);
     		}
 		}
 	};
@@ -215,7 +222,7 @@ define([
 	};
 	
 	proto._onActivateUser = function(name){
-
+        
 	};
 	
 	proto._onActivateRemoteUser = function(obj){
