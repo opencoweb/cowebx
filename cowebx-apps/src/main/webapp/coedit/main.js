@@ -17,7 +17,7 @@ var dependencies = [
 ];
 
 //Configure coweb, dojo, and requireJS
-var cowebConfig = { adminUrl: '../admin' };
+var cowebConfig = { adminUrl: '../admin', cacheState : true };
 var dojoConfig = {
     parseOnLoad: false,
     mblAlwaysHideAddressBar: true
