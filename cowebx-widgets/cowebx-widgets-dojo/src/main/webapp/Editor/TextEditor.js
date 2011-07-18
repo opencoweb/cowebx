@@ -179,7 +179,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         //this._updatePOR();
         var t = this._textarea;
         //t.value = t.value.substr(0, pos) + c + t.value.substr(pos+1);
-        t.value = t.value.substr(0, pos) + c + t.value.substr(pos+1);
+        t.value = t.value.string.substr(0, pos) + c + t.value.string.substr(pos+1);
     };
 
     proto.snapshot = function(){

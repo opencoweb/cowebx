@@ -5,10 +5,10 @@ define([], function() {
             throw new Error("textarea.js: missing domNode param");
 
         //Build stuff
-        this.div = dojo.create('div', {tabindex:0}, args.domNode);
+        this.div = dojo.create('div', {tabindex:0,id:'thisDiv'}, args.domNode);
         this.before = dojo.create('span',{id:'before'},this.div,'first');
         this.after = dojo.create('span',{id:'after'},this.div,'last');
-        this.caret = dojo.create('span', {style:'background:black;visibility:hidden;', innerHTML:'|'},'before','after');
+        this.caret = dojo.create('span', {id:'caret',style:'background:black;visibility:hidden;', innerHTML:'|'},'before','after');
         this.caretTimer = setInterval(dojo.hitch(this, '_blink'), 500);
         
         //Do stuff
@@ -32,7 +32,7 @@ define([], function() {
     var proto = textarea.prototype;
     
     proto.onKeyPress = function(e) {
-        console.log(e)
+        var lock = false;
         //Special actions for certain key-catches
         if(e.keyCode == 37){
             this.moveCaretLeft();    
@@ -48,25 +48,87 @@ define([], function() {
             this.moveCaretDown();
         }else if(e.keyCode == 8){
             this.deleteChar(e);
-            return false;
-            
-        //Cancel default actions for this.cancelKeys
         }else if(this.cancelKeys[e.keyCode]){  
 
-        //Otherwise, insert
         }else{
             this.insertChar(String.fromCharCode(e.which));
         }
+        
+        this.lineWidth = this.getWidthInChars();
+
+        return false;
     };
     
     proto.render = function() {
-        var b = this._replaceAll(this.value.string.substring(0,this.value.start), this.newLine, '<br>');
-        var bb = this._replaceAll(b, this.newSpace, '&nbsp; ');
-        var a = this._replaceAll(this.value.string.substring(this.value.start,this.value.string.length), this.newLine, '<br>');
-        var aa = this._replaceAll(a, this.newSpace, '&nbsp; ');
+        var s=[];
+        var before='';
+        var test = this.value.string.substring(0, this.value.start);
+        for(var i=0; i<test.length; i++){
+            if(test[i]==this.newLine){
+                s.push('<br>');
+            }else if(test[i]==this.newSpace){
+                s.push('<span>&nbsp;</span>');
+            }else{
+                s.push('<span>'+test[i]+'</span>');
+            }
+        }
+        for(var j=0; j<s.length; j++){
+            before = before + s[j];
+        }
         
-        this.before.innerHTML = bb;
-        this.after.innerHTML = aa;
+        var t=[];
+        var after='';
+        var test2 = this.value.string.substring(this.value.start, this.value.string.length);
+        for(var k=0; k<test2.length; k++){
+            if(test2[k]==this.newLine){
+                t.push('<br>');
+            }else if(test2[k]==this.newSpace){
+                t.push('<span>&nbsp;</span>');
+            }else{
+                t.push('<span>'+test2[k]+'</span>');
+            }
+        }
+        for(var l=0; l<t.length; l++){
+            after = after + t[l];
+        }
+        
+        this.before.innerHTML = before;
+        this.after.innerHTML = after;
+        
+        
+        // var b = this._replaceAll(this.value.string.substring(0,this.value.start), this.newLine, '<br>');
+        // var bb = this._replaceAll(b, this.newSpace, '&nbsp; ');
+        // var a = this._replaceAll(this.value.string.substring(this.value.start,this.value.string.length), this.newLine, '<br>');
+        // var aa = this._replaceAll(a, this.newSpace, '&nbsp; ');
+        // 
+        // this.before.innerHTML = bb;
+        // this.after.innerHTML = aa;
+    };
+    
+    proto.getWidthInChars = function(){
+        this.rows = {};
+        var currY = 0;
+        var row = 0;
+        var count = 0;
+        var lineHeight = parseFloat(window.getComputedStyle(this.before).lineHeight.replace('px',''));
+        dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
+            var pos = this.findPos(node);
+            if(pos.top > currY){
+                currY = pos.top;
+                row++;
+                count=0;
+            }else{
+                if(node.id != 'caret'){
+                    count++;
+                }
+            }
+            this.rows[row] = count;
+            if(node.id == 'caret'){
+                this.currLine = row;
+                this.currLineIndex = count;
+            }
+        }));
+        this.rows[1] = this.rows[1]-1;
     };
     
     proto.insertChar = function(c) {
@@ -87,42 +149,13 @@ define([], function() {
     };
     
     proto.moveCaretUp = function() {
-        var count = 0;
-        var stop = false;
-        var i = this.value.start-1;
-        var c = '';
-        while(i >= 0 && stop == false){
-            var c = this.value.string[i];
-            i--;
-            if(c != this.newLine){
-                count++;
-            }else{
-                stop = true;
-            }
-        }
-        this.moveCaretTo((i+1));
+        console.log(this.currLineIndex);
+        console.log(this.rows);
     };
     
     proto.moveCaretDown = function() {
-        var count = 0;
-        var next = false;
-        var stop = false;
-        var i = this.value.start;
-        var c = '';
-        while(i <= this.value.string.length && stop == false){
-            var c = this.value.string[i];
-            i++;
-            if(c != this.newLine){
-                count++;
-            }else{
-                if(next == true){
-                    stop = true;
-                }else{
-                    next = true;
-                }
-            }
-        }
-        this.moveCaretTo((i-1));
+        console.log(this.currLineIndex);
+        console.log(this.rows);
     };
     
     proto.moveCaretLeft = function() {
@@ -138,10 +171,12 @@ define([], function() {
     };
     
     proto.moveCaretTo = function(pos) {
-        if(pos <= this.value.string.length){
-            this.value.start = pos;
-        }else{
+        if(pos < 0){
+            this.value.start = 0;
+        }else if(pos > this.value.string.length){
             this.value.start = this.value.string.length;
+        }else if(pos <= this.value.string.length){
+            this.value.start = pos;
         }
         this.render();
     };
@@ -166,6 +201,7 @@ define([], function() {
     
     proto._onFocus = function(){
         this.displayCaret = true;
+        this._currY = this.findPos(this.caret).top;
     };
     
     proto._onBlur = function(){
@@ -206,6 +242,19 @@ define([], function() {
             s = s+tmp[j];
         }
         return s;
+    };
+    
+    proto.findPos = function(obj) {
+    	var curleft = curtop = 0;
+    	if (obj.offsetParent) {
+    		curleft = obj.offsetLeft
+    		curtop = obj.offsetTop
+    		while (obj = obj.offsetParent) {
+    			curleft += obj.offsetLeft
+    			curtop += obj.offsetTop
+    		}
+    	}
+    	return {left:curleft, top:curtop};
     };
 
     return textarea;
