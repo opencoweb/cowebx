@@ -1,0 +1,7 @@
+::selection {
+    background: yellow; /* Safari */
+}
+
+::-moz-selection {
+    background: yellow; /* Firefox */
+}
