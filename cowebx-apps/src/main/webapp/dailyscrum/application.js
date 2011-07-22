@@ -281,6 +281,26 @@ define(
 					this.t.stop();
 					this.userClock.seconds = this.getUserTimeRemaining(selected);
 					dojo.attr('speaker','innerHTML','Current Speaker: '+selected);
+					
+					//Logout button
+    			    this.logout = dojo.create('img',{'src':'images/logout.png',style:'cursor:hand;cursor:pointer;'},'speaker','first');
+    			    dojo.attr(this.logout, 'title', 'Logout');
+    			    dojo.style(this.logout, 'float', 'right');
+    			    dojo.style(this.logout, 'width', '35px');
+    			    dojo.style(this.logout, 'height', '35px');
+    			    dojo.style(this.logout, 'margin', '4px');
+    			    dojo.connect(this.logout, 'onclick', this, function(){
+                        this.sess.logout();
+                    });
+					//Help button
+    			    this.help = dojo.create('img',{'src':'images/help.png',style:'cursor:hand;cursor:pointer;'},'speaker','first');
+    			    dojo.attr(this.help, 'title', 'Help');
+    			    dojo.style(this.help, 'float', 'right');
+    			    dojo.style(this.help, 'width', '35px');
+    			    dojo.style(this.help, 'height', '35px');
+    			    dojo.style(this.help, 'margin', '4px');
+
+
 					if(this.userClock.seconds < 0){
 						this.userClock.test = 'neg';
 						this.userClock.notify();
