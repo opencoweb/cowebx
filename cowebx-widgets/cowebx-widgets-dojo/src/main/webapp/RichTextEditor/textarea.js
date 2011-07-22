@@ -211,6 +211,12 @@ define([], function() {
             var amt = this.value.start+this.rows[this.currLine]-2;
         }else if(this.rows[this.currLine+1] < this.currLineIndex){
             var amt = this.value.start+(this.rows[this.currLine]-this.currLineIndex)+this.rows[this.currLine+1]-2;
+            if(this.currLine == 1)
+                amt = amt + 1;
+            if(this.rows[this.currLine+2] == undefined){
+                console.log(this.rows);
+                amt = amt + 1;
+            }
         }
         
         if(amt < 0){

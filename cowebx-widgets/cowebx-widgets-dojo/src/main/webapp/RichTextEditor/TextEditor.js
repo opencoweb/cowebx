@@ -52,6 +52,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         this.newSnapshot = this.snapshot();
         var oldLength = this.oldSnapshot.length;
         var newLength = this.newSnapshot.length;
+
         
         if(oldLength < newLength){
             var mx = this.max+(newLength - oldLength);
@@ -61,11 +62,11 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
             //console.log('new = '+this.newSnapshot.substring(this.min, mx));
             
             if(syncs){
+                //console.log(syncs);
                 for(var i=0; i<syncs.length; i++){
                     this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
                 }
             }
-            
         }else if(newLength < oldLength){
             var mx = this.max+(oldLength-newLength);
             var mn = (this.min-1 > -1) ? this.min-1 : 0;
@@ -75,8 +76,20 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
             //console.log('new = '+this.newSnapshot.substring(mn, this.max));
             
             if(syncs){
+                //console.log(syncs);
                 for(var i=0; i<syncs.length; i++){
                     this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+mn);
+                }
+            }
+        }else if(newLength == oldLength){
+            if(this.oldSnapshot != this.newSnapshot)
+                var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, this.max));
+            //console.log('old = '+this.oldSnapshot.substring(mn, mx));
+            //console.log('new = '+this.newSnapshot.substring(mn, this.max));
+            if(syncs){
+                //console.log(syncs);
+                for(var i=0; i<syncs.length; i++){
+                    this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
                 }
             }
         }
@@ -85,13 +98,15 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     proto.iterateRecv = function() {
         this.collab.resumeSync();
         this.collab.pauseSync();
-        if(this.q.length != 0)
+        if(this.q.length != 0){
             this.runOps();
+            this._textarea.getCharObj();
+        }
         this.q = [];
         this.oldSnapshot = this.snapshot();
-        this.t = setTimeout(dojo.hitch(this, 'iterate'), 100);
         this.min = this._por.start;
         this.max = this._por.end;
+        this.t = setTimeout(dojo.hitch(this, 'iterate'), 100);
     };
     
     proto._updatePOR = function() {
@@ -177,7 +192,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         //this._updatePOR();
         var t = this._textarea;
         //t.value = t.value.substr(0, pos) + c + t.value.substr(pos+1);
-        t.value = t.value.string.substr(0, pos) + c + t.value.string.substr(pos+1);
+        t.value.string = t.value.string.substr(0, pos) + c + t.value.string.substr(pos+1);
     };
 
     proto.snapshot = function(){
