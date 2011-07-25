@@ -4,7 +4,7 @@ define([], function() {
         if(!args.domNode)
             throw new Error("textarea.js: missing domNode param");
 
-        //Build stuff
+        //Build divs & spans (caret)
         this.div = dojo.create('div', {tabindex:0,id:'thisDiv'}, args.domNode);
         this.before = dojo.create('span',{id:'before'},this.div,'first');
         this.selection = dojo.create('span',{id:'selection'},this.div,'last');
@@ -12,15 +12,17 @@ define([], function() {
         this.caret = dojo.create('span', {id:'caret',style:'background:black;visibility:hidden;', innerHTML:'|'},'before','after');
         this.caretTimer = setInterval(dojo.hitch(this, '_blink'), 500);
         
-        //Do stuff
+        //Save space
         this._style();
         this._connect();
         
         //Properties
-        this.displayCaret = false;
-        this.shiftLock = false;
         this.domNode = args.domNode;
         this.value = {start:0,end:0,string:''};
+        this.displayCaret = false;
+        this.currLine = 0;
+        this.currLineIndex = 0;
+        this.lastIndex = 0;
         this.newLine = '^';
         this.newSpace = ' ';
         this.cancelKeys = {
@@ -29,13 +31,14 @@ define([], function() {
             91 : 'meta',
             18 : 'option',
             17 : 'control'
-        }
+        };
     };
     var proto = textarea.prototype;
     
+    // Determines key-specific action
     proto.onKeyPress = function(e) {        
 
-        if(!(this.meta(e) && ((e.charCode==114 || 82))))    //refresh
+        if(!(this._meta(e) && ((e.charCode==114 || 82))))    //refresh
             e.preventDefault();
         if(e.keyCode == 37){                                // left
             this.moveCaretLeft(e.shiftKey);                   
@@ -51,22 +54,23 @@ define([], function() {
             this.moveCaretDown(e.shiftKey);
         }else if(e.keyCode == 8){                           // delete
             this.deleteChar(e);
-        }else if(this.meta(e) && e.charCode == 97){         // selectAll
-            console.log('all');
+        }else if(this._meta(e) && e.charCode == 97){         // selectAll
             this.selectAll();
         }else if(this.cancelKeys[e.keyCode]){               // cancelKeys
 
-        }else{
-            this.insertChar(String.fromCharCode(e.which));
+        }else{                                              // otherwise, insert
+            this.insertChar(String.fromCharCode(e.which));  
         }
-        
+
         this.getCharObj();
     };
     
+    // Rips through this.value and blasts proper html equiv into dom
     proto.render = function() {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         
+        // text before selection
         var s=[];
         var before='';
         var test = this.value.string.substring(0, start);
@@ -79,10 +83,9 @@ define([], function() {
                 s.push('<span>'+test[i]+'</span>');
             }
         }
-        for(var j=0; j<s.length; j++){
-            before = before + s[j];
-        }
+        before = s.join("");
         
+        // selected text
         var u=[];
         var selection='';
         var test3 = this.value.string.substring(start, end);
@@ -95,10 +98,9 @@ define([], function() {
                 u.push('<span style="background-color:yellow;">'+test3[m]+'</span>');
             }
         }
-        for(var n=0; n<u.length; n++){
-            selection = selection + u[n];
-        }
+        selection = u.join("");
         
+        // text after selection
         var t=[];
         var after='';
         var test2 = this.value.string.substring(end, this.value.string.length);
@@ -111,15 +113,14 @@ define([], function() {
                 t.push('<span>'+test2[k]+'</span>');
             }
         }
-        for(var l=0; l<t.length; l++){
-            after = after + t[l];
-        }
+        after = t.join("");
         
         this.before.innerHTML = before;
         this.selection.innerHTML = selection;
         this.after.innerHTML = after;
     };
     
+    // Maps current text to this.rows
     proto.getCharObj = function(){
         this.rows = {};
         var currY = 0;
@@ -127,7 +128,7 @@ define([], function() {
         var count = 0;
         var lineHeight = parseFloat(window.getComputedStyle(this.before).lineHeight.replace('px',''));
         dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
-            var pos = this.findPos(node);
+            var pos = this._findPos(node);
             if(pos.top > currY){
                 currY = pos.top;
                 row++;
@@ -141,9 +142,15 @@ define([], function() {
                 this.currLineIndex = count;
             }
         }));
+        // offset the first row to account for extra span
         this.rows[1] = this.rows[1]-1;
+        // caret movement hackiness
+        if(this.rows[this.currLine] != 3){
+            this.lastIndex = this.currLineIndex;
+        }
     };
     
+    // Insert single char at this.value.start
     proto.insertChar = function(c) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
@@ -160,6 +167,7 @@ define([], function() {
         this.render();
     };
     
+    // Remove single char at this.value.start
     proto.deleteChar = function() {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
@@ -179,14 +187,38 @@ define([], function() {
         }
         this.render();
     };
-    
-    proto.moveCaretUp = function(select) {
-        if(this.rows[this.currLine-1] >= this.currLineIndex){
-            var amt = this.value.start-this.rows[this.currLine-1]-1;
-        }else if(this.rows[this.currLine-1] < this.currLineIndex){
-            var amt = this.value.start-this.currLineIndex-1;
+
+    // Clears current selection
+    proto.clearSelection = function() {
+        if(this.value.end < this.value.start){
+            this.value.start = this.value.end
+        }else{
+            this.value.end = this.value.start;
         }
         
+        this.shiftLock = false;
+    };
+    
+    // Select all text
+    proto.selectAll = function() {
+        this.value.end=0; 
+        this.value.start=this.value.string.length;
+        this.render();
+    };
+    
+    // Get string representation of curr value
+    proto.getValue = function() {
+        return this.value.string;
+    };
+    
+    proto.moveCaretUp = function(select) {
+        if(this.rows[this.currLine-1] >= this.lastIndex){
+            var amt = (this.value.start-this.currLineIndex-(this.rows[this.currLine-1]-this.lastIndex))-1;
+        }else if(this.rows[this.currLine-1] < this.lastIndex){
+            var amt = this.value.start-this.currLineIndex-1;
+        }else if(this.rows[this.currLine-1] == undefined){
+            var amt = this.value.start-this.currLineIndex+1;
+        }
         if(amt < 0){
             this.value.start = 0;
             if(!select)
@@ -207,18 +239,17 @@ define([], function() {
     };
     
     proto.moveCaretDown = function(select) {
-        if(this.rows[this.currLine+1] >= this.currLineIndex){
-            var amt = this.value.start+this.rows[this.currLine]-2;
-        }else if(this.rows[this.currLine+1] < this.currLineIndex){
+        if(this.rows[this.currLine+1] >= this.lastIndex){
+            var amt = (this.value.start+(this.rows[this.currLine]-this.currLineIndex)+this.lastIndex)-2;
+        }else if(this.rows[this.currLine+1] < this.lastIndex){
             var amt = this.value.start+(this.rows[this.currLine]-this.currLineIndex)+this.rows[this.currLine+1]-2;
-            if(this.currLine == 1)
+            if(this.rows[this.currLine+2] == undefined)
                 amt = amt + 1;
-            if(this.rows[this.currLine+2] == undefined){
-                console.log(this.rows);
-                amt = amt + 1;
-            }
+        }else if(this.rows[this.currLine+1] == undefined){
+            var amt = this.value.start+(this.rows[this.currLine]-this.currLineIndex);
         }
-        
+        if(this.currLine == 1)
+            amt = amt + 1;
         if(amt < 0){
             this.value.start = 0;
             if(!select)
@@ -238,7 +269,7 @@ define([], function() {
         this.render();
     };
     
-    proto.moveCaretLeft = function(select) {
+    proto.moveCaretLeft = function(select) {            
         if(this.value.start>0){
             this.value.start--;
             if(!select){
@@ -251,7 +282,7 @@ define([], function() {
         this.render();
     };
     
-    proto.moveCaretRight = function(select) {
+    proto.moveCaretRight = function(select) {  
         if(this.value.start<this.value.string.length){
             this.value.start++;
             if(!select){
@@ -278,35 +309,14 @@ define([], function() {
         this.render();
     };
     
-    proto.clearSelection = function() {
-        if(this.value.end < this.value.start){
-            this.value.start = this.value.end
-        }else{
-            this.value.end = this.value.start;
-        }
-        
-        this.shiftLock = false;
-    };
-    
-    proto.selectAll = function() {
-        this.value.end=0; 
-        this.value.start=this.value.string.length;
-        this.render();
-    };
-    
-    proto.getValue = function() {
-        return this.value.string;
-    };
-    
     proto._style = function(){
-        //dojo.attr(this.div, 'style', 'word-wrap:break-word;');
         dojo.style(this.div, 'width', '100%');
         dojo.style(this.div, 'height', '100%');
         dojo.style(this.div, 'background', 'white');
-        this.load_template('../lib/cowebx/dojo/RichTextEditor/textarea.css');
+        this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/textarea.css');
     };
     
-    proto.load_template = function(url) {
+    proto._loadTemplate = function(url) {
        var e = document.createElement("link");
        e.href = url;
        e.type = "text/css";
@@ -321,14 +331,14 @@ define([], function() {
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
         dojo.connect(this.div, 'onclick', this, function(){
-            console.log(this.value.start+' : '+this.value.end);
+            console.log(this.lastIndex);
         });
         document.onkeydown = this._overrideKeys;
     };
     
     proto._onFocus = function(){
         this.displayCaret = true;
-        this._currY = this.findPos(this.caret).top;
+        this._currY = this._findPos(this.caret).top;
     };
     
     proto._onBlur = function(){
@@ -356,7 +366,7 @@ define([], function() {
        return string.replace(/<([^>]+)>/g,'');
     };
     
-    proto.findPos = function(obj) {
+    proto._findPos = function(obj) {
     	var curleft = curtop = 0;
     	if (obj.offsetParent) {
     		curleft = obj.offsetLeft
@@ -369,7 +379,7 @@ define([], function() {
     	return {left:curleft, top:curtop};
     };
     
-    proto.meta = function(event){
+    proto._meta = function(event){
         if(event.ctrlKey == true || event.metaKey == true)
             return true;
         return false;

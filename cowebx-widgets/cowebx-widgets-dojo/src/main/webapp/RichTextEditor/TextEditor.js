@@ -10,7 +10,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         this._por = {start : 0, end: 0};
 
         this._textarea = new textarea({domNode:args.domNode});
-        
+
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = '';
         this.t = null;
@@ -222,11 +222,17 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     };
     
     proto.onStateRequest = function(token){
-
+        var state = {
+            text: this._textarea.getValue(),
+            oldSnapshot: this.oldSnapshot
+        };
+        this.collab.sendStateResponse(state,token);
     };
     
     proto.onStateResponse = function(obj){
-
+        this.oldSnapshot = obj.oldSnapshot;
+        this._textarea.value.string = obj.text;
+        this._textarea.render();
     };
     
 
