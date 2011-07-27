@@ -9,7 +9,7 @@ define([], function() {
         this.before = dojo.create('span',{id:'before'},this.div,'first');
         this.selection = dojo.create('span',{id:'selection'},this.div,'last');
         this.after = dojo.create('span',{id:'after'},this.div,'last');
-        this.caret = dojo.create('span', {id:'caret',style:'background:black;visibility:hidden;', innerHTML:'|'},'before','after');
+        this.caret = dojo.create('span', {id:'caret',style:'background:black;visibility:hidden;width:20px;', innerHTML:'|'},'before','after');
         this.caretTimer = setInterval(dojo.hitch(this, '_blink'), 500);
         
         //Save space
@@ -327,6 +327,7 @@ define([], function() {
     
     proto._connect = function(){
         dojo.connect(window, 'resize', this, 'getCharObj');
+        dojo.connect(this.div, 'onclick', this, '_onClick');
         dojo.connect(this.div, 'onfocus', this, '_onFocus');
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
@@ -336,7 +337,13 @@ define([], function() {
         document.onkeydown = this._overrideKeys;
     };
     
-    proto._onFocus = function(){
+    proto._onClick = function(e){
+        console.log('e = ',e);
+        
+        //Query the text, look for char closest to x and y of click, move caret to that pos
+    };
+    
+    proto._onFocus = function(e){
         this.displayCaret = true;
         this._currY = this._findPos(this.caret).top;
     };
