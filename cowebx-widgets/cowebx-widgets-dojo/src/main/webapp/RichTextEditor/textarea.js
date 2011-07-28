@@ -14,6 +14,7 @@ define([], function() {
         //Save space
         this._style();
         this._connect();
+        setInterval(dojo.hitch(this, '_blink'), 500);
         
         //Properties
         this.domNode = args.domNode;
@@ -354,6 +355,7 @@ define([], function() {
         dojo.style(this.div, 'height', '100%');
         dojo.style(this.div, 'background', 'white');
         dojo.style(this.selection, 'border-right', '1px solid black');
+        dojo.style(this.div, 'cursor', 'text');
         this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/textarea.css');
     };
     
@@ -378,7 +380,6 @@ define([], function() {
         dojo.connect(this.div, 'onfocus', this, '_onFocus');
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
-        dojo.connect(this.div, 'onmousemove', this, '_watchMouse');
         document.onkeydown = this._overrideKeys;
     };
     
@@ -401,11 +402,20 @@ define([], function() {
     
     proto._onFocus = function(e){
         this.displayCaret = true;
-        //this._currY = this._findPos(this.selection).top;
     };
     
     proto._onBlur = function(){
-
+        this.displayCaret = false;
+    };
+    
+    proto._blink = function(){
+        if(this.displayCaret){
+            if(dojo.attr(this.selection, 'style') == 'border-right: 1px solid white'){
+                dojo.attr(this.selection, 'style', '');
+            }else{
+                dojo.attr(this.selection, 'style', 'border-right: 1px solid white');
+            }
+        }
     };
     
     proto._overrideKeys = function(e) {
