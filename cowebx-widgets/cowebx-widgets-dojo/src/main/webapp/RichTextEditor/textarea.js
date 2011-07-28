@@ -9,8 +9,7 @@ define([], function() {
         this.before = dojo.create('span',{id:'before'},this.div,'first');
         this.selection = dojo.create('span',{id:'selection'},this.div,'last');
         this.after = dojo.create('span',{id:'after'},this.div,'last');
-        this.caret = dojo.create('span', {id:'caret',style:'background:black;visibility:hidden;width:20px;', innerHTML:'|'},'before','after');
-        this.caretTimer = setInterval(dojo.hitch(this, '_blink'), 500);
+        this._hiddenDiv = dojo.create('div',{style:'position:relative;left:-10000px;',contentEditable:true},this.div,'after');
         
         //Save space
         this._style();
@@ -30,36 +29,41 @@ define([], function() {
             27 : 'esc',
             91 : 'meta',
             18 : 'option',
-            17 : 'control'
+            17 : 'control',
+            16 : 'shift'
         };
     };
     var proto = textarea.prototype;
     
     // Determines key-specific action
-    proto.onKeyPress = function(e) {        
-
-        if(!(this._meta(e) && ((e.charCode==114 || 82))))    //refresh
-            e.preventDefault();
-        if(e.keyCode == 37){                                // left
+    proto.onKeyPress = function(e) {
+        //console.log('e = ',e);
+        if(this._meta(e) && (e.charCode==120)){             // cut
+            this.cut(e);
+        }else if(this._meta(e) && (e.charCode==99)){        // copy
+            this.copy(e);
+        }else if(this._meta(e) && (e.charCode==118)){       // paste
+            this.paste(e);
+        }else if(e.keyCode == 37){                          // left
             this.moveCaretLeft(e.shiftKey);                   
         }else if(e.keyCode == 39){                          // right
             this.moveCaretRight(e.shiftKey);
         }else if(e.keyCode == 13){                          // newLine
-            this.insertChar(this.newLine); 
+            this.insert(this.newLine); 
         }else if(e.charCode == 32){                         // newSpace
-            this.insertChar(this.newSpace); 
+            this.insert(this.newSpace); 
         }else if(e.keyCode == 38){                          // up
             this.moveCaretUp(e.shiftKey);
         }else if(e.keyCode == 40){                          // down
             this.moveCaretDown(e.shiftKey);
         }else if(e.keyCode == 8){                           // delete
             this.deleteChar(e);
-        }else if(this._meta(e) && e.charCode == 97){         // selectAll
+        }else if(this._meta(e) && e.charCode == 97){        // selectAll
             this.selectAll();
-        }else if(this.cancelKeys[e.keyCode]){               // cancelKeys
-
+        }else if(this.cancelKeys[e.which] != undefined){    // cancelKeys
+            
         }else{                                              // otherwise, insert
-            this.insertChar(String.fromCharCode(e.which));  
+            this.insert(String.fromCharCode(e.which));  
         }
 
         this.getCharObj();
@@ -76,7 +80,7 @@ define([], function() {
         var test = this.value.string.substring(0, start);
         for(var i=0; i<test.length; i++){
             if(test[i]==this.newLine){
-                s.push('<br>');
+                s.push('<span><br> </span>');
             }else if(test[i]==this.newSpace){
                 s.push('<span>&nbsp; </span>');
             }else{
@@ -91,7 +95,7 @@ define([], function() {
         var test3 = this.value.string.substring(start, end);
         for(var m=0; m<test3.length; m++){
             if(test3[m]==this.newLine){
-                u.push('<br>');
+                u.push('<span style="background-color:yellow;"><br> </span>');
             }else if(test3[m]==this.newSpace){
                 u.push('<span style="background-color:yellow;">&nbsp; </span>');
             }else{
@@ -106,7 +110,7 @@ define([], function() {
         var test2 = this.value.string.substring(end, this.value.string.length);
         for(var k=0; k<test2.length; k++){
             if(test2[k]==this.newLine){
-                t.push('<br>');
+                t.push('<span><br> </span>');
             }else if(test2[k]==this.newSpace){
                 t.push('<span>&nbsp; </span>');
             }else{
@@ -127,8 +131,10 @@ define([], function() {
         var row = 0;
         var count = 0;
         var lineHeight = parseFloat(window.getComputedStyle(this.before).lineHeight.replace('px',''));
-        dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
+        
+        dojo.query("#thisDiv span").forEach(dojo.hitch(this, function(node, index, arr){
             var pos = this._findPos(node);
+
             if(pos.top > currY){
                 currY = pos.top;
                 row++;
@@ -137,21 +143,22 @@ define([], function() {
                 count++;
             }
             this.rows[row] = count;
-            if(node.id == 'caret'){
+            if(node.id == 'selection'){
                 this.currLine = row;
                 this.currLineIndex = count;
             }
         }));
-        // offset the first row to account for extra span
-        this.rows[1] = this.rows[1]-1;
+        // offsets
+        this.rows[this.currLine] = this.rows[this.currLine] - 2;
+        this.rows[1] = this.rows[1] - 1;
         // caret movement hackiness
-        if(this.rows[this.currLine] != 3){
+        if(this.rows[this.currLine] != 0)
             this.lastIndex = this.currLineIndex;
-        }
+
     };
     
-    // Insert single char at this.value.start
-    proto.insertChar = function(c) {
+    // Insert single char OR string at this.value.start
+    proto.insert = function(c) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var v = this.value;
@@ -161,9 +168,9 @@ define([], function() {
             this.clearSelection();
         }
         
-        this.value.string = v.string.substring(0,start)+c+v.string.substring(start,v.string.length);
-        this.value.start++;
-        this.value.end++;
+        this.value.string = v.string.substring(0,start)+c+v.string.substring(start+(c.length-1),v.string.length);
+        this.value.start = this.value.start+c.length;
+        this.value.end = this.value.end+c.length;
         this.render();
     };
     
@@ -211,42 +218,64 @@ define([], function() {
         return this.value.string;
     };
     
+    // Intercept paste and handle with JS
+    proto.paste = function(e) {
+        console.log('paste');
+        this._hiddenDiv.innerHTML = '';
+        this._hiddenDiv.focus();
+        setTimeout(dojo.hitch(this, '_pasteCallback'), 100);
+    };
+    
+    // Intercept cut and handle with JS
+    proto.cut = function(e) {
+        console.log('cut');
+        if(this.value.start == this.value.end)
+            return;  
+    };
+    
+    // Intercept copy and handle with JS
+    proto.copy = function(e) {
+         console.log('copy');
+        if(this.value.start == this.value.end)
+            return;
+    };
+    
     proto.moveCaretUp = function(select) {
         if(this.rows[this.currLine-1] >= this.lastIndex){
-            var amt = (this.value.start-this.currLineIndex-(this.rows[this.currLine-1]-this.lastIndex))-1;
+           var amt = (this.value.start-this.currLineIndex-(this.rows[this.currLine-1]-this.lastIndex))-1;
         }else if(this.rows[this.currLine-1] < this.lastIndex){
-            var amt = this.value.start-this.currLineIndex-1;
+           var amt = this.value.start-this.currLineIndex-1;
         }else if(this.rows[this.currLine-1] == undefined){
-            var amt = this.value.start-this.currLineIndex+1;
+           var amt = this.value.start-this.currLineIndex+1;
         }
         if(amt < 0){
-            this.value.start = 0;
-            if(!select)
-                this.value.end = 0;
+           this.value.start = 0;
+           if(!select)
+               this.value.end = 0;
         }else if(amt > this.value.string.length){
-            this.value.start = this.value.string.length;
-            if(!select)
-                this.value.end = this.value.string.length;
+           this.value.start = this.value.string.length;
+           if(!select)
+               this.value.end = this.value.string.length;
         }else if(amt <= this.value.string.length){
-            this.value.start = amt;
-            if(!select)
-                this.value.end = amt;
+           this.value.start = amt;
+           if(!select)
+               this.value.end = amt;
         }
         if(!select)
-            this.clearSelection();
-        
+           this.clearSelection();
+
         this.render();
     };
     
     proto.moveCaretDown = function(select) {
         if(this.rows[this.currLine+1] >= this.lastIndex){
-            var amt = (this.value.start+(this.rows[this.currLine]-this.currLineIndex)+this.lastIndex)-2;
+            var amt = (this.value.start+(this.rows[this.currLine]-this.currLineIndex)+this.lastIndex);
         }else if(this.rows[this.currLine+1] < this.lastIndex){
-            var amt = this.value.start+(this.rows[this.currLine]-this.currLineIndex)+this.rows[this.currLine+1]-2;
+            var amt = this.value.start+(this.rows[this.currLine]-this.currLineIndex)+this.rows[this.currLine+1]+1;
             if(this.rows[this.currLine+2] == undefined)
                 amt = amt + 1;
         }else if(this.rows[this.currLine+1] == undefined){
-            var amt = this.value.start+(this.rows[this.currLine]-this.currLineIndex);
+            var amt = this.value.start+(this.rows[this.currLine]-this.currLineIndex)+1;
         }
         if(this.currLine == 1)
             amt = amt + 1;
@@ -265,11 +294,11 @@ define([], function() {
         }
         if(!select)
             this.clearSelection();
-            
+    
         this.render();
     };
     
-    proto.moveCaretLeft = function(select) {            
+    proto.moveCaretLeft = function(select) {
         if(this.value.start>0){
             this.value.start--;
             if(!select){
@@ -277,8 +306,6 @@ define([], function() {
                 this.clearSelection();
             }
         }
-        if(select)
-            dojo.place(this.caret, this.before, 'after');
         this.render();
     };
     
@@ -290,8 +317,6 @@ define([], function() {
                 this.clearSelection();
             }
         }
-        if(select)
-            dojo.place(this.caret, this.after, 'before');
         this.render();
     };
     
@@ -313,6 +338,7 @@ define([], function() {
         dojo.style(this.div, 'width', '100%');
         dojo.style(this.div, 'height', '100%');
         dojo.style(this.div, 'background', 'white');
+        dojo.style(this.selection, 'border-right', '1px solid black');
         this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/textarea.css');
     };
     
@@ -325,6 +351,12 @@ define([], function() {
        document.getElementsByTagName("head")[0].appendChild(e);
     };
     
+    proto._pasteCallback = function() {
+        var pasteText = this._stripTags(this._hiddenDiv.innerHTML).replace(/&nbsp;/g,'');
+        this.insert(pasteText);
+        this.div.focus();
+    };
+    
     proto._connect = function(){
         dojo.connect(window, 'resize', this, 'getCharObj');
         dojo.connect(this.div, 'onclick', this, '_onClick');
@@ -332,34 +364,24 @@ define([], function() {
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
         dojo.connect(this.div, 'onclick', this, function(){
-            console.log(this.lastIndex);
+            
         });
         document.onkeydown = this._overrideKeys;
     };
     
     proto._onClick = function(e){
-        console.log('e = ',e);
+        
         
         //Query the text, look for char closest to x and y of click, move caret to that pos
     };
     
     proto._onFocus = function(e){
         this.displayCaret = true;
-        this._currY = this._findPos(this.caret).top;
+        //this._currY = this._findPos(this.selection).top;
     };
     
     proto._onBlur = function(){
-        this.displayCaret = false;
-    };
-    
-    proto._blink = function(){
-        if(this.displayCaret){
-            if(dojo.style(this.caret, 'visibility') == 'hidden'){
-                dojo.style(this.caret, 'visibility', 'visible');
-            }else if(dojo.style(this.caret, 'visibility') == 'visible'){
-                dojo.style(this.caret, 'visibility', 'hidden');
-            }
-        }
+
     };
     
     proto._overrideKeys = function(e) {

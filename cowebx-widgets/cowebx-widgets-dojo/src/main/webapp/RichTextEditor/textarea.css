@@ -5,3 +5,7 @@
 ::-moz-selection {
     background: yellow; /* Firefox */
 }
+
+#selection {
+    border-right: 1px solid black;
+}
