@@ -320,7 +320,7 @@ define([], function() {
         this.render();
     };
     
-    proto.moveCaretTo = function(pos) {
+    proto.moveCaretToPos = function(pos) {
         if(pos < 0){
             this.value.start = 0;
             this.value.end = 0;
@@ -332,6 +332,21 @@ define([], function() {
             this.value.end = pos;
         }
         this.render();
+    };
+    
+    proto._isPiP = function(points, pt){
+        var y = 0;
+        var x = 0;
+        if(pt.y <= points.bottom && pt.y >= points.top)
+            y = 1;
+        if(pt.x <= points.right && pt.x >= points.left)
+            x = 1;
+        if(x==1 && y==1){
+            return true;
+        }else{
+            return false;
+        }
+            
     };
     
     proto._style = function(){
@@ -363,16 +378,25 @@ define([], function() {
         dojo.connect(this.div, 'onfocus', this, '_onFocus');
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
-        dojo.connect(this.div, 'onclick', this, function(){
-            
-        });
+        dojo.connect(this.div, 'onmousemove', this, '_watchMouse');
         document.onkeydown = this._overrideKeys;
     };
     
     proto._onClick = function(e){
-        
-        
+        var ignore = ['selection', 'before', 'after'];
+        var i = 0;
         //Query the text, look for char closest to x and y of click, move caret to that pos
+        dojo.query("#thisDiv span").forEach(dojo.hitch(this, function(node, index, arr){
+            if(dojo.indexOf(ignore,node.id) == -1){
+                i++;
+                var pos = this._findPos(node);
+                var width = node.offsetWidth;
+                var height = node.offsetHeight;
+                var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
+                if(this._isPiP(points, {x:e.clientX,y:e.clientY}) == true)
+                    this.moveCaretToPos(i);
+            }
+        }));
     };
     
     proto._onFocus = function(e){
