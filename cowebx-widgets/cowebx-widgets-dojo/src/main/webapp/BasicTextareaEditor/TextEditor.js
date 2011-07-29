@@ -1,4 +1,5 @@
 define(['coweb/main','./ld'], function(coweb,ld) {
+    console.log('newest');
     var TextEditor = function(args){
         this.id = args.id;
         this.listen = args.listen;
@@ -18,7 +19,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this.min = 0; 
         this.max = 0;
         this.value = '';
-        console.log('newest');
+        
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
         
