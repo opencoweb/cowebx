@@ -6,6 +6,6 @@
     background: yellow; /* Firefox */
 }
 
-#selection {
-    border-right: 1px solid black;
+#after {
+    border-left: 1px solid black;
 }

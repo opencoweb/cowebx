@@ -1,4 +1,4 @@
-define([], function() {
+define(['./zeroclipboard/ZeroClipboard'], function() {
     var textarea = function(args){
         //Check for req'd properties
         if(!args.domNode)
@@ -9,7 +9,10 @@ define([], function() {
         this.before = dojo.create('span',{id:'before'},this.div,'first');
         this.selection = dojo.create('span',{id:'selection'},this.div,'last');
         this.after = dojo.create('span',{id:'after'},this.div,'last');
-        this._hiddenDiv = dojo.create('div',{style:'position:relative;left:-10000px;',contentEditable:true},this.div,'after');
+        
+        //Set up clipboard
+        ZeroClipboard.setMoviePath( '/zeroclipboard/ZeroClipboard.swf');
+        this.clipboard = new ZeroClipboard.Client();
         
         //Save space
         this._style();
@@ -38,6 +41,7 @@ define([], function() {
     
     // Determines key-specific action
     proto.onKeyPress = function(e) {
+        var reset = false;
         //console.log('e = ',e);
         if(this._meta(e) && (e.charCode==120)){             // cut
             this.cut(e);
@@ -46,8 +50,10 @@ define([], function() {
         }else if(this._meta(e) && (e.charCode==118)){       // paste
             this.paste(e);
         }else if(e.keyCode == 37){                          // left
+            reset = true;
             this.moveCaretLeft(e.shiftKey);                   
         }else if(e.keyCode == 39){                          // right
+            reset = true;
             this.moveCaretRight(e.shiftKey);
         }else if(e.keyCode == 13){                          // newLine
             this.insert(this.newLine); 
@@ -64,10 +70,14 @@ define([], function() {
         }else if(this.cancelKeys[e.which] != undefined){    // cancelKeys
             
         }else{                                              // otherwise, insert
-            this.insert(String.fromCharCode(e.which));  
+            reset = true;
+            this.insert(String.fromCharCode(e.which));
         }
-
-        this.getCharObj();
+        if(reset){
+            this.getCharObj(true);
+        }else{
+            this.getCharObj();
+        }
     };
     
     // Rips through this.value and blasts proper html equiv into dom
@@ -81,7 +91,7 @@ define([], function() {
         var test = this.value.string.substring(0, start);
         for(var i=0; i<test.length; i++){
             if(test[i]==this.newLine){
-                s.push('<span><br> </span>');
+                s.push('<br>');
             }else if(test[i]==this.newSpace){
                 s.push('<span>&nbsp; </span>');
             }else{
@@ -96,7 +106,7 @@ define([], function() {
         var test3 = this.value.string.substring(start, end);
         for(var m=0; m<test3.length; m++){
             if(test3[m]==this.newLine){
-                u.push('<span style="background-color:yellow;"><br> </span>');
+                u.push('<br>');
             }else if(test3[m]==this.newSpace){
                 u.push('<span style="background-color:yellow;">&nbsp; </span>');
             }else{
@@ -111,7 +121,7 @@ define([], function() {
         var test2 = this.value.string.substring(end, this.value.string.length);
         for(var k=0; k<test2.length; k++){
             if(test2[k]==this.newLine){
-                t.push('<span><br> </span>');
+                t.push('<br>');
             }else if(test2[k]==this.newSpace){
                 t.push('<span>&nbsp; </span>');
             }else{
@@ -126,34 +136,41 @@ define([], function() {
     };
     
     // Maps current text to this.rows
-    proto.getCharObj = function(){
+    proto.getCharObj = function(set){
         this.rows = {};
-        var currY = 0;
-        var row = 0;
+        var currY = this._findPos(this.before).top;
+        var row = 1;
         var count = 0;
-        var lineHeight = parseFloat(window.getComputedStyle(this.before).lineHeight.replace('px',''));
+        var lineHeight = Math.floor(parseFloat(window.getComputedStyle(this.before).lineHeight.replace('px','')));
+        var ignore = ['before', 'after'];
         
         dojo.query("#thisDiv span").forEach(dojo.hitch(this, function(node, index, arr){
-            var pos = this._findPos(node);
-
-            if(pos.top > currY){
-                currY = pos.top;
-                row++;
-                count=0;
-            }else{
-                count++;
-            }
-            this.rows[row] = count;
-            if(node.id == 'selection'){
-                this.currLine = row;
-                this.currLineIndex = count;
+            if(dojo.indexOf(ignore,node.id) == -1){
+                var pos = this._findPos(node);
+                if(pos.top == currY){
+                    count++;
+                    this.rows[row] = count;
+                }else{
+                    var breaks = Math.floor((pos.top - currY)/lineHeight)-1;
+                    for(var i=0; i<breaks; i++){
+                        row++;
+                        this.rows[row] = 0;
+                    }
+                    currY = pos.top;
+                    count=1;
+                    row++;
+                    this.rows[row] = count;
+                }
+                
+                if(node.id == 'selection'){
+                    this.currLine = row;
+                    this.currLineIndex = count-1;
+                }                
             }
         }));
-        // offsets
-        this.rows[this.currLine] = this.rows[this.currLine] - 2;
-        this.rows[1] = this.rows[1] - 1;
-        // caret movement hackiness
-        if(this.rows[this.currLine] != 0)
+        this.rows[this.currLine] = this.rows[this.currLine] - 1;
+        
+        if(set && set==true)
             this.lastIndex = this.currLineIndex;
 
     };
@@ -222,81 +239,67 @@ define([], function() {
     // Intercept paste and handle with JS
     proto.paste = function(e) {
         console.log('paste');
-        this._hiddenDiv.innerHTML = '';
-        this._hiddenDiv.focus();
-        setTimeout(dojo.hitch(this, '_pasteCallback'), 100);
     };
     
     // Intercept cut and handle with JS
     proto.cut = function(e) {
-        console.log('cut');
-        if(this.value.start == this.value.end)
-            return;  
+        
     };
     
     // Intercept copy and handle with JS
     proto.copy = function(e) {
-         console.log('copy');
-        if(this.value.start == this.value.end)
-            return;
+        this.clipboard.setText( "Copy me!" );
     };
     
     proto.moveCaretUp = function(select) {
-        if(this.rows[this.currLine-1] >= this.lastIndex){
-           var amt = (this.value.start-this.currLineIndex-(this.rows[this.currLine-1]-this.lastIndex))-1;
-        }else if(this.rows[this.currLine-1] < this.lastIndex){
-           var amt = this.value.start-this.currLineIndex-1;
-        }else if(this.rows[this.currLine-1] == undefined){
-           var amt = this.value.start-this.currLineIndex+1;
-        }
-        if(amt < 0){
-           this.value.start = 0;
-           if(!select)
-               this.value.end = 0;
-        }else if(amt > this.value.string.length){
-           this.value.start = this.value.string.length;
-           if(!select)
-               this.value.end = this.value.string.length;
-        }else if(amt <= this.value.string.length){
-           this.value.start = amt;
-           if(!select)
-               this.value.end = amt;
-        }
-        if(!select)
-           this.clearSelection();
+        
+        var amt = 0;
+        //1. Get to the beginning of the line
+        amt = amt + this.currLineIndex;
 
+        //2. Go to next line if it exists
+        if(this.rows[this.currLine-1] != undefined)
+            amt = amt + 1;
+        
+        //3. Go to the lastIndex if we can
+        if(this.rows[this.currLine-1] != undefined){
+            if(this.rows[this.currLine-1] >= this.lastIndex){
+                amt = amt + (this.rows[this.currLine-1] - this.lastIndex);
+            }else{
+                
+            }
+        }
+        
+
+        this.value.start = this.value.start - amt;
+        if(!select)
+            this.value.end = this.value.end - amt;
         this.render();
     };
     
     proto.moveCaretDown = function(select) {
-        if(this.rows[this.currLine+1] >= this.lastIndex){
-            var amt = (this.value.start+(this.rows[this.currLine]-this.currLineIndex)+this.lastIndex);
-        }else if(this.rows[this.currLine+1] < this.lastIndex){
-            var amt = this.value.start+(this.rows[this.currLine]-this.currLineIndex)+this.rows[this.currLine+1]+1;
-            if(this.rows[this.currLine+2] == undefined)
-                amt = amt + 1;
-        }else if(this.rows[this.currLine+1] == undefined){
-            var amt = this.value.start+(this.rows[this.currLine]-this.currLineIndex)+1;
-        }
-        if(this.currLine == 1)
+        var amt = 0;
+        //1. Get to the end of the line
+        amt = amt + (this.rows[this.currLine]-this.currLineIndex);
+
+        //2. Go to next line if it exists
+        if(this.rows[this.currLine+1] != undefined)
             amt = amt + 1;
-        if(amt < 0){
-            this.value.start = 0;
-            if(!select)
-                this.value.end = 0;
-        }else if(amt > this.value.string.length){
-            this.value.start = this.value.string.length;
-            if(!select)
-                this.value.end = this.value.string.length;
-        }else if(amt <= this.value.string.length){
-            this.value.start = amt;
-            if(!select)
-                this.value.end = amt;
+        
+        //3. Go to the lastIndex if we can
+        if(this.rows[this.currLine+1] != undefined){
+            if(this.rows[this.currLine+1] >= this.lastIndex){
+                amt = amt + this.lastIndex;
+            }else{
+                amt = amt + this.rows[this.currLine+1];
+            }
         }
+        
+
+        this.value.start = this.value.start + amt;
         if(!select)
-            this.clearSelection();
-    
-        this.render();
+            this.value.end = this.value.end + amt;
+        this.render();    
     };
     
     proto.moveCaretLeft = function(select) {
@@ -333,6 +336,7 @@ define([], function() {
             this.value.end = pos;
         }
         this.render();
+        this.getCharObj();
     };
     
     proto._isPiP = function(points, pt){
@@ -354,7 +358,6 @@ define([], function() {
         dojo.style(this.div, 'width', '100%');
         dojo.style(this.div, 'height', '100%');
         dojo.style(this.div, 'background', 'white');
-        dojo.style(this.selection, 'border-right', '1px solid black');
         dojo.style(this.div, 'cursor', 'text');
         this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/textarea.css');
     };
@@ -410,10 +413,10 @@ define([], function() {
     
     proto._blink = function(){
         if(this.displayCaret){
-            if(dojo.attr(this.selection, 'style') == 'border-right: 1px solid white'){
-                dojo.attr(this.selection, 'style', '');
+            if(dojo.attr(this.after, 'style') == 'border-left: 1px solid white'){
+                dojo.attr(this.after, 'style', '');
             }else{
-                dojo.attr(this.selection, 'style', 'border-right: 1px solid white');
+                dojo.attr(this.after, 'style', 'border-left: 1px solid white');
             }
         }
     };
