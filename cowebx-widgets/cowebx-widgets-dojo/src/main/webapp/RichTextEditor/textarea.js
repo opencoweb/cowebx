@@ -41,8 +41,6 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
         //Closed Properties
         this._hidden = null;    //hidden div for paste
         this._c = null;         //handle for on-the-fly connects
-        
-        
     };
     var proto = textarea.prototype;
     
@@ -167,8 +165,10 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
         var currY = this._findPos(this.before).top;
         var row = 1;
         var count = 0;
-        var lineHeight = Math.floor(parseFloat(window.getComputedStyle(this.before).lineHeight.replace('px','')));
-        var ignore = ['before', 'after'];
+        var a = dojo.create('div',{innerHTML:'G'},this.before,'first');
+        var lineHeight = a.clientHeight;
+        dojo.destroy(a);
+        var ignore = ['before', 'after', 'selection'];
         
         dojo.query("#thisDiv span").forEach(dojo.hitch(this, function(node, index, arr){
             if(dojo.indexOf(ignore,node.id) == -1){
@@ -186,19 +186,23 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
                     count=1;
                     row++;
                     this.rows[row] = count;
-                }
-                
-                if(node.id == 'selection'){
-                    this.currLine = row;
-                    this.currLineIndex = count-1;
-                }                
+                }               
             }
         }));
-        this.rows[this.currLine] = this.rows[this.currLine] - 1;
+        if(this.rows[1] == undefined)
+            this.rows[1] = 0;
+        
+        this.currLineIndex = this._findIndex();
+        if(this.currLineIndex == undefined)
+            this.currLineIndex = 0;
+        this.currLine = this._findLine();
+        
+        console.log('index = ',this.currLineIndex);
+        console.log('line = ',this.currLine);
         
         if(set && set==true)
             this.lastIndex = this.currLineIndex;
-
+        
     };
     
     // Insert single char OR string at this.value.start
@@ -263,14 +267,15 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
     };
     
     proto.moveCaretUp = function(select) {
-        
         var amt = 0;
         //1. Get to the beginning of the line
         amt = amt + this.currLineIndex;
 
+        
         //2. Go to next line if it exists
         if(this.rows[this.currLine-1] != undefined)
             amt = amt + 1;
+        
         
         //3. Go to the lastIndex if we can
         if(this.rows[this.currLine-1] != undefined){
@@ -350,6 +355,30 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
         this.getCharObj();
     };
     
+    proto._findIndex = function(){
+        var start = this.value.start;
+        var index = 0;
+        for(var i=1; i<=this._count(this.rows); i++){
+            if(start == this.rows[i]){
+                return start;
+            }else if(start < this.rows[i]){
+                return start;
+            }else if(start > this.rows[i]){
+                start = start-this.rows[i]-1;
+            }
+        }
+    };
+    
+    proto._findLine = function(){
+        var currY = this._findPos(this.before).top;
+        var top = this._findPos(this.after).top;
+        var a = dojo.create('div',{innerHTML:'G'},this.before,'first');
+        var lineHeight = a.clientHeight;
+        dojo.destroy(a);
+        return Math.floor(((top-currY)/lineHeight)+1);
+        
+    };
+    
     proto._chromeKeyCombo = function() {
         this._c = dojo.connect(this._hidden, 'onkeydown', this,function(e){
             //Paste
@@ -360,6 +389,7 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
                     dojo.disconnect(this._c);
                     dojo.destroy(this._hidden);
                     this.div.focus();
+                    this.getCharObj(true);
                 }), 100);
             //selectAll
             }else if(e.which == 65){
@@ -393,6 +423,7 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
                     dojo.disconnect(this._c);
                     dojo.destroy(this._hidden);
                     this.div.focus();
+                    this.getCharObj(true);
                 }), 100);
             //selectAll
             }else if(e.which == 97){
@@ -529,6 +560,14 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
         if(event.ctrlKey == true || event.metaKey == true)
             return true;
         return false;
+    };
+    
+    proto._count = function(obj){
+        var count = 0;
+        for(var i in obj){
+            count++;
+        }
+        return count;
     };
 
     return textarea;
