@@ -84,22 +84,42 @@ define([], function() {
             document.getElementById('hidden').focus();
             
             //2. Listen for v or a, paste or selectAll respectively
-            this._c = dojo.connect(this._hidden, 'onkeypress', this,function(e){
-                if(e.which == 118){
-                    this.t = setTimeout(dojo.hitch(this, function(){
-                        var text = this._hidden.value;
-                        this.insert(text);
+            if(dojo.isChrome){
+                this._c = dojo.connect(this._hidden, 'onkeydown', this,function(e){
+                    if(e.which == 86){
+                        this.t = setTimeout(dojo.hitch(this, function(){
+                            var text = this._hidden.value;
+                            this.insert(text);
+                            dojo.disconnect(this._c);
+                            dojo.destroy(this._hidden);
+                            this.div.focus();
+                        }), 100);
+                    }else if(e.which == 65){
+                        this.selectAll();
                         dojo.disconnect(this._c);
                         dojo.destroy(this._hidden);
                         this.div.focus();
-                    }), 100);
-                }else if(e.which == 97){
-                    this.selectAll();
-                    dojo.disconnect(this._c);
-                    dojo.destroy(this._hidden);
-                    this.div.focus();
-                }
-            });
+                    }
+                });
+            }else{
+                this._c = dojo.connect(this._hidden, 'onkeypress', this,function(e){
+                    console.log(e);
+                    if(e.which == 118){
+                        this.t = setTimeout(dojo.hitch(this, function(){
+                            var text = this._hidden.value;
+                            this.insert(text);
+                            dojo.disconnect(this._c);
+                            dojo.destroy(this._hidden);
+                            this.div.focus();
+                        }), 100);
+                    }else if(e.which == 97){
+                        this.selectAll();
+                        dojo.disconnect(this._c);
+                        dojo.destroy(this._hidden);
+                        this.div.focus();
+                    }
+                });
+            }
         }
     };
     
