@@ -1,18 +1,14 @@
-define(['./zeroclipboard/ZeroClipboard'], function() {
+define([], function() {
     var textarea = function(args){
         //Check for req'd properties
         if(!args.domNode)
             throw new Error("textarea.js: missing domNode param");
 
         //Build divs & spans (caret)
-        this.div = dojo.create('div', {tabindex:0,id:'thisDiv'}, args.domNode);
+        this.div = dojo.create('div', {tabindex:-1,id:'thisDiv'}, args.domNode);
         this.before = dojo.create('span',{id:'before'},this.div,'first');
         this.selection = dojo.create('span',{id:'selection'},this.div,'last');
         this.after = dojo.create('span',{id:'after'},this.div,'last');
-        
-        //Set up clipboard
-        ZeroClipboard.setMoviePath( '/zeroclipboard/ZeroClipboard.swf');
-        this.clipboard = new ZeroClipboard.Client();
         
         //Save space
         this._style();
@@ -41,14 +37,13 @@ define(['./zeroclipboard/ZeroClipboard'], function() {
     
     // Determines key-specific action
     proto.onKeyPress = function(e) {
+        //console.log(e);
         var reset = false;
         //console.log('e = ',e);
         if(this._meta(e) && (e.charCode==120)){             // cut
             this.cut(e);
         }else if(this._meta(e) && (e.charCode==99)){        // copy
             this.copy(e);
-        }else if(this._meta(e) && (e.charCode==118)){       // paste
-            this.paste(e);
         }else if(e.keyCode == 37){                          // left
             reset = true;
             this.moveCaretLeft(e.shiftKey);                   
@@ -77,6 +72,34 @@ define(['./zeroclipboard/ZeroClipboard'], function() {
             this.getCharObj(true);
         }else{
             this.getCharObj();
+        }
+    };
+    
+    // Intercept paste and handle with JS
+    proto.listenForKeyCombo = function(e) {
+        if((e.which == 224) || (e.which == 91)){
+            
+            //1. Build hidden stuff and focus
+            this._hidden = dojo.create('textarea',{id:'hidden',style:'position:relative;left:-10000px;'},this.div,'after');
+            document.getElementById('hidden').focus();
+            
+            //2. Listen for v or a, paste or selectAll respectively
+            this._c = dojo.connect(this._hidden, 'onkeypress', this,function(e){
+                if(e.which == 118){
+                    this.t = setTimeout(dojo.hitch(this, function(){
+                        var text = this._hidden.value;
+                        this.insert(text);
+                        dojo.disconnect(this._c);
+                        dojo.destroy(this._hidden);
+                        this.div.focus();
+                    }), 100);
+                }else if(e.which == 97){
+                    this.selectAll();
+                    dojo.disconnect(this._c);
+                    dojo.destroy(this._hidden);
+                    this.div.focus();
+                }
+            });
         }
     };
     
@@ -236,11 +259,6 @@ define(['./zeroclipboard/ZeroClipboard'], function() {
         return this.value.string;
     };
     
-    // Intercept paste and handle with JS
-    proto.paste = function(e) {
-        console.log('paste');
-    };
-    
     // Intercept cut and handle with JS
     proto.cut = function(e) {
         
@@ -248,7 +266,7 @@ define(['./zeroclipboard/ZeroClipboard'], function() {
     
     // Intercept copy and handle with JS
     proto.copy = function(e) {
-        this.clipboard.setText( "Copy me!" );
+        
     };
     
     proto.moveCaretUp = function(select) {
@@ -371,18 +389,13 @@ define(['./zeroclipboard/ZeroClipboard'], function() {
        document.getElementsByTagName("head")[0].appendChild(e);
     };
     
-    proto._pasteCallback = function() {
-        var pasteText = this._stripTags(this._hiddenDiv.innerHTML).replace(/&nbsp;/g,'');
-        this.insert(pasteText);
-        this.div.focus();
-    };
-    
     proto._connect = function(){
         dojo.connect(window, 'resize', this, 'getCharObj');
         dojo.connect(this.div, 'onclick', this, '_onClick');
         dojo.connect(this.div, 'onfocus', this, '_onFocus');
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
+        dojo.connect(this.div, 'onkeydown', this, 'listenForKeyCombo');
         document.onkeydown = this._overrideKeys;
     };
     
@@ -405,6 +418,8 @@ define(['./zeroclipboard/ZeroClipboard'], function() {
     
     proto._onFocus = function(e){
         this.displayCaret = true;
+        if(dojo.byId('hidden'))
+            dojo.destroy('hidden');
     };
     
     proto._onBlur = function(){
