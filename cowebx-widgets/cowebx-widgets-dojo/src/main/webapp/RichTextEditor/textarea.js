@@ -37,6 +37,12 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
             17 : 'control',
             16 : 'shift'
         };
+        
+        //Closed Properties
+        this._hidden = null;    //hidden div for paste
+        this._c = null;         //handle for on-the-fly connects
+        
+        
     };
     var proto = textarea.prototype;
     
@@ -44,7 +50,6 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
     proto.onKeyPress = function(e) {
         //console.log(e);
         var reset = false;
-        //console.log('e = ',e);
         if(this._meta(e) && (e.charCode==120)){             // cut
             this.cut(e);
         }else if(this._meta(e) && (e.charCode==99)){        // copy
@@ -80,7 +85,7 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
     
     // Intercept paste / selectAll and handle with JS
     proto.listenForKeyCombo = function(e) {
-        if((e.which == 224) || (e.which == 91)){
+        if((e.which == 224) || (e.which == 91) || (e.which == 17)){
             
             //1. Build hidden stuff and focus
             this._hidden = dojo.create('textarea',{id:'hidden',style:'position:relative;left:-10000px;'},this.div,'after');
@@ -88,69 +93,9 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
             
             //2. Listen for v or a, paste or selectAll respectively
             if(dojo.isChrome){
-                this._c = dojo.connect(this._hidden, 'onkeydown', this,function(e){
-                    console.log(e);
-                    //Paste
-                    if(e.which == 86){
-                        this.t = setTimeout(dojo.hitch(this, function(){
-                            var text = this._hidden.value;
-                            this.insert(text);
-                            dojo.disconnect(this._c);
-                            dojo.destroy(this._hidden);
-                            this.div.focus();
-                        }), 100);
-                    //selectAll
-                    }else if(e.which == 65){
-                        this.selectAll();
-                        dojo.disconnect(this._c);
-                        dojo.destroy(this._hidden);
-                        this.div.focus();
-                    //Copy
-                    }else if(e.which == 67){
-                        console.log('copy');
-                        dojo.disconnect(this._c);
-                        dojo.destroy(this._hidden);
-                        this.div.focus();
-                    //Cut
-                    }else if(e.which == 88){
-                        console.log('cut');
-                        dojo.disconnect(this._c);
-                        dojo.destroy(this._hidden);
-                        this.div.focus();
-                    }
-                });
+                this._chromeKeyCombo();
             }else{
-                this._c = dojo.connect(this._hidden, 'onkeypress', this,function(e){
-                    console.log(e);
-                    //Paste
-                    if(e.which == 118){
-                        this.t = setTimeout(dojo.hitch(this, function(){
-                            var text = this._hidden.value;
-                            this.insert(text);
-                            dojo.disconnect(this._c);
-                            dojo.destroy(this._hidden);
-                            this.div.focus();
-                        }), 100);
-                    //selectAll
-                    }else if(e.which == 97){
-                        this.selectAll();
-                        dojo.disconnect(this._c);
-                        dojo.destroy(this._hidden);
-                        this.div.focus();
-                    //Copy
-                    }else if(e.which == 99){
-                        console.log('copy');
-                        dojo.disconnect(this._c);
-                        dojo.destroy(this._hidden);
-                        this.div.focus();
-                    //Cut
-                    }else if(e.which == 120){
-                        console.log('cut');
-                        dojo.disconnect(this._c);
-                        dojo.destroy(this._hidden);
-                        this.div.focus();
-                    }
-                });
+                this._universalKeyCombo();
             }
         }
     };
@@ -403,6 +348,72 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
         }
         this.render();
         this.getCharObj();
+    };
+    
+    proto._chromeKeyCombo = function() {
+        this._c = dojo.connect(this._hidden, 'onkeydown', this,function(e){
+            //Paste
+            if(e.which == 86){
+                this.t = setTimeout(dojo.hitch(this, function(){
+                    var text = this._hidden.value;
+                    this.insert(text);
+                    dojo.disconnect(this._c);
+                    dojo.destroy(this._hidden);
+                    this.div.focus();
+                }), 100);
+            //selectAll
+            }else if(e.which == 65){
+                this.selectAll();
+                dojo.disconnect(this._c);
+                dojo.destroy(this._hidden);
+                this.div.focus();
+            //Copy
+            }else if(e.which == 67){
+                console.log('copy');
+                dojo.disconnect(this._c);
+                dojo.destroy(this._hidden);
+                this.div.focus();
+            //Cut
+            }else if(e.which == 88){
+                console.log('cut');
+                dojo.disconnect(this._c);
+                dojo.destroy(this._hidden);
+                this.div.focus();
+            }
+        });  
+    };
+    
+    proto._universalKeyCombo = function() {
+        this._c = dojo.connect(this._hidden, 'onkeypress', this,function(e){
+            //Paste
+            if(e.which == 118){
+                this.t = setTimeout(dojo.hitch(this, function(){
+                    var text = this._hidden.value;
+                    this.insert(text);
+                    dojo.disconnect(this._c);
+                    dojo.destroy(this._hidden);
+                    this.div.focus();
+                }), 100);
+            //selectAll
+            }else if(e.which == 97){
+                this.selectAll();
+                dojo.disconnect(this._c);
+                dojo.destroy(this._hidden);
+                this.div.focus();
+            //Copy
+            }else if(e.which == 99){
+                console.log('copy');
+                dojo.disconnect(this._c);
+                dojo.destroy(this._hidden);
+                this.div.focus();
+            //Cut
+            }else if(e.which == 120){
+                console.log('cut');
+                dojo.disconnect(this._c);
+                dojo.destroy(this._hidden);
+                this.div.focus();
+            }
+        });
     };
     
     proto._isPiP = function(points, pt){
