@@ -1,4 +1,4 @@
-define([], function() {
+define(['./zeroclipboard/ZeroClipboard.js'], function() {
     var textarea = function(args){
         //Check for req'd properties
         if(!args.domNode)
@@ -14,6 +14,11 @@ define([], function() {
         this._style();
         this._connect();
         setInterval(dojo.hitch(this, '_blink'), 500);
+        
+        //Set up clipboard
+        ZeroClipboard.setMoviePath( 'zeroclipboard/ZeroClipboard.swf' );
+        this.clip = new ZeroClipboard.Client();
+        this.clip.setText( "Copy me!" );
         
         //Properties
         this.domNode = args.domNode;
@@ -60,8 +65,6 @@ define([], function() {
             this.moveCaretDown(e.shiftKey);
         }else if(e.keyCode == 8){                           // delete
             this.deleteChar(e);
-        }else if(this._meta(e) && e.charCode == 97){        // selectAll
-            this.selectAll();
         }else if(this.cancelKeys[e.which] != undefined){    // cancelKeys
             
         }else{                                              // otherwise, insert
@@ -75,7 +78,7 @@ define([], function() {
         }
     };
     
-    // Intercept paste and handle with JS
+    // Intercept paste / selectAll and handle with JS
     proto.listenForKeyCombo = function(e) {
         if((e.which == 224) || (e.which == 91)){
             
@@ -86,6 +89,8 @@ define([], function() {
             //2. Listen for v or a, paste or selectAll respectively
             if(dojo.isChrome){
                 this._c = dojo.connect(this._hidden, 'onkeydown', this,function(e){
+                    console.log(e);
+                    //Paste
                     if(e.which == 86){
                         this.t = setTimeout(dojo.hitch(this, function(){
                             var text = this._hidden.value;
@@ -94,8 +99,21 @@ define([], function() {
                             dojo.destroy(this._hidden);
                             this.div.focus();
                         }), 100);
+                    //selectAll
                     }else if(e.which == 65){
                         this.selectAll();
+                        dojo.disconnect(this._c);
+                        dojo.destroy(this._hidden);
+                        this.div.focus();
+                    //Copy
+                    }else if(e.which == 67){
+                        console.log('copy');
+                        dojo.disconnect(this._c);
+                        dojo.destroy(this._hidden);
+                        this.div.focus();
+                    //Cut
+                    }else if(e.which == 88){
+                        console.log('cut');
                         dojo.disconnect(this._c);
                         dojo.destroy(this._hidden);
                         this.div.focus();
@@ -104,6 +122,7 @@ define([], function() {
             }else{
                 this._c = dojo.connect(this._hidden, 'onkeypress', this,function(e){
                     console.log(e);
+                    //Paste
                     if(e.which == 118){
                         this.t = setTimeout(dojo.hitch(this, function(){
                             var text = this._hidden.value;
@@ -112,8 +131,21 @@ define([], function() {
                             dojo.destroy(this._hidden);
                             this.div.focus();
                         }), 100);
+                    //selectAll
                     }else if(e.which == 97){
                         this.selectAll();
+                        dojo.disconnect(this._c);
+                        dojo.destroy(this._hidden);
+                        this.div.focus();
+                    //Copy
+                    }else if(e.which == 99){
+                        console.log('copy');
+                        dojo.disconnect(this._c);
+                        dojo.destroy(this._hidden);
+                        this.div.focus();
+                    //Cut
+                    }else if(e.which == 120){
+                        console.log('cut');
                         dojo.disconnect(this._c);
                         dojo.destroy(this._hidden);
                         this.div.focus();
@@ -176,6 +208,12 @@ define([], function() {
         this.before.innerHTML = before;
         this.selection.innerHTML = selection;
         this.after.innerHTML = after;
+        
+        if(selection.length > 0){
+            this.displayCaret = false;
+        }else{
+            this.displayCaret = true;
+        }
     };
     
     // Maps current text to this.rows
@@ -277,16 +315,6 @@ define([], function() {
     // Get string representation of curr value
     proto.getValue = function() {
         return this.value.string;
-    };
-    
-    // Intercept cut and handle with JS
-    proto.cut = function(e) {
-        
-    };
-    
-    // Intercept copy and handle with JS
-    proto.copy = function(e) {
-        
     };
     
     proto.moveCaretUp = function(select) {
@@ -420,6 +448,10 @@ define([], function() {
     };
     
     proto._onClick = function(e){
+        //Clear selection
+        this.clearSelection();
+        this.render();
+        
         var ignore = ['selection', 'before', 'after'];
         var i = 0;
         //Query the text, look for char closest to x and y of click, move caret to that pos
@@ -453,6 +485,8 @@ define([], function() {
             }else{
                 dojo.attr(this.after, 'style', 'border-left: 1px solid white');
             }
+        }else{
+            dojo.attr(this.after, 'style', 'border-left: 1px solid white');
         }
     };
     
