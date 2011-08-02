@@ -208,9 +208,6 @@ define([], function() {
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var v = this.value;
         
-        console.log('start = ',start);
-        console.log('end = ',end);
-        
         if(start != end){
             this.value.string = v.string.substring(0,start)+v.string.substring(end,v.string.length);
             this.clearSelection();
@@ -507,28 +504,32 @@ define([], function() {
         var end = 0;
         
         //Point in Polygon to find selection Start
-        dojo.query("#thisDiv span").forEach(dojo.hitch(this, function(node, index, arr){
+        dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
             if(dojo.indexOf(ignore,node.id) == -1){
                 i++;
-                var pos = this._findPos(node);
-                var width = node.offsetWidth;
-                var height = node.offsetHeight;
-                var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
-                if(this._isPiP(points, this._selStart) == true)
-                    start = i;
+                if(node.tagName == 'SPAN'){
+                    var pos = this._findPos(node);
+                    var width = node.offsetWidth;
+                    var height = node.offsetHeight;
+                    var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
+                    if(this._isPiP(points, this._selStart) == true)
+                        start = i;
+                }
             }
         }));
         
         //Point in Polygon to find selection End
-        dojo.query("#thisDiv span").forEach(dojo.hitch(this, function(node, index, arr){
+        dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
             if(dojo.indexOf(ignore,node.id) == -1){
                 j++;
-                var pos = this._findPos(node);
-                var width = node.offsetWidth;
-                var height = node.offsetHeight;
-                var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
-                if(this._isPiP(points, {x:e.clientX,y:e.clientY}) == true)
-                    end = j;
+                if(node.tagName == 'SPAN'){
+                    var pos = this._findPos(node);
+                    var width = node.offsetWidth;
+                    var height = node.offsetHeight;
+                    var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
+                    if(this._isPiP(points, {x:e.clientX,y:e.clientY}) == true)
+                        end = j;
+                }
             }
         }));
         
