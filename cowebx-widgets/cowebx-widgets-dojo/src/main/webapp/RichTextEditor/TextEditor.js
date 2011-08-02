@@ -202,6 +202,20 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     proto._getValueAttr = function() {
         return this._textarea.getValue();
     };
+    
+    proto._getCleanValueAttr = function(){
+        var value = this._getValueAttr();
+        var s = [];
+        for(var i=0; i<value.length; i++){
+            if(value[i]=='^'){
+                s.push('<br>');
+            }else{
+                s.push(value[i]);
+            }
+        }
+        var string = s.join("");
+        return string;
+    };
 
     proto._moveCaretToPOR = function() {
         this._textarea.value.start = this._por.start;
@@ -212,6 +226,10 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     proto.setPOR = function(pos){
         this._por.start = pos;
         this._por.end = pos;
+    };
+    
+    proto.getNode = function(){
+        return this._textarea.div;
     };
     
     proto.cleanup = function() {

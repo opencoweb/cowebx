@@ -18,7 +18,7 @@ define([], function() {
     var proto = Button.prototype;
     
     proto._buildShareButton = function() {
-        this.shareButton = dojo.create('a',{innerHTML:'share', 'class':'share', id:'shareButton'}, this.domNode, 'before');
+        this.shareButton = dojo.create('a',{innerHTML:'share', 'class':'share', id:'shareButton'},this.domNode,'before');
         dojo.connect(this.shareButton, 'onclick', this, 'onShareClick');
         this.emailBox = dojo.create('div',{innerHTML:'email to send to:<br>','class':'emailBox',id:'sendBox'},this.shareButton,'after');
         this.emailInput = dojo.create('input',{type:'text',id:'sendInput'},this.emailBox,'last');
@@ -56,10 +56,9 @@ define([], function() {
     
     proto.formatShareMsg = function(){
         var date = new Date();
-        
         var title = '<strong><span style="font-size:14px">OpenCoweb Document</span><br><br>';
         var time = 'Shared at:<br></strong>'+date+'<br><br>';
-        var doc = '<strong>Document:<br></strong>'+this.listenTo.value;
+        var doc = '<strong>Document:<br></strong>'+this.listenTo._getCleanValueAttr();
         return title+time+doc;
     };
     

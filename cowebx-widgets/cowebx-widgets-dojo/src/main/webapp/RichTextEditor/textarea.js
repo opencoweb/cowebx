@@ -473,6 +473,7 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
         dojo.style(this.div, 'height', '100%');
         dojo.style(this.div, 'background', 'white');
         dojo.style(this.div, 'cursor', 'text');
+        dojo.style(this.div, 'position', 'relative');
         this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/textarea.css');
     };
     
