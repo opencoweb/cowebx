@@ -533,6 +533,8 @@ define([], function() {
             }
         }));
         
+        
+        
         this.value.start = start;
         this.value.end = end;
         this.render();
