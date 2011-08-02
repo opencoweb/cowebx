@@ -189,9 +189,10 @@ define(
 					dijit.byId(this.attendeeList.selected+'_li').select();
 				}
 				
-                if(this.attendeeList.inviteList){
+                if(this.attendeeList.inviteList && this.attendeeList.mods.indexOf(this.attendeeList.local) != -1){
                     //Connect to deactivate
                     this._tempHndl[e] = dojo.connect(dijit.byId(e+'_li').domNode, 'ondblclick', this, function(e){
+                        //If not mod, dont do anything.
                         this.totalClock.stop();
     					var name = e.target.id.substring(0, e.target.id.length-3);
     					this.attendeeList._userLeave([{username:name}]);
