@@ -84,10 +84,15 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
     // Intercept paste / selectAll and handle with JS
     proto.listenForKeyCombo = function(e) {
         if((e.which == 224) || (e.which == 91) || (e.which == 17)){
-            
+            var sel = this._stripTags(this.selection.innerHTML);
             //1. Build hidden stuff and focus
-            this._hidden = dojo.create('textarea',{id:'hidden',style:'position:relative;left:-10000px;'},this.div,'after');
+            this._hidden = dojo.create('textarea',{
+                id:'hidden',
+                style:'position:relative;left:-10000px;',
+                innerHTML: sel
+            },this.div,'after');
             document.getElementById('hidden').focus();
+            document.getElementById('hidden').select();
             
             //2. Listen for v or a, paste or selectAll respectively
             if(dojo.isChrome){
@@ -197,9 +202,6 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
             this.currLineIndex = 0;
         this.currLine = this._findLine();
         
-        console.log('index = ',this.currLineIndex);
-        console.log('line = ',this.currLine);
-        
         if(set && set==true)
             this.lastIndex = this.currLineIndex;
         
@@ -211,12 +213,15 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var v = this.value;
         
+        console.log('start = ',start);
+        console.log('end = ',end);
+        
         if(start != end){
             this.value.string = v.string.substring(0,start)+v.string.substring(end,v.string.length);
             this.clearSelection();
         }
         
-        this.value.string = v.string.substring(0,start)+c+v.string.substring(start+(c.length-1),v.string.length);
+        this.value.string = v.string.substring(0,start)+c+v.string.substring(start,v.string.length);
         this.value.start = this.value.start+c.length;
         this.value.end = this.value.end+c.length;
         this.render();
@@ -250,8 +255,6 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
         }else{
             this.value.end = this.value.start;
         }
-        
-        this.shiftLock = false;
     };
     
     // Select all text
@@ -319,24 +322,38 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
     };
     
     proto.moveCaretLeft = function(select) {
-        if(this.value.start>0){
-            this.value.start--;
-            if(!select){
-                this.value.end--;
-                this.clearSelection();
-            }
+        var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
+        var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
+        
+        if(!select){
+            if(start>0)
+                start--;
+            end = start;
+        }else{
+            if(start>0)
+                start--;
         }
+        
+        this.value.start = start;
+        this.value.end = end;
         this.render();
     };
     
-    proto.moveCaretRight = function(select) {  
-        if(this.value.start<this.value.string.length){
-            this.value.start++;
-            if(!select){
-                this.value.end++;
-                this.clearSelection();
-            }
+    proto.moveCaretRight = function(select) {
+        var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
+        var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
+        
+        if(!select){
+            if(end<this.value.string.length)
+                end++;
+            start = end;
+        }else{
+            if(end<this.value.string.length)
+                end++;
         }
+        
+        this.value.start = start;
+        this.value.end = end;
         this.render();
     };
     
@@ -386,30 +403,24 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
                 this.t = setTimeout(dojo.hitch(this, function(){
                     var text = this._hidden.value;
                     this.insert(text);
-                    dojo.disconnect(this._c);
-                    dojo.destroy(this._hidden);
-                    this.div.focus();
-                    this.getCharObj(true);
                 }), 100);
             //selectAll
             }else if(e.which == 65){
                 this.selectAll();
-                dojo.disconnect(this._c);
-                dojo.destroy(this._hidden);
-                this.div.focus();
             //Copy
-            }else if(e.which == 67){
-                console.log('copy');
-                dojo.disconnect(this._c);
-                dojo.destroy(this._hidden);
-                this.div.focus();
+            }else if(e.which == 99){
+                this._pause(500);
             //Cut
-            }else if(e.which == 88){
-                console.log('cut');
+            }else if(e.which == 120){
+                this._pause(500);
+            }
+            
+            setTimeout(dojo.hitch(this, function(){
                 dojo.disconnect(this._c);
                 dojo.destroy(this._hidden);
                 this.div.focus();
-            }
+                this.getCharObj(true);
+            }), 300);
         });  
     };
     
@@ -420,31 +431,26 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
                 this.t = setTimeout(dojo.hitch(this, function(){
                     var text = this._hidden.value;
                     this.insert(text);
-                    dojo.disconnect(this._c);
-                    dojo.destroy(this._hidden);
-                    this.div.focus();
-                    this.getCharObj(true);
                 }), 100);
             //selectAll
             }else if(e.which == 97){
                 this.selectAll();
-                dojo.disconnect(this._c);
-                dojo.destroy(this._hidden);
-                this.div.focus();
             //Copy
             }else if(e.which == 99){
-                console.log('copy');
-                dojo.disconnect(this._c);
-                dojo.destroy(this._hidden);
-                this.div.focus();
+                this._pause(500);
             //Cut
             }else if(e.which == 120){
-                console.log('cut');
+                this._pause(500);
+            }
+            
+            setTimeout(dojo.hitch(this, function(){
                 dojo.disconnect(this._c);
                 dojo.destroy(this._hidden);
                 this.div.focus();
-            }
+                this.getCharObj(true);
+            }), 300);
         });
+        
     };
     
     proto._isPiP = function(points, pt){
@@ -594,6 +600,13 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
             count++;
         }
         return count;
+    };
+    
+    proto._pause = function(millis){
+        var date = new Date();
+        var curDate = null;
+        do { curDate = new Date(); }
+        while(curDate-date < millis);
     };
 
     return textarea;
