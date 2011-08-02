@@ -535,7 +535,7 @@ define([], function() {
         
         
         
-        this.value.start = start;
+        this.value.start = (start>0) ? start-1 : 0;
         this.value.end = end;
         this.render();
         this.getCharObj(true);
