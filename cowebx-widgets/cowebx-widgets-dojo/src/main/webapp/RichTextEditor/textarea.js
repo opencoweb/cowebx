@@ -481,12 +481,17 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
     
     proto._connect = function(){
         dojo.connect(window, 'resize', this, 'getCharObj');
-        dojo.connect(this.div, 'onclick', this, '_onClick');
+        dojo.connect(this.div, 'onmousedown', this, '_onMouseDown');
+        dojo.connect(this.div, 'onmouseup', this, '_onClick');
         dojo.connect(this.div, 'onfocus', this, '_onFocus');
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
         dojo.connect(this.div, 'onkeydown', this, 'listenForKeyCombo');
         document.onkeydown = this._overrideKeys;
+    };
+
+    proto._onMouseDown = function(e){
+        this._selStart = {x:e.clientX,y:e.clientY};
     };
     
     proto._onClick = function(e){
@@ -495,8 +500,11 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
         this.render();
         
         var ignore = ['selection', 'before', 'after'];
-        var i = 0;
-        //Query the text, look for char closest to x and y of click, move caret to that pos
+        var i=0;j = 0;
+        var start = 0;
+        var end = 0;
+        
+        //Point in Polygon to find selection Start
         dojo.query("#thisDiv span").forEach(dojo.hitch(this, function(node, index, arr){
             if(dojo.indexOf(ignore,node.id) == -1){
                 i++;
@@ -504,10 +512,27 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
                 var width = node.offsetWidth;
                 var height = node.offsetHeight;
                 var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
-                if(this._isPiP(points, {x:e.clientX,y:e.clientY}) == true)
-                    this.moveCaretToPos(i);
+                if(this._isPiP(points, this._selStart) == true)
+                    start = i;
             }
         }));
+        
+        //Point in Polygon to find selection End
+        dojo.query("#thisDiv span").forEach(dojo.hitch(this, function(node, index, arr){
+            if(dojo.indexOf(ignore,node.id) == -1){
+                j++;
+                var pos = this._findPos(node);
+                var width = node.offsetWidth;
+                var height = node.offsetHeight;
+                var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
+                if(this._isPiP(points, {x:e.clientX,y:e.clientY}) == true)
+                    end = j;
+            }
+        }));
+        
+        this.value.start = start;
+        this.value.end = end;
+        this.render();
     };
     
     proto._onFocus = function(e){
