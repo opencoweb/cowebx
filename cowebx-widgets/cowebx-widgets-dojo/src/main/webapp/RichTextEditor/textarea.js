@@ -533,6 +533,7 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
         this.value.start = start;
         this.value.end = end;
         this.render();
+        this.getCharObj(true);
     };
     
     proto._onFocus = function(e){
