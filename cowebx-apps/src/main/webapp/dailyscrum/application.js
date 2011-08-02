@@ -116,8 +116,6 @@ define(
 			buildEditor: function(){
 				this.textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
 				dojo.style(this.textEditor._textarea, 'border', '0px');
-				dojo.style(this.textEditor._textarea, 'margin', '0px');
-				dojo.style(this.textEditor._textarea, 'resize', 'none');
 				dojo.style(this.textEditor._textarea, 'padding', '5px');
 			},
 			
@@ -190,7 +188,8 @@ define(
 				    }
 					dijit.byId(this.attendeeList.selected+'_li').select();
 				}
-                if(this.attendeeList.inviteList[e]){
+				
+                if(this.attendeeList.inviteList){
                     //Connect to deactivate
                     this._tempHndl[e] = dojo.connect(dijit.byId(e+'_li').domNode, 'ondblclick', this, function(e){
                         this.totalClock.stop();
