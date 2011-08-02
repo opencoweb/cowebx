@@ -1,4 +1,4 @@
-define(['./zeroclipboard/ZeroClipboard.js'], function() {
+define([], function() {
     var textarea = function(args){
         //Check for req'd properties
         if(!args.domNode)
@@ -14,11 +14,6 @@ define(['./zeroclipboard/ZeroClipboard.js'], function() {
         this._style();
         this._connect();
         setInterval(dojo.hitch(this, '_blink'), 500);
-        
-        //Set up clipboard
-        ZeroClipboard.setMoviePath( 'zeroclipboard/ZeroClipboard.swf' );
-        this.clip = new ZeroClipboard.Client();
-        this.clip.setText( "Copy me!" );
         
         //Properties
         this.domNode = args.domNode;
