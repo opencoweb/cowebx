@@ -1,5 +1,5 @@
 define(['coweb/main','./ld'], function(coweb,ld) {
-    console.log('newest');
+    console.log('1');
     var TextEditor = function(args){
         this.id = args.id;
         this.listen = args.listen;
