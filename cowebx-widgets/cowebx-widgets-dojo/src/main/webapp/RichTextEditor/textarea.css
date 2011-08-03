@@ -9,3 +9,17 @@
 #after {
     border-left: 1px solid black;
 }
+
+.footer {
+    width:80px;
+    font-size:10px;
+    float:right;
+    background:white;
+    border:1px solid lightgrey;
+    border-radius:3px;
+    -moz-border-radius:3px;
+    -webkit-border-radius:3px;
+    margin-top:2px;
+    margin-right:2px;
+    font-family: 'arial';
+}

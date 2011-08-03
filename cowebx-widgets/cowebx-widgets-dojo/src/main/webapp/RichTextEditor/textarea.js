@@ -1,4 +1,8 @@
-define([], function() {
+define([
+    'dijit/Toolbar',
+    'dijit/form/Button',
+    'dijit/ToolbarSeparator'
+], function(Toolbar, Button, Separator) {
     var textarea = function(args){
         //Check for req'd properties
         if(!args.domNode)
@@ -9,10 +13,14 @@ define([], function() {
         this.before = dojo.create('span',{id:'before'},this.div,'first');
         this.selection = dojo.create('span',{id:'selection'},this.div,'last');
         this.after = dojo.create('span',{id:'after'},this.div,'last');
+        this._buildToolbar();
+        this._buildFooter();
+        this.domNode = args.domNode;
         
         //Save space
         this._style();
         this._connect();
+        this._resize(true);
         setInterval(dojo.hitch(this, '_blink'), 500);
         
         //Properties
@@ -86,7 +94,7 @@ define([], function() {
             //1. Build hidden stuff and focus
             this._hidden = dojo.create('textarea',{
                 id:'hidden',
-                style:'position:relative;left:-10000px;',
+                style:'position:absolute;left:-10000px;',
                 innerHTML: sel
             },this.div,'after');
             document.getElementById('hidden').focus();
@@ -209,7 +217,8 @@ define([], function() {
         if(set && set==true)
             this.lastIndex = this.currLineIndex;
         
-        
+        dojo.attr('line','innerHTML',this.currLine);
+        dojo.attr('col','innerHTML',this.currLineIndex);
         
     };
     
@@ -226,7 +235,7 @@ define([], function() {
         
         this.value.string = v.string.substring(0,start)+c+v.string.substring(start,v.string.length);
         this.value.start = this.value.start+c.length;
-        this.value.end = this.value.end+c.length;
+        this.value.end = this.value.start;
         this.render();
     };
     
@@ -247,7 +256,7 @@ define([], function() {
             var afterLength = this.value.string.length+0;
             if(beforeLength != afterLength){
                 this.value.start = this.value.start - n;
-                this.value.end = this.value.end - n;
+                this.value.end = this.value.start;
             }
         }
         this.render();
@@ -510,9 +519,13 @@ define([], function() {
         document.onkeydown = this._overrideKeys;
     };
     
-    proto._resize = function() {
-        this.render();
-        this.getCharObj(true);
+    proto._resize = function(initial) {
+        if(initial != true){
+            this.render();
+            this.getCharObj(true);
+        }
+        
+        dojo.style(this.domNode, 'height', (window.innerHeight-150)+'px');
     };
 
     proto._onMouseDown = function(e){
@@ -524,10 +537,12 @@ define([], function() {
         this.clearSelection();
         this.render();
         
+        var _prevStart = this.value.start;
+        var _prevEnd = this.value.end;
         var ignore = ['selection', 'before', 'after'];
         var i=0;j = 0;
-        var start = 0;
-        var end = 0;
+        var start = null;
+        var end = null;
         
         //Point in Polygon to find selection Start
         dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
@@ -559,16 +574,16 @@ define([], function() {
             }
         }));
         
-        
-        
-        this.value.start = start;
-        this.value.end = end;
-        
-        if(end != start)
-            this.value.start = (start>0) ? start-1 : 0;
-        
-        this.render();
-        this.getCharObj(true);
+        if(start && end){
+            this.value.start = start;
+            this.value.end = end;
+
+            if(end != start)
+                this.value.start = (start>0) ? start-1 : 0;
+
+            this.render();
+            this.getCharObj(true);
+        }
     };
     
     proto._onFocus = function(e){
@@ -642,6 +657,30 @@ define([], function() {
         do { curDate = new Date(); }
         while(curDate-date < millis);
     };
+    
+    proto._buildToolbar = function(){
+        var toolbarNode = dojo.create('div',{style:'width:100%;height:50px'},this.div,'before');
+        this._toolbar = new Toolbar({},toolbarNode);
+        dojo.forEach(["Bold", "Italic", "Underline"], dojo.hitch(this, function(label) {
+            var button = new Button({
+                label: label,
+                showLabel: false,
+                iconClass: "dijitEditorIcon dijitEditorIcon" + label
+            });
+            this._toolbar.addChild(button);
+            //dojo.connect(button, 'onclick', this, 'on'+label+'Click');
+        }));
+        var sep = new Separator({});
+        this._toolbar.addChild(sep);
+    };
+    
+    proto._buildFooter = function(){
+        var footerNode = dojo.create('div',{style:'width:100%;height:20px;background:#EFEFEF;'},this.div,'after');
+        var div = dojo.create('div',{'class':'footer'},footerNode,'first');
+        var line = dojo.create('span',{style:'float:left',innerHTML:'Line: '+'<span id="line">0</span>'},div,'last');
+        var col = dojo.create('span',{style:'float:right;',innerHTML:'Col: '+'<span id="col">0</span>'},div,'last');
+    };
+    
 
     return textarea;
 });
