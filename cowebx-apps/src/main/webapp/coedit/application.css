@@ -6,25 +6,16 @@
  */
 
 
-html, body {
-    margin: 0px;
-    padding: 0px;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    background: grey;
-}
+ html, body {
+     margin: 0px;
+     padding: 0px;
+     width: 100%;
+     background: grey;
+ }
 
-.editor_node{
-	width:90%;
-	height:90%;
-	margin-top:15px;
-	margin-left:auto;
-	margin-right:auto;
-}
-
-.palette_node{
-    position:absolute;
-    top:100px;
-    z-index:1000;
-}
+ .editor_node{
+     width:800px;
+     margin-top:40px;
+     margin-left:auto;
+     margin-right:auto;
+ }
