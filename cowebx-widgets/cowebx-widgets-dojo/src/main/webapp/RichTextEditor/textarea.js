@@ -7,15 +7,15 @@ define([
         //Check for req'd properties
         if(!args.domNode)
             throw new Error("textarea.js: missing domNode param");
+        this.domNode = args.domNode;
 
         //Build divs & spans (caret)
-        this.div = dojo.create('div', {tabindex:-1,id:'thisDiv'}, args.domNode);
+        this.div = dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, this.domNode);
         this.before = dojo.create('span',{id:'before'},this.div,'first');
         this.selection = dojo.create('span',{id:'selection'},this.div,'last');
         this.after = dojo.create('span',{id:'after'},this.div,'last');
         this._buildToolbar();
         this._buildFooter();
-        this.domNode = args.domNode;
         
         //Save space
         this._style();
@@ -25,7 +25,12 @@ define([
         
         //Properties
         this.domNode = args.domNode;
-        this.value = {start:0,end:0,string:''};
+        this.value = {
+            start:0,
+            end:0,
+            string:'',
+            
+        };
         this.displayCaret = false;
         this.currLine = 0;
         this.currLineIndex = 0;
@@ -40,6 +45,7 @@ define([
             17 : 'control',
             16 : 'shift'
         };
+        this.filters = [];
         
         //Closed Properties
         this._hidden = null;    //hidden div for paste
@@ -134,6 +140,8 @@ define([
         var selection='';
         var test3 = this.value.string.substring(start, end);
         for(var m=0; m<test3.length; m++){
+            var index = start+m+1;
+            console.log(index);
             if(test3[m]==this.newLine){
                 u.push('<br>');
             }else if(test3[m]==this.newSpace){
@@ -219,7 +227,6 @@ define([
         
         dojo.attr('line','innerHTML',this.currLine);
         dojo.attr('col','innerHTML',this.currLineIndex);
-        
     };
     
     // Insert single char OR string at this.value.start
@@ -491,11 +498,6 @@ define([
     };
     
     proto._style = function(){
-        dojo.style(this.div, 'width', '100%');
-        dojo.style(this.div, 'height', '100%');
-        dojo.style(this.div, 'background', 'white');
-        dojo.style(this.div, 'cursor', 'text');
-        dojo.style(this.div, 'position', 'relative');
         this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/textarea.css');
     };
     
@@ -525,7 +527,7 @@ define([
             this.getCharObj(true);
         }
         
-        dojo.style(this.domNode, 'height', (window.innerHeight-150)+'px');
+        dojo.style(this.div, 'height', (window.innerHeight-150)+'px');
     };
 
     proto._onMouseDown = function(e){
@@ -659,8 +661,10 @@ define([
     };
     
     proto._buildToolbar = function(){
-        var toolbarNode = dojo.create('div',{style:'width:100%;height:50px'},this.div,'before');
+        var toolbarNode = dojo.create('div',{style:'width:100%;height:50px;'},this.div,'before');
+        
         this._toolbar = new Toolbar({},toolbarNode);
+        dojo.attr(this._toolbar.domNode, 'class', 'gradient header');
         dojo.forEach(["Bold", "Italic", "Underline"], dojo.hitch(this, function(label) {
             var button = new Button({
                 label: label,
@@ -668,18 +672,32 @@ define([
                 iconClass: "dijitEditorIcon dijitEditorIcon" + label
             });
             this._toolbar.addChild(button);
-            //dojo.connect(button, 'onclick', this, 'on'+label+'Click');
+            dojo.connect(button, 'onclick', this, '_on'+label+'Click');
         }));
         var sep = new Separator({});
         this._toolbar.addChild(sep);
     };
     
+    proto._onBoldClick = function() {
+        
+    };
+    
+    proto._onItalicClick = function() {
+        
+    };
+    
+    proto._onUnderlineClick = function() {
+        
+    };
+    
     proto._buildFooter = function(){
-        var footerNode = dojo.create('div',{style:'width:100%;height:20px;background:#EFEFEF;'},this.div,'after');
-        var div = dojo.create('div',{'class':'footer'},footerNode,'first');
+        var footerNode = dojo.create('div',{'class':'footer gradient'},this.div,'after');
+        var div = dojo.create('div',{'class':'footerDiv'},footerNode,'first');
         var line = dojo.create('span',{style:'float:left',innerHTML:'Line: '+'<span id="line">0</span>'},div,'last');
         var col = dojo.create('span',{style:'float:right;',innerHTML:'Col: '+'<span id="col">0</span>'},div,'last');
     };
+    
+
     
 
     return textarea;
