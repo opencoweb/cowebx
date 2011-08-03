@@ -62,7 +62,7 @@ define([], function() {
         }else if(e.keyCode == 40){                          // down
             this.moveCaretDown(e.shiftKey);
         }else if(e.keyCode == 8){                           // delete
-            this.deleteChar(e);
+            this.delete(1);
         }else if(this.cancelKeys[e.which] != undefined){    // cancelKeys
             
         }else{                                              // otherwise, insert
@@ -219,22 +219,24 @@ define([], function() {
         this.render();
     };
     
-    // Remove single char at this.value.start
-    proto.deleteChar = function() {
+    // Remove n chars at this.value.start
+    proto.delete = function(n) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var v = this.value;
+        if(!n)
+            var n = 1;
         
         if(start != end){
             this.value.string = v.string.substring(0,start)+v.string.substring(end,v.string.length);
             this.clearSelection();
         }else{
             var beforeLength = this.value.string.length+0;
-            this.value.string = v.string.substring(0,v.start-1)+v.string.substring(v.start,v.string.length);
+            this.value.string = v.string.substring(0,v.start-n)+v.string.substring(v.start,v.string.length);
             var afterLength = this.value.string.length+0;
             if(beforeLength != afterLength){
-                this.value.start--;
-                this.value.end--;
+                this.value.start = this.value.start - n;
+                this.value.end = this.value.end - n;
             }
         }
         this.render();
@@ -284,7 +286,7 @@ define([], function() {
 
         this.value.start = this.value.start - amt;
         if(!select)
-            this.value.end = this.value.end - amt;
+            this.value.end = this.value.start;
         this.render();
     };
     
@@ -309,7 +311,7 @@ define([], function() {
 
         this.value.start = this.value.start + amt;
         if(!select)
-            this.value.end = this.value.end + amt;
+            this.value.end = this.value.start;
         this.render();    
     };
     
@@ -401,10 +403,14 @@ define([], function() {
                 this.selectAll();
             //Copy
             }else if(e.which == 99){
-                this._pause(500);
+                this._pause(100);
             //Cut
-            }else if(e.which == 120){
-                this._pause(500);
+            }else if(e.which == 88){
+                this._pause(100);
+                var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
+                var len = this._stripSpaces(this._stripTags(this.selection.innerHTML)).length;
+                this.value.start = end;
+                this.delete(len);
             }
             
             setTimeout(dojo.hitch(this, function(){
@@ -429,10 +435,14 @@ define([], function() {
                 this.selectAll();
             //Copy
             }else if(e.which == 99){
-                this._pause(500);
+                this._pause(100);
             //Cut
             }else if(e.which == 120){
-                this._pause(500);
+                this._pause(100);
+                var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
+                var len = this._stripSpaces(this._stripTags(this.selection.innerHTML)).length;
+                this.value.start = end;
+                this.delete(len);
             }
             
             setTimeout(dojo.hitch(this, function(){
@@ -535,8 +545,12 @@ define([], function() {
         
         
         
-        this.value.start = (start>0) ? start-1 : 0;
+        this.value.start = start;
         this.value.end = end;
+        
+        if(end != start)
+            this.value.start = (start>0) ? start-1 : 0;
+        
         this.render();
         this.getCharObj(true);
     };
@@ -572,6 +586,11 @@ define([], function() {
     
     proto._stripTags = function (string) {
        return string.replace(/<([^>]+)>/g,'');
+    };
+    
+    proto._stripSpaces = function (string) {
+        var s = string.replace(new RegExp("&nbsp;", 'g'),'');
+        return s;
     };
     
     proto._findPos = function(obj) {
