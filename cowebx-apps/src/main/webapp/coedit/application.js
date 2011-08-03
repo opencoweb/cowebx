@@ -26,9 +26,11 @@ define(
 		var app = {
 			init: function(){
 			    this.clicked = false;
-			    	
+			    parser.parse(dojo.body());
+			    
 				//1. Create the editor
-				var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:false});
+				var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
+				
                 // var button = new Button({'domNode':textEditor.getNode(),'listenTo':textEditor,'id':'shareButton'});
                 // dojo.style(button.shareButton, 'float', 'right');
                 // dojo.style(button.shareButton, 'top', '7px');
