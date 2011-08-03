@@ -35,8 +35,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         dojo.connect(this._textarea, 'onblur', this, '_onBlur');
     
         this.util = new ld({});
-        
-        console.log('2');
+
         if(this.go == true)
             this.listenInit();
     };
