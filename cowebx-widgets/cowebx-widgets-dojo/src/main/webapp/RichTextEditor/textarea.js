@@ -54,6 +54,9 @@ define([], function() {
             reset = true;
             this.moveCaretRight(e.shiftKey);
         }else if(e.keyCode == 13){                          // newLine
+            //Don't allow spaces at end of lines
+            if(this.before.childNodes[this.before.childNodes.length-1].innerHTML == '&nbsp; ')
+                this.delete(1)
             this.insert(this.newLine); 
         }else if(e.charCode == 32){                         // newSpace
             this.insert(this.newSpace); 
@@ -169,7 +172,7 @@ define([], function() {
         var lineHeight = a.clientHeight;
         dojo.destroy(a);
         var ignore = ['before', 'after', 'selection'];
-        
+        var prev = null;
         dojo.query("#thisDiv span").forEach(dojo.hitch(this, function(node, index, arr){
             if(dojo.indexOf(ignore,node.id) == -1){
                 var pos = this._findPos(node);
@@ -177,6 +180,11 @@ define([], function() {
                     count++;
                     this.rows[row] = count;
                 }else{
+                    if(prev != null && prev.innerHTML == '&nbsp; '){
+                        dojo.create('br',{},prev,'after');
+                        dojo.destroy(prev);
+                        this.rows[row] = this.rows[row]-1;
+                    }
                     var breaks = Math.floor((pos.top - currY)/lineHeight)-1;
                     for(var i=0; i<breaks; i++){
                         row++;
@@ -186,7 +194,8 @@ define([], function() {
                     count=1;
                     row++;
                     this.rows[row] = count;
-                }               
+                }
+                prev = node;               
             }
         }));
         if(this.rows[1] == undefined)
@@ -199,6 +208,8 @@ define([], function() {
         
         if(set && set==true)
             this.lastIndex = this.currLineIndex;
+        
+        
         
     };
     
@@ -489,7 +500,7 @@ define([], function() {
     };
     
     proto._connect = function(){
-        dojo.connect(window, 'resize', this, 'getCharObj');
+        dojo.connect(window, 'resize', this, '_resize');
         dojo.connect(this.div, 'onmousedown', this, '_onMouseDown');
         dojo.connect(this.div, 'onmouseup', this, '_onClick');
         dojo.connect(this.div, 'onfocus', this, '_onFocus');
@@ -497,6 +508,11 @@ define([], function() {
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
         dojo.connect(this.div, 'onkeydown', this, 'listenForKeyCombo');
         document.onkeydown = this._overrideKeys;
+    };
+    
+    proto._resize = function() {
+        this.render();
+        this.getCharObj(true);
     };
 
     proto._onMouseDown = function(e){
