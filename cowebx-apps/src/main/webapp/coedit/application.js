@@ -28,7 +28,7 @@ define(
 			    this.clicked = false;
 			                    //              
 			                 // //1. Create the editor
-			                 //                 var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
+			    var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
 			                 //                
 			                 //                      // var button = new Button({'domNode':textEditor.getNode(),'listenTo':textEditor,'id':'shareButton'});
 			                 //                      // dojo.style(button.shareButton, 'float', 'right');
