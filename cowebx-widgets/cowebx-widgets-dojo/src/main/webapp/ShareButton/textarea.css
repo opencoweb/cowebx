@@ -34,7 +34,7 @@
     position:relative;
     padding:3px;
     padding-bottom:6px;
-    z-index:100;
+    z-index:1001;
     width:199px;
     opacity:0;
 }

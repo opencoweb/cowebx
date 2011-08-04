@@ -8,6 +8,8 @@ define([
         //1. Check for req'd properties
         if(!args.domNode || !args.id)
             throw new Error("textarea.js: missing domNode param");
+        if(args.noSlider)
+            this.noSlider = args.noSlider;
         this.domNode = args.domNode;
         this.id = args.id;
 
@@ -110,7 +112,7 @@ define([
     };
     
     // Rips through this.value and blasts proper html equiv into dom
-    proto.render = function() {
+    proto.render = function(slider) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         
@@ -175,9 +177,11 @@ define([
             this.displayCaret = true;
         }
         
-        //Save history
-        var copy = this.value.string.slice()
-        dojo.publish("editorHistory", [{save:this.value.string}]); 
+        if(!slider || slider==false){
+            //Save history
+            var copy = this.value.string.slice()
+            dojo.publish("editorHistory", [{save:this.value.string}]);
+        }
     };
     
     // Maps current text to this.rows
@@ -438,8 +442,26 @@ define([
         }));
         var sep = new Separator({});
         toolbar.addChild(sep);
+        if(!this.noSlider || this.noSlider == false){
+            var button = new ToggleButton({
+                label: '<span style="font-family:Arial;font-size:14px;">Time Slider</span>',
+                showLabel: true,
+                iconClass: 'sliderIcon'
+            });
+            toolbar.addChild(button);
+            this.sliderButton = button;
+            dojo.connect(button, 'onclick', this, '_onSliderClick');
+            dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
+            dojo.style(button.domNode, 'float', 'right');
+            dojo.style(button.domNode, 'position', 'relative');
+            dojo.style(button.domNode, 'left', '240px');
+        }
         
         return toolbar;
+    };
+    
+    proto._onSliderClick = function(){
+        dojo.publish("sliderToggle", [{}]);
     };
     
     proto._buildFooter = function(){

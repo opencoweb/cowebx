@@ -31,11 +31,11 @@ define(
 				var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
                 var button = new Button({'domNode':textEditor._textarea.toolbar.domNode,'listenTo':textEditor,'id':'shareButton'});
                 dojo.style(button.shareButton, 'float', 'right');
-                dojo.style(button.shareButton, 'top', '9px');
+                dojo.style(button.shareButton, 'top', '53px');
                 dojo.style(button.shareButton, 'left', '30px');
                 dojo.style(button.emailBox, 'float', 'right');
                 dojo.style(button.emailBox, 'position', 'relative');
-                dojo.style(button.emailBox, 'top', '5px');
+                dojo.style(button.emailBox, 'top', '49px');
                 dojo.style(button.emailBox, 'left', '43px');
                 
 				

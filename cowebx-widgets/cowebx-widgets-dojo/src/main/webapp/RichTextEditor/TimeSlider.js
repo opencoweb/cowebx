@@ -6,11 +6,15 @@ define(['dijit/form/Slider','dijit/form/TextBox'], function() {
         this.build(args.domNode);
         this.history = [];
         this._textarea = args.textarea;
+        this.sliderShowing = false;
         this.index = null;
         this.div = args.div;
         dojo.subscribe("editorHistory", dojo.hitch(this, function(message){
              this.history.push(message.save);
-         }));
+        }));
+        dojo.subscribe("sliderToggle", dojo.hitch(this, function(message){
+             this._toggle();
+        }));
     };
     var proto = TimeSlider.prototype;
     
@@ -37,9 +41,19 @@ define(['dijit/form/Slider','dijit/form/TextBox'], function() {
         var state = this.history[n];
         if(state){
             this._textarea.value.string = state;
-            this._textarea.render();
+            this._textarea.render(true);
         }
     };
+    
+    proto._toggle = function(){
+        if(!this.sliderShowing){
+            this.sliderShowing = true;
+            dojo.fadeIn({node:'sliderHolder'}).play();
+        }else{
+            this.sliderShowing = false;
+            dojo.fadeOut({node:'sliderHolder'}).play();
+        }
+    }
     
     return TimeSlider;
 });
