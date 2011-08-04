@@ -50,9 +50,9 @@ define([
         this.filters = [];
         
         //styles
-        this.bold = false;
-        this.italic = false;
-        this.underline = false;
+        this._bold = false;
+        this._italic = false;
+        this._underline = false;
         
         //Closed Properties
         this._hidden = null;    //hidden div for paste
@@ -253,8 +253,8 @@ define([
             this.clearSelection();
         }
         var f = this.filters.slice();
-        for(var i=0; i<c.length; i++){
-            this.value.string = v.string.slice(0,start).concat([{'char':c[i],'filters':f}]).concat(v.string.slice(start,v.string.length));
+        for(var i=c.length-1; i>=0; i--){
+            this.value.string = v.string.slice(0,start).concat([{'char':c[i],'filters':[]}]).concat(v.string.slice(start,v.string.length));
             this.value.start = this.value.start+1;
             this.value.end = this.value.start;
         }
@@ -329,11 +329,11 @@ define([
             }
         }
         
-
         this.value.start = this.value.start - amt;
         if(!select)
             this.value.end = this.value.start;
         this.render();
+        console.log(this.value.end);
     };
     
     proto.moveCaretDown = function(select) {
@@ -442,9 +442,8 @@ define([
             if(e.which == 86){
                 this.t = setTimeout(dojo.hitch(this, function(){
                     var text = this._hidden.value;
-                    for(var i=0; i<text.length; i++){
+                    for(var i=0; i<text.length; i++)
                         this.insert(text[i]);
-                    }
                 }), 100);
             //selectAll
             }else if(e.which == 65){
@@ -477,6 +476,7 @@ define([
                 this.t = setTimeout(dojo.hitch(this, function(){
                     var text = this._hidden.value;
                     this.insert(text);
+                        
                 }), 100);
             //selectAll
             }else if(e.which == 97){
@@ -718,12 +718,12 @@ define([
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         if(start == end){
-            if(this.bold == false){
-                this.bold = true;
+            if(this._bold == false){
+                this._bold = true;
                 this.filters.push('font-weight:bold;');
                 dojo.attr(this.Bold.domNode.childNodes[0], 'style', 'background-color:red');
             }else{
-                this.bold = false;
+                this._bold = false;
                 this.filters[dojo.indexOf(this.filters,'font-weight:bold;')] = '';
                 dojo.attr(this.Bold.domNode.childNodes[0], 'style', '');
             }
@@ -766,12 +766,12 @@ define([
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         if(start == end){
-            if(this.bold == false){
-                this.bold = true;
+            if(this._italic == false){
+                this._italic = true;
                 this.filters.push('font-style:italic;');
                 dojo.attr(this.Italic.domNode.childNodes[0], 'style', 'background-color:red');
             }else{
-                this.bold = false;
+                this._italic = false;
                 this.filters[dojo.indexOf(this.filters,'font-style:italic;')] = '';
                 dojo.attr(this.Italic.domNode.childNodes[0], 'style', ' ');
             }
@@ -814,13 +814,13 @@ define([
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         if(start == end){
-            if(this.bold == false){
-                this.bold = true;
+            if(this._underline == false){
+                this._underline = true;
                 this.filters.push('text-decoration:underline;');
                 dojo.attr(this.Underline.domNode.childNodes[0], 'style', 'background-color:red');
             }else{
-                this.bold = false;
-                this.value.string[i]['filters'][dojo.indexOf(this.value.string[i]['filters'],'text-decoration:underline;')] = '';
+                this._underline = false;
+                this.filters[dojo.indexOf(this.filters,'text-decoration:underline;')] = '';
                 dojo.attr(this.Underline.domNode.childNodes[0], 'style', '');
             }
         }else{
