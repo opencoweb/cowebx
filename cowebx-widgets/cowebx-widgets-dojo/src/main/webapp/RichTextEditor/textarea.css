@@ -22,6 +22,7 @@
     margin-top:5px;
     margin-right:3px;
     font-family: 'arial';
+    padding-right:20px;
 }
 
 .footer {
@@ -34,7 +35,7 @@
     -webkit-border-radius:5px;
     position:relative;
     top:-3px;
-
+    z-index:100;
 }
 
 .div {
@@ -45,7 +46,7 @@
     background:white;
     cursor:text;
     position:relative;
-    z-index:10;
+    z-index:1000;
 }
 
 .gradient {
@@ -73,4 +74,42 @@
     position:relative;
     top:5px;
     padding:5px;
+}
+
+.slider {
+    width:95%;
+    height:40px;
+    margin-bottom:50px;
+    background:white;
+    border:2px solid grey;
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    padding-top:25px;
+    margin-left:auto;
+    margin-right:auto;
+    position:relative;
+    top:-15px;
+}
+
+.go{
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    text-shadow:1px 1px #666;
+    cursor:hand;cursor:pointer;
+    font: 13px arial;
+    background-color: darkred;
+    color: white;
+    padding-top:10px;
+    padding-bottom:10px;
+    padding-left:5px;
+    padding-right:5px;
+    position:relative;
+}
+
+.go:hover{
+    -webkit-transition: background-color .25s linear;
+    transition: background-color .25s linear;
+    background-color:red;
 }

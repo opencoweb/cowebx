@@ -27,6 +27,7 @@ define([
         setInterval(dojo.hitch(this, '_blink'), 500);
         
         // properties
+        this.history        =   [];
         this.value          =   {start:0,end:0,string:[]};
         this.currLine       =   0;
         this.currLineIndex  =   0;
@@ -173,6 +174,10 @@ define([
         }else{
             this.displayCaret = true;
         }
+        
+        //Save history
+        var copy = this.value.string.slice()
+        dojo.publish("editorHistory", [{save:this.value.string}]); 
     };
     
     // Maps current text to this.rows

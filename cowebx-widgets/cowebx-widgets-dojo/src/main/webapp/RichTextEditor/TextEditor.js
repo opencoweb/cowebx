@@ -1,4 +1,4 @@
-define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
+define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,textarea,Slider) {
     var TextEditor = function(args){
         this.id = args.id;
         this.listen = args.listen;
@@ -16,8 +16,11 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         this.min = 0; 
         this.max = 0;
         this.value = '';
+        this.slider = this._buildSlider();
         this._connectSyncs();
         dojo.connect(this._textarea.div, 'onkeypress', this, '_updatePOR');
+        
+    
     
         this.util = new ld({});
 
@@ -228,6 +231,14 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         this._textarea.value.end = this._por.end;
         this._textarea.render();
     };
+    
+    proto._buildSlider = function() {
+        var node = dojo.create('div',{'class':'slider'},this._textarea.footer,'after');
+        var holder = dojo.create('div',{'style':'width:100%;height:100%'},node);
+        var slider = new Slider({'domNode':holder,textarea:this._textarea});
+        return slider;
+    };
+    
 
     return TextEditor;
 });
