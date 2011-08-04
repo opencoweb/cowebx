@@ -244,6 +244,7 @@ define([
     
     // Insert single char at this.value.start
     proto.insert = function(c) {
+        console.log('insert');
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var v = this.value;
@@ -252,9 +253,9 @@ define([
             this.value.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
             this.clearSelection();
         }
-        var f = this.filters.slice();
         for(var i=c.length-1; i>=0; i--){
-            this.value.string = v.string.slice(0,start).concat([{'char':c[i],'filters':[]}]).concat(v.string.slice(start,v.string.length));
+            var f = this.filters.slice();
+            this.value.string = v.string.slice(0,start).concat([{'char':c[i],'filters':f}]).concat(v.string.slice(start,v.string.length));
             this.value.start = this.value.start+1;
             this.value.end = this.value.start;
         }
