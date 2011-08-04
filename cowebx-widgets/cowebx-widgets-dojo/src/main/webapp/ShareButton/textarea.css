@@ -12,7 +12,7 @@
     -webkit-border-radius:5px;
     text-shadow:1px 1px #666;
     cursor:hand;cursor:pointer;
-    font: 18px arial;
+    font: 13px arial;
     background-color: darkred;
     color: white;
     padding-top:10px;
@@ -30,12 +30,13 @@
 
 .emailBox{
     background:lightgrey;
-    font: 14px arial;
+    font: 10px arial;
     position:relative;
-    padding:8px;
-    opacity:0;
+    padding:3px;
+    padding-bottom:6px;
     z-index:100;
     width:199px;
+    opacity:0;
 }
 
 .send{

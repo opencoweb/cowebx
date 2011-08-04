@@ -241,7 +241,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     
     proto.onStateRequest = function(token){
         var state = {
-            value: this._textarea.value,
+            string: this._textarea.value.string,
             oldSnapshot: this.oldSnapshot
         };
         this.collab.sendStateResponse(state,token);
@@ -249,7 +249,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     
     proto.onStateResponse = function(obj){
         this.oldSnapshot = obj.oldSnapshot;
-        this._textarea.value = obj.value
+        this._textarea.value.string = obj.string
         this._textarea.render();
     };
     
