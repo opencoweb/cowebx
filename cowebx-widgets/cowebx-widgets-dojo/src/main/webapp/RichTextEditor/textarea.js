@@ -104,7 +104,7 @@ define([
     // Intercept paste / selectAll and handle with JS
     proto.listenForKeyCombo = function(e) {
         if((e.which == 224) || (e.which == 91) || (e.which == 17)){
-            var sel = this._stripTags(this.selection.innerHTML);
+            var sel = this._stripSpaces(this._stripTags(this.selection.innerHTML));
             //1. Build hidden stuff and focus
             this._hidden = dojo.create('textarea',{
                 id:'hidden',
@@ -597,8 +597,8 @@ define([
         }));
         
         if(start && end){
-            this.value.start = start;
-            this.value.end = end;
+            this.value.start = start-1;
+            this.value.end = end-1;
 
             if(end != start)
                 this.value.start = (start>0) ? start-1 : 0;
