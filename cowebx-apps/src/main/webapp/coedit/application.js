@@ -29,7 +29,7 @@ define(
 			    	
 				//1. Create the editor
 				var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
-                var button = new Button({'domNode':textEditor._textarea._toolbar.domNode,'listenTo':textEditor,'id':'shareButton'});
+                var button = new Button({'domNode':textEditor._textarea.toolbar.domNode,'listenTo':textEditor,'id':'shareButton'});
                 dojo.style(button.shareButton, 'float', 'right');
                 dojo.style(button.shareButton, 'top', '9px');
                 dojo.style(button.shareButton, 'left', '30px');

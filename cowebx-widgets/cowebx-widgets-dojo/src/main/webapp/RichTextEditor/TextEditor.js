@@ -8,9 +8,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
             throw new Error('missing id argument');
     
         this._por = {start : 0, end: 0};
-
         this._textarea = new textarea({domNode:args.domNode,'id':'_textarea'});
-
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = '';
         this.t = null;
@@ -18,13 +16,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         this.min = 0; 
         this.max = 0;
         this.value = '';
-    
-        this.collab = coweb.initCollab({id : this.id});  
-        this.collab.subscribeReady(this,'onCollabReady');
-        this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
-        this.collab.subscribeStateRequest(this, 'onStateRequest');
-    	this.collab.subscribeStateResponse(this, 'onStateResponse');
-    
+        this._connectSyncs();
         dojo.connect(this._textarea.div, 'onkeypress', this, '_updatePOR');
     
         this.util = new ld({});
@@ -52,45 +44,33 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         this.newSnapshot = this.snapshot();
         var oldLength = this.oldSnapshot.length;
         var newLength = this.newSnapshot.length;
-
         
         if(oldLength < newLength){
             var mx = this.max+(newLength - oldLength);
             if(this.oldSnapshot != this.newSnapshot)
                 var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
-            //console.log('old = '+this.oldSnapshot.substring(this.min, this.max));
-            //console.log('new = '+this.newSnapshot.substring(this.min, mx));
-            
+                
             if(syncs){
-                //console.log(syncs);
-                for(var i=0; i<syncs.length; i++){
+                for(var i=0; i<syncs.length; i++)
                     this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
-                }
             }
         }else if(newLength < oldLength){
             var mx = this.max+(oldLength-newLength);
             var mn = (this.min-1 > -1) ? this.min-1 : 0;
             if(this.oldSnapshot != this.newSnapshot)
                 var syncs = this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
-            //console.log('old = '+this.oldSnapshot.substring(mn, mx));
-            //console.log('new = '+this.newSnapshot.substring(mn, this.max));
-            
+                
             if(syncs){
-                //console.log(syncs);
-                for(var i=0; i<syncs.length; i++){
+                for(var i=0; i<syncs.length; i++)
                     this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+mn);
-                }
             }
         }else if(newLength == oldLength){
             if(this.oldSnapshot != this.newSnapshot)
                 var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, this.max));
-            //console.log('old = '+this.oldSnapshot.substring(mn, mx));
-            //console.log('new = '+this.newSnapshot.substring(mn, this.max));
+
             if(syncs){
-                //console.log(syncs);
-                for(var i=0; i<syncs.length; i++){
+                for(var i=0; i<syncs.length; i++)
                     this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
-                }
             }
         }
     };
@@ -107,16 +87,6 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         this.min = this._por.start;
         this.max = this._por.end;
         this.t = setTimeout(dojo.hitch(this, 'iterate'), 100);
-    };
-    
-    proto._updatePOR = function() {
-        this._por.start = this._textarea.value.start;
-        this._por.end = this._textarea.value.end;
-        
-        if(this._por.start < this.min)
-            this.min = this._por.start;
-        if(this._por.end > this.max)
-            this.max = this._por.end;
     };
     
     proto.onRemoteChange = function(obj){
@@ -139,25 +109,21 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     };
         
     proto.insertChar = function(c, pos) {
-        //this._updatePOR();
         var t = this._textarea,
         por = this._por,
         start = por.start,
         end = por.end;
-        //t.value = t.value.substr(0, pos) + c + t.value.substr(pos);
+
         t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':[]}]).concat(t.value.string.slice(pos));
         if(pos < por.end) {
-            if(pos >= por.start && por.end != por.start) {
+            if(pos >= por.start && por.end != por.start)
                 ++start;
-            }
             ++end;
         }
-        if(pos < por.start) {
+        if(pos < por.start)
             ++start;
-        }
         por.start = start;
         por.end = end;
-        //this._moveCaretToPOR();
     };
     
     proto.insertString = function(string, pos) {
@@ -169,58 +135,26 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     };
     
     proto.deleteString = function(start, end) {
-        for(var i=start; i<end; i++){
+        for(var i=start; i<end; i++)
             this.deleteChar(i);
-        }
     };
         
     proto.deleteChar = function(pos) {
-        //this._updatePOR();
         var t = this._textarea;
-        //t.value = t.value.substr(0, pos) + t.value.substr(pos+1);
         t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
-        if(pos < this._por.start) {
+        if(pos < this._por.start)
             --this._por.start;
-        }
-        if(pos < this._por.end) {
+        if(pos < this._por.end)
             --this._por.end;
-        }
-        //this._moveCaretToPOR();
     };
         
     proto.updateChar = function(c, pos) {
-        //this._updatePOR();
         var t = this._textarea;
-        //t.value = t.value.substr(0, pos) + c + t.value.substr(pos+1);
         t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':[]}]).concat(t.value.string.slice(pos+1));
     };
 
     proto.snapshot = function(){
         return this._getValueAttr();
-    };
-
-    proto._getValueAttr = function() {
-        return this._textarea.getValue();
-    };
-    
-    proto._getCleanValueAttr = function(){
-        var value = this._getValueAttr();
-        var s = [];
-        for(var i=0; i<value.length; i++){
-            if(value[i]=='^'){
-                s.push('<br>');
-            }else{
-                s.push(value[i]);
-            }
-        }
-        var string = s.join("");
-        return string;
-    };
-
-    proto._moveCaretToPOR = function() {
-        this._textarea.value.start = this._por.start;
-        this._textarea.value.end = this._por.end;
-        this._textarea.render();
     };
     
     proto.setPOR = function(pos){
@@ -253,6 +187,47 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         this._textarea.render();
     };
     
+    proto._updatePOR = function() {
+        this._por.start = this._textarea.value.start;
+        this._por.end = this._textarea.value.end;
+        
+        if(this._por.start < this.min)
+            this.min = this._por.start;
+        if(this._por.end > this.max)
+            this.max = this._por.end;
+    };
+    
+    proto._connectSyncs = function(){
+        this.collab = coweb.initCollab({id : this.id});  
+        this.collab.subscribeReady(this,'onCollabReady');
+        this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
+        this.collab.subscribeStateRequest(this, 'onStateRequest');
+    	this.collab.subscribeStateResponse(this, 'onStateResponse');
+    };
+
+    proto._getValueAttr = function() {
+        return this._textarea.getValue();
+    };
+    
+    proto._getCleanValueAttr = function(){
+        var value = this._getValueAttr();
+        var s = [];
+        for(var i=0; i<value.length; i++){
+            if(value[i]=='^'){
+                s.push('<br>');
+            }else{
+                s.push(value[i]);
+            }
+        }
+        var string = s.join("");
+        return string;
+    };
+
+    proto._moveCaretToPOR = function() {
+        this._textarea.value.start = this._por.start;
+        this._textarea.value.end = this._por.end;
+        this._textarea.render();
+    };
 
     return TextEditor;
 });
