@@ -108,7 +108,7 @@ define([
             //1. Build hidden stuff and focus
             this._hidden = dojo.create('textarea',{
                 id:'hidden',
-                style:'position:absolute;left:-10000px;',
+                style:'position:absolute;left:-10000px;top:0px;',
                 innerHTML: sel
             },this.div,'after');
             document.getElementById('hidden').focus();
@@ -242,7 +242,7 @@ define([
         this._hold = false;
     };
     
-    // Insert single char OR string at this.value.start
+    // Insert single char at this.value.start
     proto.insert = function(c) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
@@ -252,9 +252,12 @@ define([
             this.value.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
             this.clearSelection();
         }
-        this.value.string = v.string.slice(0,start).concat([{'char':c,'filters':[]}]).concat(v.string.slice(start,v.string.length));
-        this.value.start = this.value.start+c.length;
-        this.value.end = this.value.start;
+        var f = this.filters.slice();
+        for(var i=0; i<c.length; i++){
+            this.value.string = v.string.slice(0,start).concat([{'char':c[i],'filters':f}]).concat(v.string.slice(start,v.string.length));
+            this.value.start = this.value.start+1;
+            this.value.end = this.value.start;
+        }
         this.render();
     };
     
@@ -439,7 +442,9 @@ define([
             if(e.which == 86){
                 this.t = setTimeout(dojo.hitch(this, function(){
                     var text = this._hidden.value;
-                    this.insert(text);
+                    for(var i=0; i<text.length; i++){
+                        this.insert(text[i]);
+                    }
                 }), 100);
             //selectAll
             }else if(e.which == 65){
@@ -715,9 +720,11 @@ define([
         if(start == end){
             if(this.bold == false){
                 this.bold = true;
+                this.filters.push('font-weight:bold;');
                 dojo.attr(this.Bold.domNode.childNodes[0], 'style', 'background-color:red');
             }else{
                 this.bold = false;
+                this.filters[dojo.indexOf(this.filters,'font-weight:bold;')] = '';
                 dojo.attr(this.Bold.domNode.childNodes[0], 'style', '');
             }
         }else{
@@ -751,7 +758,6 @@ define([
         }
         this._lastOp = 'bold';
         this.div.focus();
-        
     };
     
     proto._onItalicClick = function() {
@@ -762,9 +768,11 @@ define([
         if(start == end){
             if(this.bold == false){
                 this.bold = true;
+                this.filters.push('font-style:italic;');
                 dojo.attr(this.Italic.domNode.childNodes[0], 'style', 'background-color:red');
             }else{
                 this.bold = false;
+                this.filters[dojo.indexOf(this.filters,'font-style:italic;')] = '';
                 dojo.attr(this.Italic.domNode.childNodes[0], 'style', ' ');
             }
         }else{
@@ -808,9 +816,11 @@ define([
         if(start == end){
             if(this.bold == false){
                 this.bold = true;
+                this.filters.push('text-decoration:underline;');
                 dojo.attr(this.Underline.domNode.childNodes[0], 'style', 'background-color:red');
             }else{
                 this.bold = false;
+                this.value.string[i]['filters'][dojo.indexOf(this.value.string[i]['filters'],'text-decoration:underline;')] = '';
                 dojo.attr(this.Underline.domNode.childNodes[0], 'style', '');
             }
         }else{
