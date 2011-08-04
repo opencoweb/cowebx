@@ -9,7 +9,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     
         this._por = {start : 0, end: 0};
 
-        this._textarea = new textarea({domNode:args.domNode});
+        this._textarea = new textarea({domNode:args.domNode,'id':'_textarea'});
 
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = '';
@@ -145,7 +145,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         start = por.start,
         end = por.end;
         //t.value = t.value.substr(0, pos) + c + t.value.substr(pos);
-        t.value.string = t.value.string.substr(0, pos) + c + t.value.string.substr(pos);
+        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':[]}]).concat(t.value.string.slice(pos));
         if(pos < por.end) {
             if(pos >= por.start && por.end != por.start) {
                 ++start;
@@ -178,7 +178,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         //this._updatePOR();
         var t = this._textarea;
         //t.value = t.value.substr(0, pos) + t.value.substr(pos+1);
-        t.value.string = t.value.string.substr(0, pos) + t.value.string.substr(pos+1);
+        t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
         if(pos < this._por.start) {
             --this._por.start;
         }
@@ -192,7 +192,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
         //this._updatePOR();
         var t = this._textarea;
         //t.value = t.value.substr(0, pos) + c + t.value.substr(pos+1);
-        t.value.string = t.value.string.substr(0, pos) + c + t.value.string.substr(pos+1);
+        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':[]}]).concat(t.value.string.slice(pos+1));
     };
 
     proto.snapshot = function(){
@@ -241,7 +241,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     
     proto.onStateRequest = function(token){
         var state = {
-            text: this._textarea.getValue(),
+            value: this._textarea.value,
             oldSnapshot: this.oldSnapshot
         };
         this.collab.sendStateResponse(state,token);
@@ -249,7 +249,7 @@ define(['coweb/main','./ld', './textarea'], function(coweb,ld,textarea) {
     
     proto.onStateResponse = function(obj){
         this.oldSnapshot = obj.oldSnapshot;
-        this._textarea.value.string = obj.text;
+        this._textarea.value = obj.value
         this._textarea.render();
     };
     

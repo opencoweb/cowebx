@@ -1,13 +1,15 @@
 define([
+    'coweb/main',
     'dijit/Toolbar',
-    'dijit/form/Button',
+    'dijit/form/ToggleButton',
     'dijit/ToolbarSeparator'
-], function(Toolbar, Button, Separator) {
+], function(coweb, Toolbar, ToggleButton, Separator) {
     var textarea = function(args){
         //Check for req'd properties
-        if(!args.domNode)
+        if(!args.domNode || !args.id)
             throw new Error("textarea.js: missing domNode param");
         this.domNode = args.domNode;
+        this.id = args.id;
 
         //Build divs & spans (caret)
         this.div = dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, this.domNode);
@@ -20,6 +22,7 @@ define([
         //Save space
         this._style();
         this._connect();
+        this._connectSyncs();
         this._resize(true);
         setInterval(dojo.hitch(this, '_blink'), 500);
         
@@ -28,8 +31,7 @@ define([
         this.value = {
             start:0,
             end:0,
-            string:'',
-            
+            string:[]
         };
         this.displayCaret = false;
         this.currLine = 0;
@@ -47,9 +49,15 @@ define([
         };
         this.filters = [];
         
+        //styles
+        this.bold = false;
+        this.italic = false;
+        this.underline = false;
+        
         //Closed Properties
         this._hidden = null;    //hidden div for paste
         this._c = null;         //handle for on-the-fly connects
+        this._hold = false;
     };
     var proto = textarea.prototype;
     
@@ -123,14 +131,16 @@ define([
         // text before selection
         var s=[];
         var before='';
-        var test = this.value.string.substring(0, start);
+        var test = this.value.string.slice(0, start);
         for(var i=0; i<test.length; i++){
-            if(test[i]==this.newLine){
+            var filter = test[i]['filters'];
+            filter = filter.join("");
+            if(test[i]['char']==this.newLine){
                 s.push('<br>');
-            }else if(test[i]==this.newSpace){
-                s.push('<span>&nbsp; </span>');
+            }else if(test[i]['char']==this.newSpace){
+                s.push('<span style='+filter+'>&nbsp; </span>');
             }else{
-                s.push('<span>'+test[i]+'</span>');
+                s.push('<span style='+filter+'>'+test[i]['char']+'</span>');
             }
         }
         before = s.join("");
@@ -138,16 +148,16 @@ define([
         // selected text
         var u=[];
         var selection='';
-        var test3 = this.value.string.substring(start, end);
+        var test3 = this.value.string.slice(start, end);
         for(var m=0; m<test3.length; m++){
-            var index = start+m+1;
-            console.log(index);
-            if(test3[m]==this.newLine){
+            var filter = test3[m]['filters'];
+            filter = filter.join("");
+            if(test3[m]['char']==this.newLine){
                 u.push('<br>');
-            }else if(test3[m]==this.newSpace){
-                u.push('<span style="background-color:yellow;">&nbsp; </span>');
+            }else if(test3[m]['char']==this.newSpace){
+                u.push('<span style="background-color:yellow;'+filter+'">&nbsp; </span>');
             }else{
-                u.push('<span style="background-color:yellow;">'+test3[m]+'</span>');
+                u.push('<span style="background-color:yellow;'+filter+'">'+test3[m]['char']+'</span>');
             }
         }
         selection = u.join("");
@@ -155,14 +165,16 @@ define([
         // text after selection
         var t=[];
         var after='';
-        var test2 = this.value.string.substring(end, this.value.string.length);
+        var test2 = this.value.string.slice(end, this.value.string.length);
         for(var k=0; k<test2.length; k++){
-            if(test2[k]==this.newLine){
+            var filter = test2[k]['filters'];
+            filter = filter.join("");
+            if(test2[k]['char']==this.newLine){
                 t.push('<br>');
-            }else if(test2[k]==this.newSpace){
-                t.push('<span>&nbsp; </span>');
+            }else if(test2[k]['char']==this.newSpace){
+                t.push('<span style='+filter+'>&nbsp; </span>');
             }else{
-                t.push('<span>'+test2[k]+'</span>');
+                t.push('<span style='+filter+'>'+test2[k]['char']+'</span>');
             }
         }
         after = t.join("");
@@ -227,6 +239,7 @@ define([
         
         dojo.attr('line','innerHTML',this.currLine);
         dojo.attr('col','innerHTML',this.currLineIndex);
+        this._hold = false;
     };
     
     // Insert single char OR string at this.value.start
@@ -236,11 +249,10 @@ define([
         var v = this.value;
         
         if(start != end){
-            this.value.string = v.string.substring(0,start)+v.string.substring(end,v.string.length);
+            this.value.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
             this.clearSelection();
         }
-        
-        this.value.string = v.string.substring(0,start)+c+v.string.substring(start,v.string.length);
+        this.value.string = v.string.slice(0,start).concat([{'char':c,'filters':[]}]).concat(v.string.slice(start,v.string.length));
         this.value.start = this.value.start+c.length;
         this.value.end = this.value.start;
         this.render();
@@ -255,11 +267,11 @@ define([
             var n = 1;
         
         if(start != end){
-            this.value.string = v.string.substring(0,start)+v.string.substring(end,v.string.length);
+            this.value.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
             this.clearSelection();
         }else{
             var beforeLength = this.value.string.length+0;
-            this.value.string = v.string.substring(0,v.start-n)+v.string.substring(v.start,v.string.length);
+            this.value.string = v.string.slice(0,v.start-n).concat(v.string.slice(v.start,v.string.length));
             var afterLength = this.value.string.length+0;
             if(beforeLength != afterLength){
                 this.value.start = this.value.start - n;
@@ -287,7 +299,11 @@ define([
     
     // Get string representation of curr value
     proto.getValue = function() {
-        return this.value.string;
+        var s = '';
+        for(var i=0; i<this.value.string.length; i++){
+            s = s+this.value.string[i]['char'];
+        }
+        return s;
     };
     
     proto.moveCaretUp = function(select) {
@@ -666,11 +682,12 @@ define([
         this._toolbar = new Toolbar({},toolbarNode);
         dojo.attr(this._toolbar.domNode, 'class', 'gradient header');
         dojo.forEach(["Bold", "Italic", "Underline"], dojo.hitch(this, function(label) {
-            var button = new Button({
+            var button = new ToggleButton({
                 label: label,
                 showLabel: false,
                 iconClass: "dijitEditorIcon dijitEditorIcon" + label
             });
+            this[label] = button;
             this._toolbar.addChild(button);
             dojo.connect(button, 'onclick', this, '_on'+label+'Click');
         }));
@@ -678,16 +695,146 @@ define([
         this._toolbar.addChild(sep);
     };
     
+    proto._connectSyncs = function() {
+        this.collab = coweb.initCollab({id : this.id});
+        this.collab.subscribeSync('editorBold', this, '_onRemoteStyle');
+        this.collab.subscribeSync('editorItalic', this, '_onRemoteStyle');
+        this.collab.subscribeSync('editorUnderline', this, '_onRemoteStyle');
+    };
+    
+    proto._onRemoteStyle = function(obj) {
+        this.value.string = obj.value.string
+        this.render();
+    };
+    
     proto._onBoldClick = function() {
+        var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
+        var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
+        if(start == end){
+            if(this.bold == false){
+                this.bold = true;
+                dojo.attr(this.Bold.domNode.childNodes[0], 'style', 'background-color:red');
+            }else{
+                this.bold = false;
+                dojo.attr(this.Bold.domNode.childNodes[0], 'style', '');
+            }
+        }else{
+            if(this._hold == false){
+                for(var i=start; i<end; i++){
+                    if(this.value.string[i]['filters'] == undefined){
+                        this.value.string[i]['filters'] = [];
+                    }
+                    if(dojo.indexOf(this.value.string[i]['filters'],'font-weight:bold;') == -1){
+                        this.value.string[i]['filters'].push('font-weight:bold;'); 
+                    }        
+                }
+                this.render();
+                this._hold = true;
+                this.collab.sendSync('editorBold', {'string':this.value.string}, null);   
+            }else{
+                for(var i=start; i<end; i++){
+                    if(this.value.string[i]['filters'] == undefined){
+                        this.value.string[i]['filters'] = [];
+                    }
+                    if(dojo.indexOf(this.value.string[i]['filters'],'font-weight:bold;') == -1){
+                        this.value.string[i]['filters'].push('font-weight:bold;'); 
+                    }else{
+                        this.value.string[i]['filters'][dojo.indexOf(this.value.string[i]['filters'],'font-weight:bold;')] = '';
+                    }
+                }
+                this.render();
+                this._hold = true;
+                this.collab.sendSync('editorBold', {'string':this.value.string}, null);
+            }
+        }
+        this.div.focus();
         
     };
     
     proto._onItalicClick = function() {
-        
+        var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
+        var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
+        if(start == end){
+            if(this.bold == false){
+                this.bold = true;
+                dojo.attr(this.Italic.domNode.childNodes[0], 'style', 'background-color:red');
+            }else{
+                this.bold = false;
+                dojo.attr(this.Italic.domNode.childNodes[0], 'style', ' ');
+            }
+        }else{
+            if(this._hold == false){
+                for(var i=start; i<end; i++){
+                    if(this.value.string[i]['filters'] == undefined){
+                        this.value.string[i]['filters'] = [];
+                    }
+                    if(dojo.indexOf(this.value.string[i]['filters'],'font-style:italic;') == -1){
+                        this.value.string[i]['filters'].push('font-style:italic;'); 
+                    }        
+                }
+                this.render();
+                this._hold = true;
+                this.collab.sendSync('editorItalic', {'string':this.value.string}, null);
+            }else{
+                for(var i=start; i<end; i++){
+                    if(this.value.string[i]['filters'] == undefined){
+                        this.value.string[i]['filters'] = [];
+                    }
+                    if(dojo.indexOf(this.value.string[i]['filters'],'font-style:italic;') == -1){
+                        this.value.string[i]['filters'].push('font-style:italic;'); 
+                    }else{
+                        this.value.string[i]['filters'][dojo.indexOf(this.value.string[i]['filters'],'font-style:italic;')] = '';
+                    }
+                }
+                this.render();
+                this._hold = true;
+                this.collab.sendSync('editorItalic', {'string':this.value.string}, null);
+            }
+        }
+        this.div.focus();
     };
     
     proto._onUnderlineClick = function() {
-        
+        var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
+        var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
+        if(start == end){
+            if(this.bold == false){
+                this.bold = true;
+                dojo.attr(this.Underline.domNode.childNodes[0], 'style', 'background-color:red');
+            }else{
+                this.bold = false;
+                dojo.attr(this.Underline.domNode.childNodes[0], 'style', '');
+            }
+        }else{
+            if(this._hold == false){
+                for(var i=start; i<end; i++){
+                    if(this.value.string[i]['filters'] == undefined){
+                        this.value.string[i]['filters'] = [];
+                    }
+                    if(dojo.indexOf(this.value.string[i]['filters'],'text-decoration:underline;') == -1){
+                        this.value.string[i]['filters'].push('text-decoration:underline;'); 
+                    }        
+                }
+                this.render();
+                this._hold = true;
+                this.collab.sendSync('editorUnderline', {'string':this.value.string}, null);
+            }else{
+                for(var i=start; i<end; i++){
+                    if(this.value.string[i]['filters'] == undefined){
+                        this.value.string[i]['filters'] = [];
+                    }
+                    if(dojo.indexOf(this.value.string[i]['filters'],'text-decoration:underline;') == -1){
+                        this.value.string[i]['filters'].push('text-decoration:underline;'); 
+                    }else{
+                        this.value.string[i]['filters'][dojo.indexOf(this.value.string[i]['filters'],'text-decoration:underline;')] = '';
+                    }
+                }
+                this.render();
+                this._hold = true;
+                this.collab.sendSync('editorUnderline', {'string':this.value.string}, null);
+            }
+        }
+        this.div.focus();
     };
     
     proto._buildFooter = function(){
