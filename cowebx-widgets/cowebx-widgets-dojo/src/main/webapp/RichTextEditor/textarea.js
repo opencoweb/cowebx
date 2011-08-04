@@ -708,6 +708,8 @@ define([
     };
     
     proto._onBoldClick = function() {
+        if(this._lastOp != 'bold')
+            this._hold = false;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         if(start == end){
@@ -731,7 +733,7 @@ define([
                 this.render();
                 this._hold = true;
                 this.collab.sendSync('editorBold', {'string':this.value.string}, null);   
-            }else{
+            }else if(this._hold == true && this._lastOp == 'bold'){
                 for(var i=start; i<end; i++){
                     if(this.value.string[i]['filters'] == undefined){
                         this.value.string[i]['filters'] = [];
@@ -747,11 +749,14 @@ define([
                 this.collab.sendSync('editorBold', {'string':this.value.string}, null);
             }
         }
+        this._lastOp = 'bold';
         this.div.focus();
         
     };
     
     proto._onItalicClick = function() {
+        if(this._lastOp != 'italic')
+            this._hold = false;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         if(start == end){
@@ -775,7 +780,7 @@ define([
                 this.render();
                 this._hold = true;
                 this.collab.sendSync('editorItalic', {'string':this.value.string}, null);
-            }else{
+            }else if(this._hold == true && this._lastOp == 'italic'){
                 for(var i=start; i<end; i++){
                     if(this.value.string[i]['filters'] == undefined){
                         this.value.string[i]['filters'] = [];
@@ -791,10 +796,13 @@ define([
                 this.collab.sendSync('editorItalic', {'string':this.value.string}, null);
             }
         }
+        this._lastOp = 'italic';
         this.div.focus();
     };
     
     proto._onUnderlineClick = function() {
+        if(this._lastOp != 'underline')
+            this._hold = false;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         if(start == end){
@@ -818,7 +826,7 @@ define([
                 this.render();
                 this._hold = true;
                 this.collab.sendSync('editorUnderline', {'string':this.value.string}, null);
-            }else{
+            }else if(this._hold == true && this._lastOp == 'underline'){
                 for(var i=start; i<end; i++){
                     if(this.value.string[i]['filters'] == undefined){
                         this.value.string[i]['filters'] = [];
@@ -834,6 +842,7 @@ define([
                 this.collab.sendSync('editorUnderline', {'string':this.value.string}, null);
             }
         }
+        this._lastOp = 'underline';
         this.div.focus();
     };
     
