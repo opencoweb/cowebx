@@ -243,7 +243,7 @@ define([
     };
     
     // Insert single char at this.value.start
-    proto.insert = function(c) {
+    proto.insert = function(c, paste) {
         console.log('insert');
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
@@ -255,7 +255,11 @@ define([
         }
         for(var i=c.length-1; i>=0; i--){
             var f = this.filters.slice();
-            this.value.string = v.string.slice(0,start).concat([{'char':c[i],'filters':f}]).concat(v.string.slice(start,v.string.length));
+            if(!paste || paste==undefined){
+                this.value.string = v.string.slice(0,start).concat([{'char':c[i],'filters':f}]).concat(v.string.slice(start,v.string.length));
+            }else{
+                this.value.string = v.string.slice(0,start).concat([{'char':c[i],'filters':[]}]).concat(v.string.slice(start,v.string.length));
+            }
             this.value.start = this.value.start+1;
             this.value.end = this.value.start;
         }
@@ -443,7 +447,7 @@ define([
             if(e.which == 86){
                 this.t = setTimeout(dojo.hitch(this, function(){
                     var text = this._hidden.value;
-                    this.insert(text);
+                    this.insert(text, true);
                 }), 100);
             //selectAll
             }else if(e.which == 65){
@@ -475,7 +479,7 @@ define([
             if(e.which == 118){
                 this.t = setTimeout(dojo.hitch(this, function(){
                     var text = this._hidden.value;
-                    this.insert(text);
+                    this.insert(text, true);
                         
                 }), 100);
             //selectAll
