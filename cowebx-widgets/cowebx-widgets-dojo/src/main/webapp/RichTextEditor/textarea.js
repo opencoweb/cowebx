@@ -442,8 +442,7 @@ define([
             if(e.which == 86){
                 this.t = setTimeout(dojo.hitch(this, function(){
                     var text = this._hidden.value;
-                    for(var i=0; i<text.length; i++)
-                        this.insert(text[i]);
+                    this.insert(text);
                 }), 100);
             //selectAll
             }else if(e.which == 65){
@@ -695,6 +694,7 @@ define([
             this[label] = button;
             this._toolbar.addChild(button);
             dojo.connect(button, 'onclick', this, '_on'+label+'Click');
+            dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
         }));
         var sep = new Separator({});
         this._toolbar.addChild(sep);
@@ -721,11 +721,11 @@ define([
             if(this._bold == false){
                 this._bold = true;
                 this.filters.push('font-weight:bold;');
-                dojo.attr(this.Bold.domNode.childNodes[0], 'style', 'background-color:red');
+                dojo.attr(this.Bold.domNode, 'style', 'border-bottom:3px solid red');
             }else{
                 this._bold = false;
                 this.filters[dojo.indexOf(this.filters,'font-weight:bold;')] = '';
-                dojo.attr(this.Bold.domNode.childNodes[0], 'style', '');
+                dojo.attr(this.Bold.domNode, 'style', 'border-bottom:3px solid black');
             }
         }else{
             if(this._hold == false){
@@ -769,11 +769,11 @@ define([
             if(this._italic == false){
                 this._italic = true;
                 this.filters.push('font-style:italic;');
-                dojo.attr(this.Italic.domNode.childNodes[0], 'style', 'background-color:red');
+                dojo.attr(this.Italic.domNode, 'style', 'border-bottom:3px solid red');
             }else{
                 this._italic = false;
                 this.filters[dojo.indexOf(this.filters,'font-style:italic;')] = '';
-                dojo.attr(this.Italic.domNode.childNodes[0], 'style', ' ');
+                dojo.attr(this.Italic.domNode, 'style', 'border-bottom:3px solid black');
             }
         }else{
             if(this._hold == false){
@@ -817,11 +817,11 @@ define([
             if(this._underline == false){
                 this._underline = true;
                 this.filters.push('text-decoration:underline;');
-                dojo.attr(this.Underline.domNode.childNodes[0], 'style', 'background-color:red');
+                dojo.attr(this.Underline.domNode, 'style', 'border-bottom:3px solid red');
             }else{
                 this._underline = false;
                 this.filters[dojo.indexOf(this.filters,'text-decoration:underline;')] = '';
-                dojo.attr(this.Underline.domNode.childNodes[0], 'style', '');
+                dojo.attr(this.Underline.domNode, 'style', 'border-bottom:3px solid black');
             }
         }else{
             if(this._hold == false){
