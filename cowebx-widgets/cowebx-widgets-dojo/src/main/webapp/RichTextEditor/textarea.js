@@ -79,7 +79,7 @@ define([
             reset = true;                                   // otherwise, insert
             this.insert(String.fromCharCode(e.which));
         }
-        
+        e.preventDefault();
         this.getCharObj(reset);
     };
     
