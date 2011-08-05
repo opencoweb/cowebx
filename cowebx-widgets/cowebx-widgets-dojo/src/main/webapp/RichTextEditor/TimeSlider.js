@@ -1,9 +1,10 @@
 define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) {
     var TimeSlider = function(args){
-        if(!args.domNode || !args.textarea || !args.id)
+        if(!args.domNode || !args.textarea || !args.id || !args.parent)
             throw new Error('Slider: missing argument');
         this.domNode = args.domNode;
         this.id = args.id;
+        this.parent = args.parent;
         this.build(args.domNode);
         this.history = [];
         this._textarea = args.textarea;
