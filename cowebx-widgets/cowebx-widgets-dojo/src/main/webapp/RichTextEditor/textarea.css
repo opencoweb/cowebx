@@ -41,9 +41,7 @@
 
 .div {
     width: 100%;
-    min-height:300px;
-    height: auto !important;
-    height: 300px;
+    overflow:auto;
     background:white;
     cursor:text;
     position:relative;

@@ -39,7 +39,6 @@ define([
         this.newSpace       =   ' ';
         this.filters        =   [];
         this.cancelKeys     =   {
-            9  : 'tab',
             27 : 'esc',
             91 : 'meta',
             18 : 'option',
@@ -69,7 +68,11 @@ define([
             if(this.before.childNodes[this.before.childNodes.length-1].innerHTML == '&nbsp; ')
                 this.delete(1)
             this.insert(this.newLine); 
+        }else if(e.keyCode == 9){                             // tab
+            reset = true;
+            this.insert('    ');
         }else if(e.charCode == 32){                         // newSpace
+            reset = true;                        
             this.insert(this.newSpace); 
         }else if(e.keyCode == 38){                          // up
             this.moveCaretUp(e.shiftKey);
