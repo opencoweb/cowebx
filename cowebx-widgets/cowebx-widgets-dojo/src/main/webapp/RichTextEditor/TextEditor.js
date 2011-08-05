@@ -16,6 +16,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this.min = 0; 
         this.max = 0;
         this.value = '';
+        this.on = true;
         this.slider = this._buildSlider();
         this._connectSyncs();
         dojo.connect(this._textarea.div, 'onkeypress', this, '_updatePOR');
@@ -78,7 +79,8 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
     };
     
     proto.iterateRecv = function() {
-        this.collab.resumeSync();
+        if(this.on == true)
+            this.collab.resumeSync();
         this.collab.pauseSync();
         if(this.q.length != 0){
             this.runOps();

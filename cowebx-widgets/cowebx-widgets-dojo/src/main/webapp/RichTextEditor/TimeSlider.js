@@ -12,6 +12,7 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         this.index = null;
         this.div = args.div;
         this._i=null;
+        this.collab = coweb.initCollab({id : this.id});  
         dojo.connect(this._textarea.div,'onclick',this,function(){
             this._onBlur();
         });
@@ -78,6 +79,7 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
     };
     
     proto._onChange = function(value) {
+        this.parent.on = false;
         var p = value;
         var n = Math.floor((this.history.length-1)*p);
         this.index = n;
@@ -124,6 +126,7 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
                 })
             },h);
         }
+        this.parent.on = true;
     };
     
     proto._toggle = function(){
