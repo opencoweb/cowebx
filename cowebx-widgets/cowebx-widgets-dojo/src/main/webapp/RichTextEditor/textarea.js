@@ -597,7 +597,7 @@ define([
             this.getCharObj(true);
         }
         
-        dojo.style(this.div, 'height', (window.innerHeight-150)+'px');
+        dojo.style(this.div, 'height', (window.innerHeight-200)+'px');
     };
 
     proto._onMouseDown = function(e){
