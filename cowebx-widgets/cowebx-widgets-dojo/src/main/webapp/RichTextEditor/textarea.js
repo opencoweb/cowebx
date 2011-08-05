@@ -177,10 +177,11 @@ define([
             this.displayCaret = true;
         }
         
+        console.log(slider);
         if(!slider || slider==false){
             //Save history
-            var copy = this.value.string.slice()
-            dojo.publish("editorHistory", [{save:this.value.string}]);
+            var copy = dojo.clone(this.value);
+            dojo.publish("editorHistory", [{save:copy}]);
         }
     };
     
@@ -604,7 +605,7 @@ define([
     proto._onClick = function(e){
         //Clear selection
         this.clearSelection();
-        this.render();
+        this.render(true);
         
         var _prevStart = this.value.start;
         var _prevEnd = this.value.end;
@@ -650,7 +651,7 @@ define([
             if(end != start)
                 this.value.start = (start>0) ? start-1 : 0;
 
-            this.render();
+            this.render(true);
             this.getCharObj(true);
         }
     };
