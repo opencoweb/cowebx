@@ -66,8 +66,9 @@ define([
             this.moveCaretRight(e.shiftKey);
         }else if(e.keyCode == 13){                          // newLine
             //Don't allow spaces at end of lines
-            if(this.before.childNodes[this.before.childNodes.length-1].innerHTML == '&nbsp; ')
-                this.delete(1)
+            if(this.before.childNodes[this.before.childNodes.length-1].innerHTML == '&nbsp; '){
+                this._delete(1);
+            }
             this.insert(this.newLine); 
         }else if(e.keyCode == 9){                             // tab
             reset = true;
@@ -80,7 +81,7 @@ define([
         }else if(e.keyCode == 40){                          // down
             this.moveCaretDown(e.shiftKey);
         }else if(e.keyCode == 8){                           // delete
-            this.delete(1);
+            this._delete(1);
         }else if(this.cancelKeys[e.which] != undefined){    // cancelKeys
         }else{
             reset = true;                                   // otherwise, insert
@@ -264,7 +265,7 @@ define([
     };
     
     // Remove n chars at this.value.start
-    proto.delete = function(n) {
+    proto._delete = function(n) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var v = this.value;
@@ -542,7 +543,7 @@ define([
                 var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
                 var len = this._stripSpaces(this._stripTags(this.selection.innerHTML)).length;
                 this.value.start = end;
-                this.delete(len);
+                this._delete(len);
             }
             
             setTimeout(dojo.hitch(this, function(){
@@ -574,7 +575,7 @@ define([
                 var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
                 var len = this._stripSpaces(this._stripTags(this.selection.innerHTML)).length;
                 this.value.start = end;
-                this.delete(len);
+                this._delete(len);
             }
             
             setTimeout(dojo.hitch(this, function(){
