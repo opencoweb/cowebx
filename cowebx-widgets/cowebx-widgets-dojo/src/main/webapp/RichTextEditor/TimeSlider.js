@@ -43,7 +43,7 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
             })
         },
         h);
-        var play = dojo.create('a',{'class':'go',innerHTML:'Play'},this._buttonCell);
+        var play = dojo.create('a',{'class':'go',innerHTML:'Play'},this._buttonCell); 
         dojo.connect(play, 'onclick', this, 'play');
     };
     
@@ -80,6 +80,7 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
     
     proto._onChange = function(value) {
         this.parent.on = false;
+        console.log(this.parent.on);
         var p = value;
         var n = Math.floor((this.history.length-1)*p);
         this.index = n;

@@ -44,6 +44,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
     };
     
     proto.iterateSend = function() {
+        if(this.on==true){
             this.newSnapshot = this.snapshot();
             var oldLength = this.oldSnapshot.length;
             var newLength = this.newSnapshot.length;
@@ -76,6 +77,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
                         this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
                 }
             }
+        }
     };
     
     proto.iterateRecv = function() {

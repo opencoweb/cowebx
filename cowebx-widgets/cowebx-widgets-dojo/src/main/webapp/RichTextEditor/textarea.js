@@ -455,6 +455,9 @@ define([
             dojo.style(button.domNode, 'float', 'right');
             dojo.style(button.domNode, 'position', 'relative');
             dojo.style(button.domNode, 'left', '240px');
+            if(dojo.isWebKit){
+                dojo.style(this.sliderButton.domNode, 'top', '-37px');
+            }
         }
         
         return toolbar;
