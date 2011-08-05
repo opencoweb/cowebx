@@ -426,6 +426,12 @@ define([
         this.collab.subscribeSync('editorBold', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorItalic', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorUnderline', this, '_onRemoteStyle');
+        this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
+    };
+    
+    proto._onRemoteTitle = function(obj){
+        this.title = obj.value.title;
+        this._title.innerHTML = this.title;
     };
     
     proto._buildToolbar = function(){
@@ -461,7 +467,6 @@ define([
             dojo.style(button.domNode, 'position', 'relative');
             dojo.style(button.domNode, 'left', '240px');
         }
-        
         return toolbar;
     };
     
@@ -472,8 +477,21 @@ define([
     proto._buildFooter = function(){
         var footerNode = dojo.create('div',{'class':'footer gradient'},this.div,'after');
         var div = dojo.create('div',{'class':'footerDiv'},footerNode,'first');
+        var title = dojo.create('span',{'class':'title',innerHTML:'Unnamed Document'},footerNode,'first');
+        dojo.connect(title, 'ondblclick', this, function(e){
+            e.target.innerHTML = '';
+            e.target.contentEditable = true;
+            e.target.focus();
+        });
+        dojo.connect(title, 'onblur', this, function(e){
+            this.title = e.target.innerHTML;
+            e.target.contentEditable = false;
+            this.collab.sendSync('editorTitle', {'title':e.target.innerHTML}, null);   
+        });
+        this._title = title;
         var line = dojo.create('span',{style:'float:left',innerHTML:'Line: '+'<span id="line">0</span>'},div,'last');
         var col = dojo.create('span',{style:'float:right;',innerHTML:'Col: '+'<span id="col">0</span>'},div,'last');
+        
         return footerNode;
     };
     

@@ -184,14 +184,17 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         var state = {
             string: this._textarea.value.string,
             oldSnapshot: this.oldSnapshot,
-            history : this.slider.history
+            history : this.slider.history,
+            title: this._textarea.title
         };
         this.collab.sendStateResponse(state,token);
     };
     
     proto.onStateResponse = function(obj){
         this.oldSnapshot = obj.oldSnapshot;
-        this._textarea.value.string = obj.string
+        this._textarea.value.string = obj.string;
+        this._textarea.title = obj.title;
+        this._textarea._title.innerHTML = this._textarea.title;
         this._textarea.render();
         this.slider.history = obj.history;
     };
