@@ -11,7 +11,9 @@
      padding: 0px;
      width: 100%;
      background: grey;
-    overflow:hidden;
+     overflow:hidden;
+     height:100%;
+     background:#dddddd;
  }
 
  .editor_node{

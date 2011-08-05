@@ -130,13 +130,23 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
     };
     
     proto._toggle = function(){
+        var button = this._textarea.sliderButton;
         if(!this.sliderShowing){
             this.sliderShowing = true;
+            dojo.attr(button.domNode, 'style', 'border-bottom:3px solid red');
+            dojo.style(button.domNode, 'float', 'right');
+            dojo.style(button.domNode, 'position', 'relative');
+            dojo.style(button.domNode, 'left', '240px');
             dojo.fadeIn({node:'sliderHolder'}).play();
         }else{
+            dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
+            dojo.style(button.domNode, 'float', 'right');
+            dojo.style(button.domNode, 'position', 'relative');
+            dojo.style(button.domNode, 'left', '240px');
             this.sliderShowing = false;
             dojo.fadeOut({node:'sliderHolder'}).play();
         }
+        dojo.style()
     };
     
     return TimeSlider;

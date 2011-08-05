@@ -34,6 +34,7 @@ define([
         this.currLine       =   0;
         this.currLineIndex  =   0;
         this.displayCaret   =   false;
+        this.sliderShowing  =   false;
         this.lastIndex      =   0;
         this.newLine        =   '^';
         this.newSpace       =   ' ';
@@ -449,7 +450,8 @@ define([
             var button = new ToggleButton({
                 label: '<span style="font-family:Arial;font-size:14px;">Time Slider</span>',
                 showLabel: true,
-                iconClass: 'sliderIcon'
+                iconClass: 'sliderIcon',
+                id: 'sliderButton'
             });
             toolbar.addChild(button);
             this.sliderButton = button;
@@ -596,7 +598,6 @@ define([
             this.render();
             this.getCharObj(true);
         }
-        
         dojo.style(this.div, 'height', (window.innerHeight-200)+'px');
     };
 
