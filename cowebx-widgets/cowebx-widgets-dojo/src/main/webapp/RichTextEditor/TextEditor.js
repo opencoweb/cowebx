@@ -8,7 +8,8 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
             throw new Error('missing id argument');
     
         this._por = {start : 0, end: 0};
-        this._textarea = new textarea({domNode:args.domNode,'id':'_textarea'});
+        this._container = dojo.create('div',{'class':'container'},args.domNode);
+        this._textarea = new textarea({domNode:this._container,'id':'_textarea'});
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = '';
         this.t = null;

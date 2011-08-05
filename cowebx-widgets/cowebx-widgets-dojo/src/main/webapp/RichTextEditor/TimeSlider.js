@@ -71,7 +71,7 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
                 },h);
             }
             this._i++;
-            setTimeout(dojo.hitch(this, 'play'), 100);
+            setTimeout(dojo.hitch(this, 'play'), 50);
         }else{
             this._i=null;
             this._onBlur();
@@ -80,7 +80,6 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
     
     proto._onChange = function(value) {
         this.parent.on = false;
-        console.log(this.parent.on);
         var p = value;
         var n = Math.floor((this.history.length-1)*p);
         this.index = n;
