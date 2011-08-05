@@ -177,7 +177,6 @@ define([
             this.displayCaret = true;
         }
         
-        console.log(slider);
         if(!slider || slider==false){
             //Save history
             var copy = dojo.clone(this.value);

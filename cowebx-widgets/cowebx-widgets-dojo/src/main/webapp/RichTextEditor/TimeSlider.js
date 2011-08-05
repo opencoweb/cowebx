@@ -10,6 +10,7 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         this.sliderShowing = false;
         this.index = null;
         this.div = args.div;
+        this._i=null;
         dojo.connect(this._textarea.div,'onclick',this,function(){
             this._onBlur();
         });
@@ -41,7 +42,38 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         },
         h);
         var play = dojo.create('a',{'class':'go',innerHTML:'Play'},this._buttonCell);
-        //dojo.connect(play, 'onclick', this, 'play');
+        dojo.connect(play, 'onclick', this, 'play');
+    };
+    
+    proto.play = function(){
+        if(!this._i)
+            this._i = this.index;
+        if(this._i < this.history.length){
+            var state = this.history[this._i];
+            if(state){
+                this._textarea.value = state;
+                this._textarea.render(true);
+                this._textarea.getCharObj(true);
+                this.slider.destroy();
+                var h = dojo.create('div',{style:'width:100%;height:100%'},this._sliderCell);
+                this.slider = new dijit.form.HorizontalSlider({
+                    name: "slider",
+                    value: this._i/(this.history.length-1),
+                    minimum: 0,
+                    maximum: 1,
+                    intermediateChanges: true,
+                    style: "width:100%;",
+                    onChange: dojo.hitch(this, function(value) {
+                        this._onChange(value);
+                    })
+                },h);
+            }
+            this._i++;
+            setTimeout(dojo.hitch(this, 'play'), 100);
+        }else{
+            this._i=null;
+            this._onBlur();
+        }
     };
     
     proto._onChange = function(value) {
@@ -63,6 +95,20 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
             this._textarea.value = state;
             this._textarea.render(true);
             this._textarea.getCharObj(true);
+            this.slider.destroy();
+            var h = dojo.create('div',{style:'width:100%;height:100%'},this._sliderCell);
+            this.slider = new dijit.form.HorizontalSlider({
+                name: "slider",
+                value: 1,
+                minimum: 0,
+                maximum: 1,
+                intermediateChanges: true,
+                style: "width:100%;",
+                onChange: dojo.hitch(this, function(value) {
+                    this._onChange(value);
+                })
+            },h);
+        }else{
             this.slider.destroy();
             var h = dojo.create('div',{style:'width:100%;height:100%'},this._sliderCell);
             this.slider = new dijit.form.HorizontalSlider({
