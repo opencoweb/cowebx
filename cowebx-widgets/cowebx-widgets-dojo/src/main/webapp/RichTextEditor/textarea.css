@@ -152,4 +152,12 @@
     padding-left:5px;
     margin-left:4px;
     height:14px;
+    cursor:hand;cursor:pointer;
+}
+
+.color{
+    height:15px;
+    width:15px;
+    display:inline-block;
+    margin:5px;
 }

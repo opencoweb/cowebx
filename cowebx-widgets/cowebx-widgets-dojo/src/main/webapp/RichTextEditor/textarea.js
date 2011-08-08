@@ -36,8 +36,10 @@ define([
         this.displayCaret   =   false;
         this.sliderShowing  =   false;
         this.lastIndex      =   0;
+        this.title          =   'Untitled Document';
         this.newLine        =   '^';
         this.newSpace       =   ' ';
+        this.localColor     =   this._getLocalColor();
         this.filters        =   [];
         this.cancelKeys     =   {
             27 : 'esc',
@@ -57,7 +59,6 @@ define([
     // Determines key-specific action
     proto.onKeyPress = function(e) {
         var reset = false;
-        
         if(e.keyCode == 37){                                // left
             reset = true;
             this.moveCaretLeft(e.shiftKey);                   
@@ -65,16 +66,12 @@ define([
             reset = true;
             this.moveCaretRight(e.shiftKey);
         }else if(e.keyCode == 13){                          // newLine
-            //Don't allow spaces at end of lines
-            if(this.before.childNodes[this.before.childNodes.length-1].innerHTML == '&nbsp; '){
-                this._delete(1);
-            }
             this.insert(this.newLine); 
         }else if(e.keyCode == 9){                             // tab
             reset = true;
             this.insert('    ');
         }else if(e.charCode == 32){                         // newSpace
-            reset = true;                        
+            reset = true;     
             this.insert(this.newSpace); 
         }else if(e.keyCode == 38){                          // up
             this.moveCaretUp(e.shiftKey);
@@ -200,8 +197,10 @@ define([
         dojo.destroy(a);
         var ignore = ['before', 'after', 'selection'];
         var prev = null;
+        var o = 0;
         dojo.query("#thisDiv span").forEach(dojo.hitch(this, function(node, index, arr){
             if(dojo.indexOf(ignore,node.id) == -1){
+                o++;
                 var pos = this._findPos(node);
                 if(pos.top == currY){
                     count++;
@@ -478,8 +477,10 @@ define([
     proto._buildFooter = function(){
         var footerNode = dojo.create('div',{'class':'footer gradient'},this.div,'after');
         var div = dojo.create('div',{'class':'footerDiv'},footerNode,'first');
+        var color = dojo.create('div',{'class':'color',style:'background-color:'+this.localColor},footerNode,'first');
         var title = dojo.create('span',{'class':'title',innerHTML:'Unnamed Document'},footerNode,'first');
-        dojo.connect(title, 'ondblclick', this, function(e){
+        dojo.connect(title, 'onclick', this, function(e){
+            dojo.style(e.target, 'background', 'white');
             e.target.innerHTML = '';
             e.target.contentEditable = true;
             e.target.focus();
@@ -487,13 +488,28 @@ define([
         dojo.connect(title, 'onblur', this, function(e){
             this.title = e.target.innerHTML;
             e.target.contentEditable = false;
+            dojo.style(e.target, 'background', '');
             this.collab.sendSync('editorTitle', {'title':e.target.innerHTML}, null);   
+        });
+        dojo.connect(title, 'onkeypress', this, function(e){
+            if(e.keyCode == 8){
+                dojo.attr(e.target, 'innerHTML', '');
+            } 
         });
         this._title = title;
         var line = dojo.create('span',{style:'float:left',innerHTML:'Line: '+'<span id="line">0</span>'},div,'last');
         var col = dojo.create('span',{style:'float:right;',innerHTML:'Col: '+'<span id="col">0</span>'},div,'last');
         
         return footerNode;
+    };
+    
+    proto._getLocalColor = function(){
+        var letters = '0123456789ABCDEF'.split('');
+        var color = '#';
+        for (var i = 0; i < 6; i++ ) {
+            color += letters[Math.round(Math.random() * 15)];
+        }
+        return color;
     };
     
     proto._style = function(){

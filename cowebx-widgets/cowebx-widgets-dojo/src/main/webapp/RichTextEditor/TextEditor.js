@@ -13,6 +13,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = '';
         this.t = null;
+        this.buffer = [];
         this.q = [];
         this.min = 0; 
         this.max = 0;
@@ -56,8 +57,11 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
                     var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
 
                 if(syncs){
-                    for(var i=0; i<syncs.length; i++)
+                    for(var i=0; i<syncs.length; i++){
+                        this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
                         this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
+                    }
+                    
                 }
             }else if(newLength < oldLength){
                 var mx = this.max+(oldLength-newLength);
@@ -66,16 +70,20 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
                     var syncs = this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
 
                 if(syncs){
-                    for(var i=0; i<syncs.length; i++)
+                    for(var i=0; i<syncs.length; i++){
+                        this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
                         this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+mn);
+                    }
                 }
             }else if(newLength == oldLength){
                 if(this.oldSnapshot != this.newSnapshot)
                     var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, this.max));
 
                 if(syncs){
-                    for(var i=0; i<syncs.length; i++)
+                    for(var i=0; i<syncs.length; i++){
+                        this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
                         this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
+                    }
                 }
             }
         }
@@ -120,8 +128,8 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         por = this._por,
         start = por.start,
         end = por.end;
-
-        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':[]}]).concat(t.value.string.slice(pos));
+        var f = this.buffer.slice();
+        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f}]).concat(t.value.string.slice(pos));
         if(pos < por.end) {
             if(pos >= por.start && por.end != por.start)
                 ++start;
@@ -199,6 +207,10 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this.slider.history = obj.history;
     };
     
+    proto.onRemoteBuffer = function(obj){
+        this.buffer = obj.value.buffer;
+    };
+    
     proto._updatePOR = function() {
         this._por.start = this._textarea.value.start;
         this._por.end = this._textarea.value.end;
@@ -213,6 +225,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
         this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
+        this.collab.subscribeSync('editorBuffer', this, 'onRemoteBuffer');
         this.collab.subscribeStateRequest(this, 'onStateRequest');
     	this.collab.subscribeStateResponse(this, 'onStateResponse');
     };

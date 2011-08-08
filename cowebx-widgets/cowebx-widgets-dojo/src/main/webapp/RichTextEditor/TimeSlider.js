@@ -146,7 +146,6 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
             this.sliderShowing = false;
             dojo.fadeOut({node:'sliderHolder'}).play();
         }
-        dojo.style()
     };
     
     return TimeSlider;

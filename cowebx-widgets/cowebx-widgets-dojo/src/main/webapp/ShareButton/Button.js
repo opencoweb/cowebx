@@ -22,6 +22,11 @@ define([], function() {
         dojo.connect(this.shareButton, 'onclick', this, 'onShareClick');
         this.emailBox = dojo.create('div',{innerHTML:'email to send to:<br>','class':'emailBox',id:'sendBox'},this.shareButton,'after');
         this.emailInput = dojo.create('input',{type:'text',id:'sendInput'},this.emailBox,'last');
+        dojo.connect(this.emailInput, 'onkeypress', this, function(e){
+            if(e.keyCode == 8){
+                e.target.value = '';
+            } 
+        });
         this.sendButton = dojo.create('a',{innerHTML:'send', 'class':'send'}, this.emailInput, 'after');
         dojo.connect(this.sendButton, 'onclick', this, 'onSendClick');
     };
