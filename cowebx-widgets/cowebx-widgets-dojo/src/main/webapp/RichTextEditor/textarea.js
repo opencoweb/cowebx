@@ -66,7 +66,12 @@ define([
             reset = true;
             this.moveCaretRight(e.shiftKey);
         }else if(e.keyCode == 13){                          // newLine
-            this.insert(this.newLine); 
+            if(this.value.string[this.value.start-1]['char'] == ' '){
+               this._delete(1);
+            }
+            setTimeout(dojo.hitch(this, function(){
+                this.insert(this.newLine);
+            }), 100);
         }else if(e.keyCode == 9){                             // tab
             reset = true;
             this.insert('    ');
@@ -207,12 +212,9 @@ define([
                     this.rows[row] = count;
                 }else{
                     if(prev != null && prev.innerHTML == '&nbsp; '){
-   
-                        if((node.previousSibling == null) || (node.previousSibling.tagName != 'BR')){
-                            dojo.create('br',{},prev,'after');
-                            dojo.destroy(prev);
-                            this.rows[row] = this.rows[row]-1;
-                        }
+                        dojo.create('br',{},prev,'after');
+                        dojo.destroy(prev);
+                        this.rows[row] = this.rows[row]-1;
                     }
                     var breaks = Math.floor((pos.top - currY)/lineHeight)-1;
                     for(var i=0; i<breaks; i++){
@@ -520,8 +522,10 @@ define([
     };
         
     proto._findIndex = function(){
+        
         var start = this.value.start;
         var index = 0;
+
         for(var i=1; i<=this._count(this.rows); i++){
             if(start == this.rows[i]){
                 return start;
