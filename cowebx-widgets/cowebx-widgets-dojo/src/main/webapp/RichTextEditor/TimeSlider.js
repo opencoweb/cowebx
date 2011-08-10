@@ -75,6 +75,7 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         }else{
             this._i=null;
             this._onBlur();
+            this._textarea.div.focus();
         }
     };
     
