@@ -207,9 +207,12 @@ define([
                     this.rows[row] = count;
                 }else{
                     if(prev != null && prev.innerHTML == '&nbsp; '){
-                        dojo.create('br',{},prev,'after');
-                        dojo.destroy(prev);
-                        this.rows[row] = this.rows[row]-1;
+   
+                        if((node.previousSibling == null) || (node.previousSibling.tagName != 'BR')){
+                            dojo.create('br',{},prev,'after');
+                            dojo.destroy(prev);
+                            this.rows[row] = this.rows[row]-1;
+                        }
                     }
                     var breaks = Math.floor((pos.top - currY)/lineHeight)-1;
                     for(var i=0; i<breaks; i++){

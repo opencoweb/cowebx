@@ -57,6 +57,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
                     var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
 
                 if(syncs){
+                    console.log(syncs);
                     for(var i=0; i<syncs.length; i++){
                         this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
                         this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
@@ -70,6 +71,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
                     var syncs = this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
 
                 if(syncs){
+                    console.log(syncs);
                     for(var i=0; i<syncs.length; i++){
                         this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
                         this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+mn);
@@ -80,6 +82,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
                     var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, this.max));
 
                 if(syncs){
+                    console.log(syncs);
                     for(var i=0; i<syncs.length; i++){
                         this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
                         this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
