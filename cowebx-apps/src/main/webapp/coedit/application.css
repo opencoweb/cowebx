@@ -29,7 +29,7 @@ html, body {
      width:600px;
      margin-left:auto;
      margin-right:auto;
-     height:500px;
+     height:510px;
      border-radius:5px;
      -moz-border-radius:5px;
      -webkit-border-radius:5px;
@@ -40,7 +40,7 @@ html, body {
 
 .splashInner {
      background:white;
-     height:395px;
+     height:405px;
      width:100%;
      border-radius:5px;
      -moz-border-radius:5px;
@@ -96,4 +96,65 @@ html, body {
 .newDoc:active {
     box-shadow: inset 0 1px 12px rgba(0, 0, 0, 0.9);
     background: #444;
+}
+
+.splashTable {
+    height:200px;
+    width:100%;
+    border-spacing:10px;
+    position:absolute;bottom:110px;
+}
+
+.splashCell {
+    height:100%;
+    background:darkgrey;
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+}
+
+.splashTitle {
+    padding:10px;
+    position: relative;  
+    font-size: 70px; 
+    height:100%;
+    font-family: arial;
+    color:white;
+    text-decoration: none;  
+    color: white;             
+    position: absolute;  
+    font-weight:bold;    
+}
+
+
+.splashTop {
+    width:100%;
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    height:100px;
+    background:orange;
+}
+
+.splashHide {
+    position:absolute;
+    width:100%;
+    height:10px;
+    top:95px;
+    background:white;
+}
+
+.splashWhat {
+    font: 22px arial;
+    color:#2b6bad;
+    font-weight:bold;
+    margin-left:15px;
+    margin-top:15px;
+}
+
+.splashDesc {
+    font: 16px arial;
+    margin-left:15px;
+    color:grey;
+    margin-bottom:10px;
 }
