@@ -49,7 +49,7 @@ define(
 			    
 			   	//4. Get a session instance & prep
 			    var sess = coweb.initSession();
-			    sess.prepare();
+			    sess.prepare().then(function(info) { });
 			},
 			
 			aquireUrlParams: function(param){
