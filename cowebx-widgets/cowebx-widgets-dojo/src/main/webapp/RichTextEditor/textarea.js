@@ -626,6 +626,18 @@ define([
         }   
     };
     
+    proto._isPiL = function(points, pt){
+        var y = 0;
+        
+        if(pt.y <= points.bottom && pt.y >= points.top)
+            y = 1;
+        if(y==1){
+            return true;
+        }else{
+            return false;
+        }
+    };
+    
     proto._loadTemplate = function(url) {
        var e = document.createElement("link");
        e.href = url;
@@ -655,7 +667,7 @@ define([
         var _prevStart = this.value.start;
         var _prevEnd = this.value.end;
         var ignore = ['selection', 'before', 'after'];
-        var i=0; j = 0;
+        var i=0; j = 0; k=0;
         var start = null;
         var end = null;
         
@@ -688,6 +700,25 @@ define([
                 }
             }
         }));
+        
+        //Backup if no matches: is Point in Line? Go to end if so...
+        var line = 0;
+        if(start == null && end == null){
+            dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
+                if(dojo.indexOf(ignore,node.id) == -1){
+                    k++;
+                    if(node.tagName == 'SPAN'){
+                        var pos = this._findPos(node);
+                        var height = node.offsetHeight;
+                        var points = {top: pos.top, bottom: pos.top+height};
+                        if(this._isPiL(points, {y:e.clientY}) == true){
+                           start = k;
+                           end = k;
+                        }
+                    }
+                }
+            }));
+        }
         
         if(start && end){
             this.value.start = start-1;
