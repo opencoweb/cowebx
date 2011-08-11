@@ -12,7 +12,8 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         this.index = null;
         this.div = args.div;
         this._i=null;
-        this.collab = coweb.initCollab({id : this.id});  
+        this.collab = coweb.initCollab({id : this.id}); 
+        this.collab.subscribeSync('editorReset', this, 'reset');
         dojo.connect(this._textarea.div,'onclick',this,function(){
             this._onBlur();
         });
@@ -45,6 +46,25 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         h);
         var play = dojo.create('a',{'class':'go',innerHTML:'Play'},this._buttonCell); 
         dojo.connect(play, 'onclick', this, 'play');
+        var reset = dojo.create('a',{'class':'go',innerHTML:'Revert'},this._buttonCell); 
+        dojo.connect(reset, 'onclick', this, 'reset');
+    };
+    
+    proto.reset = function(obj){
+        if(obj && obj.value){
+            this.parent.oldSnapshot = obj.value.oldSnapshot;
+            this._textarea.value.string = obj.value.string;
+            this._textarea.render();
+            this.history = obj.value.history;
+        }else{
+            this.history = this.history.slice(0, this.index+1);
+            this.collab.sendSync('editorReset',{
+                string: this._textarea.value.string,
+                oldSnapshot: this.parent.oldSnapshot,
+                history : this.history
+            });
+        }
+        this._onBlur();
     };
     
     proto.play = function(){
@@ -96,7 +116,7 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         this.index = this.history.length-1;
         var state = this.history[this.index];
         if(state){
-            this._textarea.value = state;
+            this._textarea.value.string = state.string;
             this._textarea.render(true);
             this._textarea.getCharObj(true);
             this.slider.destroy();

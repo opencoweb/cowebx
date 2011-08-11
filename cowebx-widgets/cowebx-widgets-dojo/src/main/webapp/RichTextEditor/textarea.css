@@ -103,12 +103,13 @@
     -webkit-border-radius:5px;
     text-shadow:1px 1px #666;
     cursor:hand;cursor:pointer;
-    font: 13px arial;
+    font: 10px arial;
     background-color: darkred;
     color:white;
     padding:5px;
     position:relative;
     top:0px;
+    margin:2px;
 }
 
 .go:hover{
