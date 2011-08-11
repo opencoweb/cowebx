@@ -212,9 +212,16 @@ define([
                     this.rows[row] = count;
                 }else{
                     if(prev != null && prev.innerHTML == '&nbsp; '){
-                        dojo.create('br',{},prev,'after');
-                        dojo.destroy(prev);
-                        this.rows[row] = this.rows[row]-1;
+                        if(node.previousSibling == null){
+                           this._forceIndex = true;
+                           dojo.create('br',{},prev,'after');
+                           dojo.destroy(prev);
+                           this.rows[row] = this.rows[row]-1;
+                        }else if((node.previousSibling.tagName != 'BR')){
+                            dojo.create('br',{},prev,'after');
+                            dojo.destroy(prev);
+                            this.rows[row] = this.rows[row]-1;
+                        }
                     }
                     var breaks = Math.floor((pos.top - currY)/lineHeight)-1;
                     for(var i=0; i<breaks; i++){
@@ -233,8 +240,10 @@ define([
             this.rows[1] = 0;
         
         this.currLineIndex = this._findIndex();
-        if(this.currLineIndex == undefined)
+        if(this.currLineIndex == undefined || this._forceIndex){
             this.currLineIndex = 0;
+            this._forceIndex = false;
+        }
         this.currLine = this._findLine();
         
         if(set && set==true)
