@@ -25,15 +25,7 @@ define(
 		
 		var app = {
 			init: function(){
-			    this.clicked = false;
-			    //1. Throw splash
-			    dojo.connect(dojo.byId('newDoc'),'onclick',this,function(){
-			        dojo.style('splash','display','none');
-			        dojo.style('editorNode','display','block');
-			        dojo.fadeIn({node:'editorNode',duration:1000}).play();
-			    });
-			    	
-				//2. Create the editor
+			    //1. Create the editor
                 var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
                 var button = new Button({'domNode':textEditor._textarea.toolbar.domNode,'listenTo':textEditor,'id':'shareButton'});
                 dojo.style(button.shareButton, 'float', 'right');
@@ -44,14 +36,32 @@ define(
                 dojo.style(button.emailBox, 'top', '49px');
                 dojo.style(button.emailBox, 'left', '43px');
                 
-				
-				//2. Populate with some placeholder text and style
-				textEditor._textarea.setValue('Hello, world!^^Try opening two browsers both pointing to this URL or send it to a friend, and start typing...');
-				
-			   	//3. Get a session instance & prep
+			    //2. Generate session or enter session
+ 			    if(this.aquireUrlParams('session') == null){
+ 			        dojo.style('splash','display','block');
+       			    dojo.connect(dojo.byId('newDoc'),'onclick',this,function(){
+       			        window.location = document.URL+'?'+'session='+Math.floor(Math.random()*10000001);
+       			    });
+			    }else{
+   			        dojo.style('editorNode','display','block');
+   			        dojo.fadeIn({node:'editorNode',duration:1000}).play();
+			    }
+			    
+			   	//4. Get a session instance & prep
 			    var sess = coweb.initSession();
 			    sess.prepare();
 			},
+			
+			aquireUrlParams: function(param){
+				param = param.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+				var pattern = "[\\?&]"+param+"=([^&#]*)";
+				var regex = new RegExp( pattern );
+				var results = regex.exec( window.location.href );
+				if( results == null )
+					return null;
+				else
+					return results[1];
+			}
 		};
 		
 		dojo.ready(function() {

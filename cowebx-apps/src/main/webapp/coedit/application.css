@@ -35,6 +35,7 @@ html, body {
      -webkit-border-radius:5px;
      position:relative;
      margin-top:80px;
+     display:none;
 }
 
 .splashInner {

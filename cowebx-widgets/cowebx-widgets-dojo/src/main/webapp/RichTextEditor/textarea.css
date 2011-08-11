@@ -50,7 +50,6 @@
     cursor:text;
     position:relative;
     z-index:1000;
-    padding-left:3px;
 }
 
 .gradient {
