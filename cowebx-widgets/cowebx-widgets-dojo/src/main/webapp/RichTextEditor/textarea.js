@@ -318,12 +318,22 @@ define([
         this.render();
     };
     
-    // Get string representation of curr value
+    // Get plain string representation of curr value
     proto.getValue = function() {
         var s = '';
         for(var i=0; i<this.value.string.length; i++)
             s = s+this.value.string[i]['char'];
         return s;
+    };
+    
+    // Set plain string representation of curr value
+    proto.setValue = function(string) {
+        var s = [];
+        for(var i=0; i<string.length; i++)
+            s.push({'char':string[i],'filters':[]});
+        this.value.string = s;
+        this.render();
+        this.getCharObj(true);
     };
     
     proto.moveCaretUp = function(select) {

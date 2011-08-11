@@ -207,6 +207,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this._textarea.title = obj.title;
         this._textarea._title.innerHTML = this._textarea.title;
         this._textarea.render();
+        this._textarea.getCharObj(true);
         this.slider.history = obj.history;
     };
     
