@@ -50,7 +50,7 @@ html, body {
     border-radius:5px;
     -moz-border-radius:5px;
     -webkit-border-radius:5px;
-    box-shadow: 0px 0px 20px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0px 0px 2px 2px rgba(0, 0, 0, 0.3);
 }
  
 .newContainer {
@@ -65,7 +65,7 @@ html, body {
     background:     -ms-linear-gradient(#fff, #ccc);
     background:      -o-linear-gradient(#fff, #ccc);
     opacity: .9;
-    box-shadow: 0px 0px 20px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0px 0px 2px 2px rgba(0, 0, 0, 0.3);
     border-radius:5px;
     -moz-border-radius:5px;
     -webkit-border-radius:5px;
@@ -105,20 +105,23 @@ html, body {
 }
 
 .splashTable {
-    height:200px;
+    height:300px;
     width:100%;
     border-spacing:10px;
     position:absolute;bottom:110px;
+    right:0px;
 }
 
 .splashCell {
-    height:100%;
+    width:180px;
+    height:150px;
     background:darkgrey;
     border-radius:5px;
     -moz-border-radius:5px;
     -webkit-border-radius:5px;
     background:white;
     box-shadow: 0px 1px 8px rgba(0, 0, 0, 0.3);
+    vertical-align:top;
 }
 
 .splashTitle {
@@ -144,14 +147,6 @@ html, body {
     background:#FF9900;
 }
 
-.splashHide {
-    position:absolute;
-    width:100%;
-    height:10px;
-    top:90px;
-    background:#FF9900;
-}
-
 .splashWhat {
     font: 22px arial;
     color:#2b6bad;
@@ -160,9 +155,48 @@ html, body {
     margin-top:15px;
 }
 
+.splashWhy{
+    font: 24px arial;
+    color:#2b6bad;
+    font-weight:bold;
+    display:inline;
+    height:100%;
+    position:relative;
+    top:-15px;
+}
+
 .splashDesc {
     font: 16px arial;
     margin-left:15px;
     color:grey;
     margin-bottom:10px;
+}
+
+.features {
+    width:40px;
+    height:45px;
+}
+
+.use {
+    width:35px;
+    height:45px;
+}
+
+.tech {
+    width:35px;
+    height:45px;
+}
+
+.featureDiv {
+    font:arial;
+}
+
+.splashSubtitle {
+    color:white;
+    font: 14px arial;
+    position:relative;
+    top:80px;
+    width:585px;
+    background:#FF9900;
+    padding-left:15px;
 }
