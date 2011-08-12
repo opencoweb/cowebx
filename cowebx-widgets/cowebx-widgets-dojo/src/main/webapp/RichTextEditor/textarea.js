@@ -527,19 +527,18 @@ define([
         var footerNode = dojo.create('div',{'class':'footer gradient'},this.div,'after');
         var div = dojo.create('div',{'class':'footerDiv',id:'footerDiv'},footerNode,'first');
         var color = dojo.create('div',{'class':'color',style:'background-color:'+this.localColor},footerNode,'first');
-        var title = dojo.create('span',{'class':'title',innerHTML:'Unnamed Document'},footerNode,'first');
+        var title = dojo.create('span',{'class':'title',innerHTML:'Untitled Document'},footerNode,'first');
         dojo.connect(title, 'onclick', this, function(e){
             dojo.style(e.target, 'background', 'white');
-            dojo.style(e.target, 'color', 'black');
             e.target.innerHTML = '';
             e.target.contentEditable = true;
             e.target.focus();
         });
         dojo.connect(title, 'onblur', this, function(e){
-            this.title = e.target.innerHTML;
+            this.title = (e.target.innerHTML.length > 0) ? e.target.innerHTML : this.title;
+            e.target.innerHTML = this.title;
             e.target.contentEditable = false;
             dojo.style(e.target, 'background', '');
-            dojo.style(e.target, 'color', 'white');
             this.collab.sendSync('editorTitle', {'title':e.target.innerHTML}, null);   
         });
         var edit = dojo.create('img',{src:'images/pencil.png','class':'editIcon'},title,'after');

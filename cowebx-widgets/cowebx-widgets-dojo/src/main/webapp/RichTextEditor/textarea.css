@@ -120,7 +120,7 @@
     -webkit-border-radius:3px;
     font:12px arial;
     width:150px;
-    color:white;
+    color:black;
     float:left;
     position:relative;
     top:3px;
@@ -130,6 +130,7 @@
     margin-left:4px;
     height:14px;
     cursor:hand;cursor:pointer;
+    margin-right:5px;
 }
 
 .color{
