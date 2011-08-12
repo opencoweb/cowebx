@@ -13,6 +13,9 @@ define([], function() {
             throw new Error('missing listenTo argument');
         
         this.load_template('../lib/cowebx/dojo/ShareButton/textarea.css');
+        dojo.subscribe("shareClick", dojo.hitch(this, function(message){
+             this.onShareClick();
+        }));
         this._buildShareButton();
     };
     var proto = Button.prototype;

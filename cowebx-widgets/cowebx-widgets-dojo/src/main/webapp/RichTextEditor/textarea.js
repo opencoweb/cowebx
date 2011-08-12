@@ -463,6 +463,19 @@ define([
         
         var toolbar = new Toolbar({},toolbarNode);
         dojo.attr(toolbar.domNode, 'class', 'gradient header');
+        dojo.forEach(["NewPage", "Save"], dojo.hitch(this, function(label) {
+            var button = new ToggleButton({
+                label: label,
+                showLabel: false,
+                iconClass: "dijitEditorIcon dijitEditorIcon" + label
+            });
+            this[label] = button;
+            toolbar.addChild(button);
+            dojo.connect(button, 'onclick', this, '_on'+label+'Click');
+            dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
+        }));
+        var sep = new Separator({});
+        toolbar.addChild(sep);
         dojo.forEach(["Bold", "Italic", "Underline"], dojo.hitch(this, function(label) {
             var button = new ToggleButton({
                 label: label,
@@ -968,6 +981,14 @@ define([
         }
         this._lastOp = 'underline';
         this.div.focus();
+    };
+
+    proto._onNewPageClick = function() {
+        window.location = window.location.pathname+'?'+'session='+Math.floor(Math.random()*10000001);
+    };
+    
+    proto._onSaveClick = function() {
+         dojo.publish("shareClick", [{}]);
     };
 
     return textarea;
