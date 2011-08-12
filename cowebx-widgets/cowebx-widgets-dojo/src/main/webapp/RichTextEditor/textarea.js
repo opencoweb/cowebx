@@ -529,6 +529,7 @@ define([
         var title = dojo.create('span',{'class':'title',innerHTML:'Unnamed Document'},footerNode,'first');
         dojo.connect(title, 'onclick', this, function(e){
             dojo.style(e.target, 'background', 'white');
+            dojo.style(e.target, 'color', 'black');
             e.target.innerHTML = '';
             e.target.contentEditable = true;
             e.target.focus();
@@ -537,8 +538,10 @@ define([
             this.title = e.target.innerHTML;
             e.target.contentEditable = false;
             dojo.style(e.target, 'background', '');
+            dojo.style(e.target, 'color', 'white');
             this.collab.sendSync('editorTitle', {'title':e.target.innerHTML}, null);   
         });
+        var edit = dojo.create('img',{src:'images/pencil.png','class':'editIcon'},title,'after');
         dojo.connect(title, 'onkeypress', this, function(e){
             if(e.keyCode == 8){
                 dojo.attr(e.target, 'innerHTML', '');
