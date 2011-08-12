@@ -7,13 +7,13 @@ define([
     'cowebx/dojo/ShareButton/Button'
 ], function(coweb, Toolbar, ToggleButton, Separator, Dialog, Button) {
     var textarea = function(args){
-        //1. Check for req'd properties
         if(!args.domNode || !args.id)
-            throw new Error("textarea.js: missing domNode param");
-        if(args.noSlider)
-            this.noSlider = args.noSlider;
-        this.domNode = args.domNode;
-        this.id = args.id;
+            throw new Error("Textarea: missing arg");
+            
+        //1. Process args
+        this.noSlider       =   (!args.noSlider) ? false : args.noSlider;
+        this.domNode        =   args.domNode;
+        this.id             =   args.id;
 
         //2. Build stuff
         this.container      =   dojo.create('div',{'style':'height:100%;min-width:800px;overflow:hidden;'},this.domNode);
@@ -44,7 +44,6 @@ define([
         this.title          =   'Untitled Document';
         this.newLine        =   '^';
         this.newSpace       =   ' ';
-        this.localColor     =   this._getLocalColor();
         this.filters        =   [];
         this.cancelKeys     =   {
             27 : 'esc',
@@ -97,32 +96,7 @@ define([
         e.preventDefault();
         this.getCharObj(reset);
     };
-    
-    // Intercept paste / selectAll and handle with JS
-    proto.listenForKeyCombo = function(e) {
-        //Current limitations: only works with COMMAND / CTRL + key
-        //1. Listen for command / ctrl cross-browser
-        if((e.which == 224) || (e.which == 91) || (e.which == 17)){
-            
-            //2. Put current selection in hidden div, change focus
-            var sel = this._stripSpaces(this._stripTags(this.selection.innerHTML));
-            this._hidden = dojo.create('textarea',{
-                id:'hidden',
-                style:'position:absolute;left:-10000px;top:0px;',
-                innerHTML: sel
-            },this.div,'after');
-            document.getElementById('hidden').focus();
-            document.getElementById('hidden').select();
-            
-            //3. Listen for v or a, paste or selectAll respectively
-            if(dojo.isChrome){
-                this._chromeKeyCombo();
-            }else{
-                this._universalKeyCombo();
-            }
-        }
-    };
-    
+
     // Rips through this.value and blasts proper html equiv into dom
     proto.render = function(slider) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
@@ -343,6 +317,7 @@ define([
         this.getCharObj(true);
     };
     
+    // Move caret up one line
     proto.moveCaretUp = function(select) {
         var amt = 0;
         //1. Get to the beginning of the line
@@ -365,6 +340,7 @@ define([
         this.render();
     };
     
+    // Move caret down one line
     proto.moveCaretDown = function(select) {
         var amt = 0;
         //1. Get to the end of the line
@@ -390,6 +366,7 @@ define([
         this.render();    
     };
     
+    // Move caret left one char
     proto.moveCaretLeft = function(select) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
@@ -408,6 +385,7 @@ define([
         this.render();
     };
     
+    // Move caret right one char
     proto.moveCaretRight = function(select) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
@@ -426,6 +404,7 @@ define([
         this.render();
     };
     
+    // Set caret pos
     proto.moveCaretToPos = function(pos) {
         if(pos < 0){
             this.value.start = 0;
@@ -441,6 +420,30 @@ define([
         this.getCharObj();
     };
     
+    proto._listenForKeyCombo = function(e) {
+        //Current limitations: only works with COMMAND / CTRL + key
+        //1. Listen for command / ctrl cross-browser
+        if((e.which == 224) || (e.which == 91) || (e.which == 17)){
+            
+            //2. Put current selection in hidden div, change focus
+            var sel = this._stripSpaces(this._stripTags(this.selection.innerHTML));
+            this._hidden = dojo.create('textarea',{
+                id:'hidden',
+                style:'position:absolute;left:-10000px;top:0px;',
+                innerHTML: sel
+            },this.div,'after');
+            document.getElementById('hidden').focus();
+            document.getElementById('hidden').select();
+            
+            //3. Listen for v or a, paste or selectAll respectively
+            if(dojo.isChrome){
+                this._chromeKeyCombo();
+            }else{
+                this._universalKeyCombo();
+            }
+        }
+    };
+    
     proto._connect = function(){
         dojo.connect(window, 'resize', this, '_resize');
         dojo.connect(this.div, 'onmousedown', this, '_onMouseDown');
@@ -448,7 +451,7 @@ define([
         dojo.connect(this.div, 'onfocus', this, '_onFocus');
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
-        dojo.connect(this.div, 'onkeydown', this, 'listenForKeyCombo');
+        dojo.connect(this.div, 'onkeydown', this, '_listenForKeyCombo');
         document.onkeydown = this._overrideKeys;
     };
     
@@ -458,154 +461,6 @@ define([
         this.collab.subscribeSync('editorItalic', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorUnderline', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
-    };
-    
-    proto._onRemoteTitle = function(obj){
-        this.title = obj.value.title;
-        this._title.innerHTML = this.title;
-    };
-    
-    proto._buildToolbar = function(){
-        var toolbarNode = dojo.create('div',{style:'width:100%;height:50px;'},this.container,'first');
-        
-        var toolbar = new Toolbar({},toolbarNode);
-        dojo.attr(toolbar.domNode, 'class', 'gradient header');
-        var home = new ToggleButton({
-            label: '<img style="width:18px;height:18;" src="images/home.png"/>',
-            showLabel: true,
-            id: 'homeButton'
-        });
-        toolbar.addChild(home);
-        this.homeButton = home;
-        dojo.connect(home, 'onclick', this, '_onHomeClick');
-        dojo.attr(home.domNode, 'style', 'border-bottom:3px solid black');
-        dojo.style('homeButton_label', 'padding', '0px');
-        dojo.forEach(["NewPage", "Save"], dojo.hitch(this, function(label) {
-            var button = new ToggleButton({
-                label: label,
-                showLabel: false,
-                iconClass: "dijitEditorIcon dijitEditorIcon" + label
-            });
-            this[label] = button;
-            toolbar.addChild(button);
-            dojo.connect(button, 'onclick', this, '_on'+label+'Click');
-            dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
-        }));
-        var sep = new Separator({});
-        toolbar.addChild(sep);
-        dojo.forEach(["Bold", "Italic", "Underline"], dojo.hitch(this, function(label) {
-            var button = new ToggleButton({
-                label: label,
-                showLabel: false,
-                iconClass: "dijitEditorIcon dijitEditorIcon" + label
-            });
-            this[label] = button;
-            toolbar.addChild(button);
-            dojo.connect(button, 'onclick', this, '_on'+label+'Click');
-            dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
-        }));
-        var sep = new Separator({});
-        toolbar.addChild(sep);
-        if(!this.noSlider || this.noSlider == false){
-            var button = new ToggleButton({
-                label: '<span style="font-family:Arial;font-size:14px;"><img src="../lib/cowebx/dojo/RichTextEditor/images/history.png" style="height:20px;width:20px;margin-right:3px"/>History</span>',
-                showLabel: true,
-                id: 'sliderButton'
-            });
-            toolbar.addChild(button);
-            this.sliderButton = button;
-            dojo.connect(button, 'onclick', this, '_onSliderClick');
-            dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
-            dojo.style(button.domNode, 'float', 'right');
-        }
-        return toolbar;
-    };
-    
-    proto._buildTable = function(){
-        this._div = dojo.create('div', {'style':'width:100%;height:100%;overflow-y:auto;'}, this.container);
-        var table = dojo.create('table',{'style':'width:100%;border-spacing:0px;border-collapse:true;height:100%;'},this._div);
-        var tr = dojo.create('tr',{'style':'width:100%;height:100%;'},table);
-        var td1 = dojo.create('td',{'style':'width:20px;height:100%;'},tr,'first');
-        var td2 = dojo.create('td',{'style':'height:100%;'},tr,'last');
-        var d = dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, td2);
-        var l = dojo.create('div', {id:'lineNumbers','class':'lineNumbers'}, td1);
-        
-        return d;
-    };
-    
-    proto._onSliderClick = function(){
-        dojo.publish("sliderToggle", [{}]);
-    };
-    
-    proto._buildFooter = function(){
-        var footerNode = dojo.create('div',{'class':'footer gradient'},this.container,'last');
-        var div = dojo.create('div',{'class':'footerDiv',id:'footerDiv'},footerNode,'first');
-        var color = dojo.create('div',{'class':'color',style:'background-color:'+this.localColor},footerNode,'first');
-        var title = dojo.create('span',{'class':'title',innerHTML:'Untitled Document'},footerNode,'first');
-        dojo.connect(title, 'onclick', this, function(e){
-            dojo.style(e.target, 'background', 'white');
-            e.target.innerHTML = '';
-            e.target.contentEditable = true;
-            e.target.focus();
-        });
-        dojo.connect(title, 'onblur', this, function(e){
-            this.title = (e.target.innerHTML.length > 0) ? e.target.innerHTML : this.title;
-            e.target.innerHTML = this.title;
-            e.target.contentEditable = false;
-            dojo.style(e.target, 'background', '');
-            this.collab.sendSync('editorTitle', {'title':e.target.innerHTML}, null);   
-        });
-        var edit = dojo.create('img',{src:'images/pencil.png','class':'editIcon'},title,'after');
-        dojo.connect(title, 'onkeypress', this, function(e){
-            if(e.keyCode == 8){
-                dojo.attr(e.target, 'innerHTML', '');
-            } 
-        });
-        this._title = title;
-        var line = dojo.create('span',{style:'float:left',innerHTML:'Line: '+'<span id="line">0</span>'},div,'last');
-        var col = dojo.create('span',{style:'float:right;',innerHTML:'Col: '+'<span id="col">0</span>'},div,'last');
-        
-        return footerNode;
-    };
-    
-    proto._buildShareButton = function(){
-        var button = new Button({
-            'domNode':this.toolbar.domNode,
-            'listenTo':this,
-            'id':'shareButton',
-            'displayButton':false});
-        dojo.style(button.emailBox, 'position', 'absolute');
-        dojo.style(button.emailBox, 'top', '49px');
-    };
-    
-    proto._buildConfirmDialog = function(){
-        secondDlg = new Dialog({
-            title: "Are you sure?",
-            style: "width: 300px;font:12px arial;"
-        });
-        var h = dojo.create('div',{'style':'margin-left:auto;margin-right:auto;width:80px;margin-bottom:5px'},secondDlg.domNode,'last');
-        var yes = new ToggleButton({
-            label: '<span style="font-family:Arial;font-size:10px;">Yes</span>',
-            showLabel: true,
-            id: 'yesButton'
-        });
-        var no = new ToggleButton({
-            label: '<span style="font-family:Arial;font-size:10px;">No</span>',
-            showLabel: true,
-            id: 'noButton'
-        });
-        dojo.place(yes.domNode, h, 'last');
-        dojo.place(no.domNode, h, 'last');
-        return secondDlg
-    };
-    
-    proto._getLocalColor = function(){
-        var letters = '0123456789ABCDEF'.split('');
-        var color = '#';
-        for (var i = 0; i < 6; i++ ) {
-            color += letters[Math.round(Math.random() * 15)];
-        }
-        return color;
     };
     
     proto._style = function(){
@@ -743,103 +598,6 @@ define([
        document.getElementsByTagName("head")[0].appendChild(e);
     };
     
-    proto._resize = function(initial) {
-        if(initial != true){
-            this.render();
-            this.getCharObj(true);
-        }
-        
-        dojo.style(this._div, 'height', (window.innerHeight-70)+'px');
-    };
-
-    proto._onMouseDown = function(e){
-        this._selStart = {x:e.clientX,y:e.clientY};
-    };
-    
-    proto._onClick = function(e){
-        //Clear selection
-        this.clearSelection();
-        this.render(true);
-        
-        var _prevStart = this.value.start;
-        var _prevEnd = this.value.end;
-        var ignore = ['selection', 'before', 'after'];
-        var i=0; j = 0; k=0;
-        var start = null;
-        var end = null;
-        
-        //Point in Polygon to find selection Start
-        dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
-            if(dojo.indexOf(ignore,node.id) == -1){
-                i++;
-                if(node.tagName == 'SPAN'){
-                    var pos = this._findPos(node);
-                    var width = node.offsetWidth;
-                    var height = node.offsetHeight;
-                    var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
-                    if(this._isPiP(points, this._selStart) == true)
-                        start = i;
-                }
-            }
-        }));
-        
-        //Point in Polygon to find selection End
-        dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
-            if(dojo.indexOf(ignore,node.id) == -1){
-                j++;
-                if(node.tagName == 'SPAN'){
-                    var pos = this._findPos(node);
-                    var width = node.offsetWidth;
-                    var height = node.offsetHeight;
-                    var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
-                    if(this._isPiP(points, {x:e.clientX,y:e.clientY}) == true)
-                        end = j;
-                }
-            }
-        }));
-        
-        //Backup if no matches: is Point in Line? Go to end if so...
-        // var line = 0;
-        //         if(start == null && end == null){
-        //             dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
-        //                 if(dojo.indexOf(ignore,node.id) == -1){
-        //                     k++;
-        //                     if(node.tagName == 'SPAN'){
-        //                         var pos = this._findPos(node);
-        //                         var height = node.offsetHeight;
-        //                         var points = {top: pos.top, bottom: pos.top+height};
-        //                         if(this._isPiL(points, {y:e.clientY}) == true){
-        //                            start = k;
-        //                            end = k;
-        //                         }
-        //                     }
-        //                 }
-        //             }));
-        //         }
-        //         
-        if(start && end){
-            this.value.start = start-1;
-            this.value.end = end-1;
-
-            if(end != start)
-                this.value.start = (start>0) ? start-1 : 0;
-
-            this.render(true);
-            this.getCharObj(true);
-        }
-    };
-    
-    proto._onFocus = function(e){
-        this.displayCaret = true;
-        if(dojo.byId('hidden'))
-            dojo.destroy('hidden');
-        dojo.publish("shareHide", [{}]);
-    };
-    
-    proto._onBlur = function(){
-        this.displayCaret = false;
-    };
-    
     proto._blink = function(){
         if(this.displayCaret){
             if(dojo.attr(this.after, 'style') == 'border-left: 1px solid white'){
@@ -898,6 +656,148 @@ define([
         var curDate = null;
         do { curDate = new Date(); }
         while(curDate-date < millis);
+    };
+    
+    proto._renderLineNumbers = function(){
+        if(this._prevLineCount == null)
+            this._prevLineCount = 0;
+        if(this._count(this.rows)!=this._prevLineCount){
+            var div = dojo.byId('lineNumbers');
+            div.innerHTML = '';
+            for(var i=1; i<=this._count(this.rows); i++){
+                div.innerHTML = div.innerHTML+'<span style="color:grey;">1</span><span class="line">'+i+'</span><br>';
+            }
+            this._prevLineCount = this._count(this.rows);
+        }
+    };    
+    
+    proto._buildToolbar = function(){
+        var toolbarNode = dojo.create('div',{style:'width:100%;height:50px;'},this.container,'first');
+        var toolbar = new Toolbar({},toolbarNode);
+        dojo.attr(toolbar.domNode, 'class', 'gradient header');
+        var home = new ToggleButton({
+            label: '<img style="width:18px;height:18;" src="images/home.png"/>',
+            showLabel: true,
+            id: 'homeButton'
+        });
+        toolbar.addChild(home);
+        this.homeButton = home;
+        dojo.connect(home, 'onclick', this, '_onHomeClick');
+        dojo.attr(home.domNode, 'style', 'border-bottom:3px solid black');
+        dojo.style('homeButton_label', 'padding', '0px');
+        dojo.forEach(["NewPage", "Save"], dojo.hitch(this, function(label) {
+            var button = new ToggleButton({
+                label: label,
+                showLabel: false,
+                iconClass: "dijitEditorIcon dijitEditorIcon" + label
+            });
+            this[label] = button;
+            toolbar.addChild(button);
+            dojo.connect(button, 'onclick', this, '_on'+label+'Click');
+            dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
+        }));
+        var sep = new Separator({});
+        toolbar.addChild(sep);
+        dojo.forEach(["Bold", "Italic", "Underline"], dojo.hitch(this, function(label) {
+            var button = new ToggleButton({
+                label: label,
+                showLabel: false,
+                iconClass: "dijitEditorIcon dijitEditorIcon" + label
+            });
+            this[label] = button;
+            toolbar.addChild(button);
+            dojo.connect(button, 'onclick', this, '_on'+label+'Click');
+            dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
+        }));
+        var sep = new Separator({});
+        toolbar.addChild(sep);
+        if(!this.noSlider || this.noSlider == false){
+            var button = new ToggleButton({
+                label: '<span style="font-family:Arial;font-size:14px;"><img src="../lib/cowebx/dojo/RichTextEditor/images/history.png" style="height:20px;width:20px;margin-right:3px"/>History</span>',
+                showLabel: true,
+                id: 'sliderButton'
+            });
+            toolbar.addChild(button);
+            this.sliderButton = button;
+            dojo.connect(button, 'onclick', this, '_onSliderClick');
+            dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
+            dojo.style(button.domNode, 'float', 'right');
+        }
+        return toolbar;
+    };
+    
+    proto._buildTable = function(){
+        this._div = dojo.create('div', {'style':'width:100%;height:100%;overflow-y:auto;'}, this.container);
+        var table = dojo.create('table',{'style':'width:100%;border-spacing:0px;border-collapse:true;height:100%;'},this._div);
+        var tr = dojo.create('tr',{'style':'width:100%;height:100%;'},table);
+        var td1 = dojo.create('td',{'style':'width:20px;height:100%;'},tr,'first');
+        var td2 = dojo.create('td',{'style':'height:100%;'},tr,'last');
+        var d = dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, td2);
+        var l = dojo.create('div', {id:'lineNumbers','class':'lineNumbers'}, td1);
+        
+        return d;
+    };
+    
+    proto._buildFooter = function(){
+        var footerNode = dojo.create('div',{'class':'footer gradient'},this.container,'last');
+        var div = dojo.create('div',{'class':'footerDiv',id:'footerDiv'},footerNode,'first');
+        var color = dojo.create('div',{'class':'color',style:'background-color:'+this.localColor},footerNode,'first');
+        var title = dojo.create('span',{'class':'title',innerHTML:'Untitled Document'},footerNode,'first');
+        dojo.connect(title, 'onclick', this, function(e){
+            dojo.style(e.target, 'background', 'white');
+            e.target.innerHTML = '';
+            e.target.contentEditable = true;
+            e.target.focus();
+        });
+        dojo.connect(title, 'onblur', this, function(e){
+            this.title = (e.target.innerHTML.length > 0) ? e.target.innerHTML : this.title;
+            e.target.innerHTML = this.title;
+            e.target.contentEditable = false;
+            dojo.style(e.target, 'background', '');
+            this.collab.sendSync('editorTitle', {'title':e.target.innerHTML}, null);   
+        });
+        var edit = dojo.create('img',{src:'images/pencil.png','class':'editIcon'},title,'after');
+        dojo.connect(title, 'onkeypress', this, function(e){
+            if(e.keyCode == 8){
+                dojo.attr(e.target, 'innerHTML', '');
+            } 
+        });
+        this._title = title;
+        var line = dojo.create('span',{style:'float:left',innerHTML:'Line: '+'<span id="line">0</span>'},div,'last');
+        var col = dojo.create('span',{style:'float:right;',innerHTML:'Col: '+'<span id="col">0</span>'},div,'last');
+        
+        return footerNode;
+    };
+    
+    proto._buildShareButton = function(){
+        var button = new Button({
+            'domNode':this.toolbar.domNode,
+            'listenTo':this,
+            'id':'shareButton',
+            'displayButton':false});
+        dojo.style(button.emailBox, 'position', 'absolute');
+        dojo.style(button.emailBox, 'top', '49px');
+    };
+    
+    proto._buildConfirmDialog = function(){
+        secondDlg = new Dialog({
+            title: "Are you sure?",
+            style: "width: 300px;font:12px arial;"
+        });
+        var h = dojo.create('div',{'style':'margin-left:auto;margin-right:auto;width:80px;margin-bottom:5px'},secondDlg.domNode,'last');
+        var yes = new ToggleButton({
+            label: '<span style="font-family:Arial;font-size:10px;">Yes</span>',
+            showLabel: true,
+            id: 'yesButton'
+        });
+        var no = new ToggleButton({
+            label: '<span style="font-family:Arial;font-size:10px;">No</span>',
+            showLabel: true,
+            id: 'noButton'
+        });
+        dojo.place(yes.domNode, h, 'last');
+        dojo.place(no.domNode, h, 'last');
+        return secondDlg
     };
     
     proto._onRemoteStyle = function(obj) {
@@ -1091,18 +991,111 @@ define([
         });
     };
     
-    proto._renderLineNumbers = function(){
-        if(this._prevLineCount == null)
-            this._prevLineCount = 0;
-        if(this._count(this.rows)!=this._prevLineCount){
-            var div = dojo.byId('lineNumbers');
-            div.innerHTML = '';
-            for(var i=1; i<=this._count(this.rows); i++){
-                div.innerHTML = div.innerHTML+'<span style="color:grey;">1</span><span class="line">'+i+'</span><br>';
-            }
-            this._prevLineCount = this._count(this.rows);
+    proto._onSliderClick = function(){
+        dojo.publish("sliderToggle", [{}]);
+    };
+    
+    proto._onRemoteTitle = function(obj){
+        this.title = obj.value.title;
+        this._title.innerHTML = this.title;
+    };
+    
+    proto._resize = function(initial) {
+        if(initial != true){
+            this.render();
+            this.getCharObj(true);
         }
+        
+        dojo.style(this._div, 'height', (window.innerHeight-70)+'px');
     };
 
+    proto._onMouseDown = function(e){
+        this._selStart = {x:e.clientX,y:e.clientY};
+    };
+    
+    proto._onClick = function(e){
+        //Clear selection
+        this.clearSelection();
+        this.render(true);
+        
+        var _prevStart = this.value.start;
+        var _prevEnd = this.value.end;
+        var ignore = ['selection', 'before', 'after'];
+        var i=0; j = 0; k=0;
+        var start = null;
+        var end = null;
+        
+        //Point in Polygon to find selection Start
+        dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
+            if(dojo.indexOf(ignore,node.id) == -1){
+                i++;
+                if(node.tagName == 'SPAN'){
+                    var pos = this._findPos(node);
+                    var width = node.offsetWidth;
+                    var height = node.offsetHeight;
+                    var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
+                    if(this._isPiP(points, this._selStart) == true)
+                        start = i;
+                }
+            }
+        }));
+        
+        //Point in Polygon to find selection End
+        dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
+            if(dojo.indexOf(ignore,node.id) == -1){
+                j++;
+                if(node.tagName == 'SPAN'){
+                    var pos = this._findPos(node);
+                    var width = node.offsetWidth;
+                    var height = node.offsetHeight;
+                    var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
+                    if(this._isPiP(points, {x:e.clientX,y:e.clientY}) == true)
+                        end = j;
+                }
+            }
+        }));
+        
+        //Backup if no matches: is Point in Line? Go to end if so...
+        // var line = 0;
+        //         if(start == null && end == null){
+        //             dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
+        //                 if(dojo.indexOf(ignore,node.id) == -1){
+        //                     k++;
+        //                     if(node.tagName == 'SPAN'){
+        //                         var pos = this._findPos(node);
+        //                         var height = node.offsetHeight;
+        //                         var points = {top: pos.top, bottom: pos.top+height};
+        //                         if(this._isPiL(points, {y:e.clientY}) == true){
+        //                            start = k;
+        //                            end = k;
+        //                         }
+        //                     }
+        //                 }
+        //             }));
+        //         }
+        //         
+        if(start && end){
+            this.value.start = start-1;
+            this.value.end = end-1;
+
+            if(end != start)
+                this.value.start = (start>0) ? start-1 : 0;
+
+            this.render(true);
+            this.getCharObj(true);
+        }
+    };
+    
+    proto._onFocus = function(e){
+        this.displayCaret = true;
+        if(dojo.byId('hidden'))
+            dojo.destroy('hidden');
+        dojo.publish("shareHide", [{}]);
+    };
+    
+    proto._onBlur = function(){
+        this.displayCaret = false;
+    };
+    
     return textarea;
 });
