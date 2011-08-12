@@ -15,7 +15,8 @@ define([
         this.id = args.id;
 
         //2. Build stuff
-        this.div            =   dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, this.domNode);
+        this.container      =   dojo.create('div',{'style':'height:100%;min-width:800px;'},this.domNode)
+        this.div            =   dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, this.container);
         this.toolbar        =   this._buildToolbar();
         this.footer         =   this._buildFooter();
         this.before         =   dojo.create('span',{id:'before'},this.div,'first');
