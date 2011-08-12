@@ -15,8 +15,8 @@ define([
         this.id = args.id;
 
         //2. Build stuff
-        this.container      =   dojo.create('div',{'style':'height:100%;min-width:800px;'},this.domNode)
-        this.div            =   dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, this.container);
+        this.container      =   dojo.create('div',{'style':'height:100%;min-width:800px;overflow:hidden;'},this.domNode);
+        this.div            =   this._buildTable();
         this.toolbar        =   this._buildToolbar();
         this.footer         =   this._buildFooter();
         this.before         =   dojo.create('span',{id:'before'},this.div,'first');
@@ -255,6 +255,8 @@ define([
         dojo.attr('line','innerHTML',this.currLine);
         dojo.attr('col','innerHTML',this.currLineIndex);
         this._hold = false;
+        
+                this._renderLineNumbers();
     };
     
     // Insert single char at this.value.start
@@ -462,7 +464,7 @@ define([
     };
     
     proto._buildToolbar = function(){
-        var toolbarNode = dojo.create('div',{style:'width:100%;height:50px;'},this.div,'before');
+        var toolbarNode = dojo.create('div',{style:'width:100%;height:50px;'},this.container,'first');
         
         var toolbar = new Toolbar({},toolbarNode);
         dojo.attr(toolbar.domNode, 'class', 'gradient header');
@@ -517,12 +519,24 @@ define([
         return toolbar;
     };
     
+    proto._buildTable = function(){
+        this._div = dojo.create('div', {'style':'width:100%;height:100%;overflow-y:auto;'}, this.container);
+        var table = dojo.create('table',{'style':'width:100%;border-spacing:0px;border-collapse:true;height:100%;'},this._div);
+        var tr = dojo.create('tr',{'style':'width:100%;height:100%;'},table);
+        var td1 = dojo.create('td',{'style':'width:20px;height:100%;'},tr,'first');
+        var td2 = dojo.create('td',{'style':'height:100%;'},tr,'last');
+        var d = dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, td2);
+        var l = dojo.create('div', {id:'lineNumbers','class':'lineNumbers'}, td1);
+        
+        return d;
+    };
+    
     proto._onSliderClick = function(){
         dojo.publish("sliderToggle", [{}]);
     };
     
     proto._buildFooter = function(){
-        var footerNode = dojo.create('div',{'class':'footer gradient'},this.div,'after');
+        var footerNode = dojo.create('div',{'class':'footer gradient'},this.container,'last');
         var div = dojo.create('div',{'class':'footerDiv',id:'footerDiv'},footerNode,'first');
         var color = dojo.create('div',{'class':'color',style:'background-color:'+this.localColor},footerNode,'first');
         var title = dojo.create('span',{'class':'title',innerHTML:'Untitled Document'},footerNode,'first');
@@ -722,8 +736,8 @@ define([
             this.render();
             this.getCharObj(true);
         }
-
-        dojo.style(this.div, 'height', (window.innerHeight-70)+'px');
+        
+        dojo.style(this._div, 'height', (window.innerHeight-70)+'px');
     };
 
     proto._onMouseDown = function(e){
@@ -1063,6 +1077,19 @@ define([
             dojo.disconnect(two);
             dojo.disconnect(three);
         });
+    };
+    
+    proto._renderLineNumbers = function(){
+        if(this._prevLineCount == null)
+            this._prevLineCount = 0;
+        if(this._count(this.rows)!=this._prevLineCount){
+            var div = dojo.byId('lineNumbers');
+            div.innerHTML = '';
+            for(var i=1; i<=this._count(this.rows); i++){
+                div.innerHTML = div.innerHTML+'<span style="color:grey;">1</span><span class="line">'+i+'</span><br>';
+            }
+            this._prevLineCount = this._count(this.rows);
+        }
     };
 
     return textarea;
