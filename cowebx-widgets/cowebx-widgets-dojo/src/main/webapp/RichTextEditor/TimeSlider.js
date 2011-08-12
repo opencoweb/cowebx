@@ -2,27 +2,20 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
     var TimeSlider = function(args){
         if(!args.domNode || !args.textarea || !args.id || !args.parent)
             throw new Error('Slider: missing argument');
-        this.domNode = args.domNode;
-        this.id = args.id;
-        this.parent = args.parent;
-        this.history = [];
-        this._textarea = args.textarea;
+        
+        //1. Process args
+        this.domNode            =   args.domNode;
+        this.id                 =   args.id;
+        this.parent             =   args.parent;
+        this.history            =   [];
+        this.sliderShowing      =   false;
+        this.index              =   null;
+        this._textarea          =   args.textarea;
+        this._i                 =   null;
+        
+        //2. Connect stuff
         this.build(args.domNode);
-        this.sliderShowing = false;
-        this.index = null;
-        this.div = args.div;
-        this._i=null;
-        this.collab = coweb.initCollab({id : this.id}); 
-        this.collab.subscribeSync('editorReset', this, 'reset');
-        dojo.connect(this._textarea.div,'onclick',this,function(){
-            this._onBlur();
-        });
-        dojo.subscribe("editorHistory", dojo.hitch(this, function(message){
-             this.history.push(message.save);
-        }));
-        dojo.subscribe("sliderToggle", dojo.hitch(this, function(message){
-             this._toggle();
-        }));
+        this._connect();
     };
     var proto = TimeSlider.prototype;
     
@@ -45,8 +38,8 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         },
         h);
         var play = dojo.create('a',{'class':'go',innerHTML:'Play'},this._buttonCell); 
-        dojo.connect(play, 'onclick', this, 'play');
-        var reset = dojo.create('a',{'class':'go',innerHTML:'Revert'},this._buttonCell); 
+        var reset = dojo.create('a',{'class':'go',innerHTML:'Revert'},this._buttonCell);
+        dojo.connect(play, 'onclick', this, 'play'); 
         dojo.connect(reset, 'onclick', this, 'reset');
         this.history.push(dojo.clone(this._textarea.value));
     };
@@ -164,6 +157,20 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
             this.sliderShowing = false;
             dojo.fadeOut({node:'sliderHolder'}).play();
         }
+    };
+    
+    proto._connect = function(){
+        this.collab = coweb.initCollab({id : this.id}); 
+        this.collab.subscribeSync('editorReset', this, 'reset');
+        dojo.connect(this._textarea.div,'onclick',this,function(){
+            this._onBlur();
+        });
+        dojo.subscribe("editorHistory", dojo.hitch(this, function(message){
+             this.history.push(message.save);
+        }));
+        dojo.subscribe("sliderToggle", dojo.hitch(this, function(message){
+             this._toggle();
+        }));
     };
     
     return TimeSlider;
