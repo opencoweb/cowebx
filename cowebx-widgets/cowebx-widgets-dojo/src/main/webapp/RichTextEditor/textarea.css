@@ -80,18 +80,16 @@
 }
 
 .slider {
-    width:95%;
-    height:70px;
+    width:50%;
+    height:33px;
     background:white;
     border:1px solid grey;
     border-radius:5px;
     -moz-border-radius:5px;
     -webkit-border-radius:5px;
-    margin-left:auto;
-    margin-right:auto;
-    position:relative;
     opacity:0;
-    top:30px;
+    z-index:10000;
+    float:right;
 }
 
 .go{
@@ -118,8 +116,6 @@
 .sliderTable{
     width:100%;
     height:100%;
-    position:relative;
-    top:-10px;
 }
 
 .buttonCell{

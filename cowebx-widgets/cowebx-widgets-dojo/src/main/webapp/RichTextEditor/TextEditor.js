@@ -259,7 +259,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
     };
     
     proto._buildSlider = function() {
-        var node = dojo.create('div',{'class':'slider',id:'sliderHolder'},this._textarea.toolbar.domNode,'before');
+        var node = dojo.create('div',{'class':'slider',id:'sliderHolder'},this._textarea.toolbar.domNode,'last');
         var holder = dojo.create('div',{'style':'width:100%;height:100%'},node);
         var slider = new Slider({'domNode':holder,textarea:this._textarea,'id':'slider','parent':this});
         return slider;

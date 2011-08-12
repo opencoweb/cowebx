@@ -4,6 +4,7 @@ define([], function() {
         this.domNode = args.domNode;    //domNode to attach to
         this.listenTo = args.listenTo;  //domNode to listen to or 'share'
         this.shareShowing = false;
+        this.displayButton = (args.displayButton == null) ? true : args.displayButton;
         
         if(!this.domNode)
             throw new Error('missing node argument');
@@ -25,6 +26,9 @@ define([], function() {
     
     proto._buildShareButton = function() {
         this.shareButton = dojo.create('a',{innerHTML:'share', 'class':'share', id:'shareButton'},this.domNode,'before');
+        if(this.displayButton == false){
+            dojo.style(this.shareButton, 'display', 'none');
+        }
         dojo.connect(this.shareButton, 'onclick', this, 'onShareClick');
         this.emailBox = dojo.create('div',{innerHTML:'email to send to:<br>','class':'emailBox',id:'sendBox'},this.shareButton,'after');
         this.emailInput = dojo.create('input',{type:'text',id:'sendInput'},this.emailBox,'last');

@@ -501,8 +501,6 @@ define([
             dojo.connect(button, 'onclick', this, '_onSliderClick');
             dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
             dojo.style(button.domNode, 'float', 'right');
-            dojo.style(button.domNode, 'position', 'relative');
-            dojo.style(button.domNode, 'left', '240px');
         }
         return toolbar;
     };
@@ -684,7 +682,7 @@ define([
             this.render();
             this.getCharObj(true);
         }
-        dojo.style(this.div, 'height', (window.innerHeight-200)+'px');
+        dojo.style(this.div, 'height', (window.innerHeight-70)+'px');
     };
 
     proto._onMouseDown = function(e){
@@ -734,24 +732,24 @@ define([
         }));
         
         //Backup if no matches: is Point in Line? Go to end if so...
-        var line = 0;
-        if(start == null && end == null){
-            dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
-                if(dojo.indexOf(ignore,node.id) == -1){
-                    k++;
-                    if(node.tagName == 'SPAN'){
-                        var pos = this._findPos(node);
-                        var height = node.offsetHeight;
-                        var points = {top: pos.top, bottom: pos.top+height};
-                        if(this._isPiL(points, {y:e.clientY}) == true){
-                           start = k;
-                           end = k;
-                        }
-                    }
-                }
-            }));
-        }
-        
+        // var line = 0;
+        //         if(start == null && end == null){
+        //             dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
+        //                 if(dojo.indexOf(ignore,node.id) == -1){
+        //                     k++;
+        //                     if(node.tagName == 'SPAN'){
+        //                         var pos = this._findPos(node);
+        //                         var height = node.offsetHeight;
+        //                         var points = {top: pos.top, bottom: pos.top+height};
+        //                         if(this._isPiL(points, {y:e.clientY}) == true){
+        //                            start = k;
+        //                            end = k;
+        //                         }
+        //                     }
+        //                 }
+        //             }));
+        //         }
+        //         
         if(start && end){
             this.value.start = start-1;
             this.value.end = end-1;
