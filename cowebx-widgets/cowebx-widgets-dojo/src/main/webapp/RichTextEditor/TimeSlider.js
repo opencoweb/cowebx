@@ -5,9 +5,9 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         this.domNode = args.domNode;
         this.id = args.id;
         this.parent = args.parent;
-        this.build(args.domNode);
         this.history = [];
         this._textarea = args.textarea;
+        this.build(args.domNode);
         this.sliderShowing = false;
         this.index = null;
         this.div = args.div;
@@ -48,6 +48,7 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         dojo.connect(play, 'onclick', this, 'play');
         var reset = dojo.create('a',{'class':'go',innerHTML:'Revert'},this._buttonCell); 
         dojo.connect(reset, 'onclick', this, 'reset');
+        this.history.push(dojo.clone(this._textarea.value));
     };
     
     proto.reset = function(obj){
