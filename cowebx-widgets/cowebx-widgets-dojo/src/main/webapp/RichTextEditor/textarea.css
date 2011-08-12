@@ -13,13 +13,10 @@
 }
 
 .footerDiv {
-    -moz-border-radius:3px;
-    -webkit-border-radius:3px;
     font:10px arial;
     font-weight:bold;
     width:120px;
-    color:grey;
-    background:lightgrey;
+    color: white;
     float:right;
     position:relative;
     top:5px;
@@ -35,9 +32,6 @@
     height:25px;
     background:#EFEFEF;
     border-top: 1px solid lightgrey;
-    border-radius:5px;
-    -moz-border-radius:5px;
-    -webkit-border-radius:5px;
     position:relative;
     top:-3px;
     z-index:100;
@@ -70,12 +64,7 @@
 }
 
 .header {
-    border-radius:5px;
-    -moz-border-radius:5px;
-    -webkit-border-radius:5px;
     height:39px;
-    position:relative;
-    top:5px;
     padding:5px;
 }
 
@@ -135,8 +124,7 @@
     font:10px arial;
     font-weight:bold;
     width:150px;
-    color:grey;
-    background:lightgrey;
+    color:white;
     float:left;
     position:relative;
     top:5px;
