@@ -465,6 +465,17 @@ define([
         
         var toolbar = new Toolbar({},toolbarNode);
         dojo.attr(toolbar.domNode, 'class', 'gradient header');
+        var home = new ToggleButton({
+            label: '<img style="width:18px;height:18;" src="images/home.png"/>',
+            showLabel: true,
+            iconClass: 'sliderIcon',
+            id: 'homeButton'
+        });
+        toolbar.addChild(home);
+        this.homeButton = home;
+        dojo.connect(home, 'onclick', this, '_onHomeClick');
+        dojo.attr(home.domNode, 'style', 'border-bottom:3px solid black');
+        dojo.style('homeButton_label', 'padding', '0px');
         dojo.forEach(["NewPage", "Save"], dojo.hitch(this, function(label) {
             var button = new ToggleButton({
                 label: label,
@@ -1035,6 +1046,24 @@ define([
     
     proto._onSaveClick = function() {
          dojo.publish("shareClick", [{}]);
+    };
+    
+    proto._onHomeClick = function() {
+        this.dialog.set('content', "You may lose data if you are the only user in the current session. Do you really want to go to Home?");
+        this.dialog.show();
+        var one = dojo.connect(dojo.byId('yesButton'),'onclick',this, function(){
+            window.location = window.location.pathname;
+        });
+        var two = dojo.connect(dojo.byId('noButton'),'onclick',this, function(){
+            this.dialog.hide();
+            dojo.disconnect(one);
+            dojo.disconnect(two);
+        });
+        var three = dojo.connect(this.dialog, 'onHide', this, function(){
+            dojo.disconnect(one);
+            dojo.disconnect(two);
+            dojo.disconnect(three);
+        });
     };
 
     return textarea;
