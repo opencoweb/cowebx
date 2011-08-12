@@ -2,8 +2,9 @@ define([
     'coweb/main',
     'dijit/Toolbar',
     'dijit/form/ToggleButton',
-    'dijit/ToolbarSeparator'
-], function(coweb, Toolbar, ToggleButton, Separator) {
+    'dijit/ToolbarSeparator',
+    'dijit/Dialog'
+], function(coweb, Toolbar, ToggleButton, Separator, Dialog) {
     var textarea = function(args){
         //1. Check for req'd properties
         if(!args.domNode || !args.id)
@@ -20,6 +21,7 @@ define([
         this.before         =   dojo.create('span',{id:'before'},this.div,'first');
         this.selection      =   dojo.create('span',{id:'selection'},this.div,'last');
         this.after          =   dojo.create('span',{id:'after'},this.div,'last');
+        this.dialog         =   this._buildConfirmDialog();
         
         //3. Style and connect
         this._style();
@@ -511,7 +513,7 @@ define([
     
     proto._buildFooter = function(){
         var footerNode = dojo.create('div',{'class':'footer gradient'},this.div,'after');
-        var div = dojo.create('div',{'class':'footerDiv'},footerNode,'first');
+        var div = dojo.create('div',{'class':'footerDiv',id:'footerDiv'},footerNode,'first');
         var color = dojo.create('div',{'class':'color',style:'background-color:'+this.localColor},footerNode,'first');
         var title = dojo.create('span',{'class':'title',innerHTML:'Unnamed Document'},footerNode,'first');
         dojo.connect(title, 'onclick', this, function(e){
@@ -538,6 +540,29 @@ define([
         return footerNode;
     };
     
+    proto._buildConfirmDialog = function(){
+        secondDlg = new Dialog({
+            title: "Are you sure?",
+            style: "width: 300px;font:12px arial;"
+        });
+        var h = dojo.create('div',{'style':'margin-left:auto;margin-right:auto;width:80px;margin-bottom:5px'},secondDlg.domNode,'last');
+        var yes = new ToggleButton({
+            label: '<span style="font-family:Arial;font-size:10px;">Yes</span>',
+            showLabel: true,
+            iconClass: 'sliderIcon',
+            id: 'yesButton'
+        });
+        var no = new ToggleButton({
+            label: '<span style="font-family:Arial;font-size:10px;">No</span>',
+            showLabel: true,
+            iconClass: 'sliderIcon',
+            id: 'noButton'
+        });
+        dojo.place(yes.domNode, h, 'last');
+        dojo.place(no.domNode, h, 'last');
+        return secondDlg
+    };
+    
     proto._getLocalColor = function(){
         var letters = '0123456789ABCDEF'.split('');
         var color = '#';
@@ -549,6 +574,11 @@ define([
     
     proto._style = function(){
         this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/textarea.css');
+        if(dojo.isMozilla){
+            dojo.style('footerDiv','top','3px');
+        }else{
+            dojo.style('footerDiv','top','-25px');
+        }
     };
         
     proto._findIndex = function(){
@@ -682,6 +712,7 @@ define([
             this.render();
             this.getCharObj(true);
         }
+
         dojo.style(this.div, 'height', (window.innerHeight-70)+'px');
     };
 
@@ -983,7 +1014,23 @@ define([
     };
 
     proto._onNewPageClick = function() {
-        window.location = window.location.pathname+'?'+'session='+Math.floor(Math.random()*10000001);
+        this.dialog.set('content', "You may lose data if you are the only user in the current session. Do you really want to start a new Document?");
+        this.dialog.show();
+        var one = dojo.connect(dojo.byId('yesButton'),'onclick',this, function(){
+            window.location = window.location.pathname+'?'+'session='+Math.floor(Math.random()*10000001);
+            dojo.disconnect(one);
+            dojo.disconnect(two);
+        });
+        var two = dojo.connect(dojo.byId('noButton'),'onclick',this, function(){
+            this.dialog.hide();
+            dojo.disconnect(one);
+            dojo.disconnect(two);
+        });
+        var three = dojo.connect(this.dialog, 'onHide', this, function(){
+            dojo.disconnect(one);
+            dojo.disconnect(two);
+            dojo.disconnect(three);
+        });
     };
     
     proto._onSaveClick = function() {

@@ -14,12 +14,11 @@
 
 .footerDiv {
     font:10px arial;
-    font-weight:bold;
     width:120px;
     color: white;
     float:right;
     position:relative;
-    top:5px;
+    left:10px;
     padding-top:2px;
     padding-left:5px;
     margin-right:4px;
@@ -37,13 +36,11 @@
     z-index:100;
 }
 
-.div {
-    width: 100%;
-    overflow:auto;
+.div {   
     background:white;
     cursor:text;
-    position:relative;
     z-index:1000;
+    height:100%;
 }
 
 .gradient {
@@ -122,7 +119,6 @@
     -moz-border-radius:3px;
     -webkit-border-radius:3px;
     font:10px arial;
-    font-weight:bold;
     width:150px;
     color:white;
     float:left;

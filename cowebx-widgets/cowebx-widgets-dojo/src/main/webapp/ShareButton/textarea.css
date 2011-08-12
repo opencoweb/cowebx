@@ -31,7 +31,6 @@
 .emailBox{
     background:lightgrey;
     font: 10px arial;
-    position:relative;
     padding:3px;
     padding-bottom:6px;
     z-index:1001;
