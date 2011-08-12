@@ -122,6 +122,7 @@ html, body {
     background:white;
     box-shadow: 0px 1px 8px rgba(0, 0, 0, 0.3);
     vertical-align:top;
+    padding-right:3px;
 }
 
 .splashTitle {
@@ -147,44 +148,14 @@ html, body {
     background:#FF9900;
 }
 
-.splashWhat {
-    font: 22px arial;
-    color:#2b6bad;
-    font-weight:bold;
-    margin-left:15px;
-    margin-top:15px;
-}
-
 .splashWhy{
     font: 24px arial;
-    color:#2b6bad;
+    color:black;
     font-weight:bold;
     display:inline;
     height:100%;
     position:relative;
-    top:-15px;
-}
-
-.splashDesc {
-    font: 16px arial;
-    margin-left:15px;
-    color:grey;
-    margin-bottom:10px;
-}
-
-.features {
-    width:40px;
-    height:45px;
-}
-
-.use {
-    width:35px;
-    height:45px;
-}
-
-.tech {
-    width:35px;
-    height:45px;
+    margin:5px;
 }
 
 .featureDiv {
@@ -199,4 +170,29 @@ html, body {
     width:585px;
     background:#FF9900;
     padding-left:15px;
+}
+
+.featureEntry {
+    margin-left:6px;
+    font:12px arial;
+    margin-bottom:7px;
+}
+
+a:link{
+    color:black;
+}
+
+a:visited{
+    color:black;
+}
+
+a:active{
+    color:black;
+}
+
+.featureEntryTitle {
+    margin-left:6px;
+    font:14px arial;
+    font-weight:bold;
+    color:#2b6bad;
 }
