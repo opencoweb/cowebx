@@ -768,6 +768,7 @@ define([
         this.displayCaret = true;
         if(dojo.byId('hidden'))
             dojo.destroy('hidden');
+        dojo.publish("shareHide", [{}]);
     };
     
     proto._onBlur = function(){

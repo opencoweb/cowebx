@@ -16,6 +16,9 @@ define([], function() {
         dojo.subscribe("shareClick", dojo.hitch(this, function(message){
              this.onShareClick();
         }));
+        dojo.subscribe("shareHide", dojo.hitch(this, function(message){
+             this._hide();
+        }));
         this._buildShareButton();
     };
     var proto = Button.prototype;
@@ -32,6 +35,13 @@ define([], function() {
         });
         this.sendButton = dojo.create('a',{innerHTML:'send', 'class':'send'}, this.emailInput, 'after');
         dojo.connect(this.sendButton, 'onclick', this, 'onSendClick');
+    };
+    
+    proto._hide = function(){
+        if(this.shareShowing == true){
+            this.shareShowing = false;
+            dojo.fadeOut({node:'sendBox'}).play();
+        }
     };
     
     proto.onShareClick = function(e) {
