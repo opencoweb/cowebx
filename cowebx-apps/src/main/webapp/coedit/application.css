@@ -172,6 +172,7 @@ html, body {
     background:#FF9900;
     padding-left:15px;
     border-bottom:1px solid black;
+    font-weight:bold;
 }
 
 .featureEntry {
