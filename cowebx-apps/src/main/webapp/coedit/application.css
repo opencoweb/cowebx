@@ -109,7 +109,7 @@ html, body {
     width:100%;
     border-spacing:10px;
     position:absolute;bottom:110px;
-    right:0px;
+    right:0px
 }
 
 .splashCell {
@@ -170,6 +170,7 @@ html, body {
     width:585px;
     background:#FF9900;
     padding-left:15px;
+    border-bottom:1px solid black;
 }
 
 .featureEntry {
