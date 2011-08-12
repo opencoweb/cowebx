@@ -469,7 +469,6 @@ define([
         var home = new ToggleButton({
             label: '<img style="width:18px;height:18;" src="images/home.png"/>',
             showLabel: true,
-            iconClass: 'sliderIcon',
             id: 'homeButton'
         });
         toolbar.addChild(home);
@@ -505,9 +504,8 @@ define([
         toolbar.addChild(sep);
         if(!this.noSlider || this.noSlider == false){
             var button = new ToggleButton({
-                label: '<span style="font-family:Arial;font-size:14px;">Time Slider</span>',
+                label: '<span style="font-family:Arial;font-size:14px;"><img src="../lib/cowebx/dojo/RichTextEditor/images/history.png" style="height:20px;width:20px;margin-right:3px"/>History</span>',
                 showLabel: true,
-                iconClass: 'sliderIcon',
                 id: 'sliderButton'
             });
             toolbar.addChild(button);
@@ -563,13 +561,11 @@ define([
         var yes = new ToggleButton({
             label: '<span style="font-family:Arial;font-size:10px;">Yes</span>',
             showLabel: true,
-            iconClass: 'sliderIcon',
             id: 'yesButton'
         });
         var no = new ToggleButton({
             label: '<span style="font-family:Arial;font-size:10px;">No</span>',
             showLabel: true,
-            iconClass: 'sliderIcon',
             id: 'noButton'
         });
         dojo.place(yes.domNode, h, 'last');
