@@ -22,6 +22,7 @@ html, body {
     margin-right:auto;
     display:none;
     opacity:0;
+    position:relative;
 }
 
 .splash {
