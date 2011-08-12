@@ -3,8 +3,9 @@ define([
     'dijit/Toolbar',
     'dijit/form/ToggleButton',
     'dijit/ToolbarSeparator',
-    'dijit/Dialog'
-], function(coweb, Toolbar, ToggleButton, Separator, Dialog) {
+    'dijit/Dialog',
+    'cowebx/dojo/ShareButton/Button'
+], function(coweb, Toolbar, ToggleButton, Separator, Dialog, Button) {
     var textarea = function(args){
         //1. Check for req'd properties
         if(!args.domNode || !args.id)
@@ -23,6 +24,7 @@ define([
         this.selection      =   dojo.create('span',{id:'selection'},this.div,'last');
         this.after          =   dojo.create('span',{id:'after'},this.div,'last');
         this.dialog         =   this._buildConfirmDialog();
+        this.shareButton    =   this._buildShareButton();
         
         //3. Style and connect
         this._style();
@@ -564,6 +566,16 @@ define([
         var col = dojo.create('span',{style:'float:right;',innerHTML:'Col: '+'<span id="col">0</span>'},div,'last');
         
         return footerNode;
+    };
+    
+    proto._buildShareButton = function(){
+        var button = new Button({
+            'domNode':this.toolbar.domNode,
+            'listenTo':this,
+            'id':'shareButton',
+            'displayButton':false});
+        dojo.style(button.emailBox, 'position', 'absolute');
+        dojo.style(button.emailBox, 'top', '49px');
     };
     
     proto._buildConfirmDialog = function(){

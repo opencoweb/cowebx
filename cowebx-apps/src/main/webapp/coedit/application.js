@@ -27,13 +27,6 @@ define(
 			init: function(){
 			    //1. Create the editor
                 var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
-                var button = new Button({
-                    'domNode':textEditor._textarea.toolbar.domNode,
-                    'listenTo':textEditor,
-                    'id':'shareButton',
-                    'displayButton':false});
-                dojo.style(button.emailBox, 'position', 'absolute');
-                dojo.style(button.emailBox, 'top', '49px');
                 
 			    //2. Generate session or enter session
  			    if(this.aquireUrlParams('session') == null){
