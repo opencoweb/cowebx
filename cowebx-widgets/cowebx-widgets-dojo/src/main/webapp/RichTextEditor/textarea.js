@@ -22,7 +22,7 @@ define([
         this.footer         =   this._buildFooter();
         this.before         =   dojo.create('span',{id:'before'},this.div,'first');
         this.selection      =   dojo.create('span',{id:'selection'},this.div,'last');
-        this.after          =   dojo.create('span',{id:'after'},this.div,'last');
+        this.after          =   dojo.create('span',{id:'after','style':'border-left: 1px solid white;'},this.div,'last');
         this.dialog         =   this._buildConfirmDialog();
         this.shareButton    =   this._buildShareButton();
         
@@ -57,6 +57,8 @@ define([
         this._bold          =   false;
         this._italic        =   false;
         this._underline     =   false;
+        
+        this.getCharObj();
     };
     var proto = textarea.prototype;
     
@@ -232,7 +234,7 @@ define([
         dojo.attr('col','innerHTML',this.currLineIndex);
         this._hold = false;
         
-                this._renderLineNumbers();
+        this._renderLineNumbers();
     };
     
     // Insert single char at this.value.start
@@ -494,7 +496,10 @@ define([
         var a = dojo.create('div',{innerHTML:'G'},this.before,'first');
         var lineHeight = a.clientHeight;
         dojo.destroy(a);
-        return Math.floor(((top-currY)/lineHeight)+1);
+        var line = Math.floor(((top-currY)/lineHeight)+1);
+        if(lineHeight == 0)
+            return 0;
+        return line;
     };
     
     proto._chromeKeyCombo = function() {
