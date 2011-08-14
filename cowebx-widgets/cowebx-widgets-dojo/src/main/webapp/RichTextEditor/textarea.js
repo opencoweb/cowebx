@@ -72,13 +72,10 @@ define([
             reset = true;
             this.moveCaretRight(e.shiftKey);
         }else if(e.keyCode == 13){                          // newLine
-            if(this.value.string[this.value.start-1]['char'] == ' '){
+            if(this.value.string[this.value.start-1]['char'] == ' ')
                this._delete(1);
-            }
-            setTimeout(dojo.hitch(this, function(){
-                this.insert(this.newLine);
-            }), 100);
-        }else if(e.keyCode == 9){                             // tab
+            setTimeout(dojo.hitch(this, function(){this.insert(this.newLine);}), 100);
+        }else if(e.keyCode == 9){                           // tab
             reset = true;
             this.insert('    ');
         }else if(e.charCode == 32){                         // newSpace
@@ -170,6 +167,8 @@ define([
             var copy = dojo.clone(this.value);
             dojo.publish("editorHistory", [{save:copy}]);
         }
+        
+        this._scrollWith();
     };
     
     // Maps current text to this.rows
@@ -543,7 +542,7 @@ define([
                     this.insert(text, true);
                 }), 100);
             //selectAll
-            }else if(e.which == 97){
+            }else if(e.which == 97 || 65){
                 this.selectAll();
             //Copy
             }else if(e.which == 99){
@@ -661,6 +660,10 @@ define([
         var curDate = null;
         do { curDate = new Date(); }
         while(curDate-date < millis);
+    };
+    
+    proto._scrollWith = function(){
+        this._div.scrollTop = this.selection.offsetTop-1000;
     };
     
     proto._renderLineNumbers = function(){
@@ -1010,7 +1013,9 @@ define([
             this.render();
             this.getCharObj(true);
         }
-        
+        dojo.attr('thisDiv','style','background:white;cursor:text;z-index:1000;height:100%;min-height:100%;');
+        dojo.attr('lineNumbers','style','width:auto;height:100%;background:grey;min-width:30px;');
+        //
         dojo.style(this._div, 'height', (window.innerHeight-70)+'px');
     };
 

@@ -166,7 +166,7 @@ html, body {
 .splashSubtitle {
     color:white;
     font: 14px arial;
-    position:relative;
+    position:absolute;
     top:80px;
     width:585px;
     background:#FF9900;

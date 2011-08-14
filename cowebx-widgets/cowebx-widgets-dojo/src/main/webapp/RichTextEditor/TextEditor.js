@@ -120,7 +120,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this.q.push(obj);
     };
         
-    proto.insertChar = function(c, pos) {s
+    proto.insertChar = function(c, pos) {
         var t = this._textarea,
         por = this._por,
         start = por.start,
