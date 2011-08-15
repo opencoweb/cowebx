@@ -55,12 +55,14 @@ define([
         };
         
         // styles
-        this._bold          =   false;
-        this._italic        =   false;
-        this._underline     =   false;
-        this._strikethrough =   false;
-        this._forecolor     =   false;
-        this._hilitecolor   =   false;
+        this._bold              =   false;
+        this._italic            =   false;
+        this._underline         =   false;
+        this._strikethrough     =   false;
+        this._forecolor         =   false;
+        this._hilitecolor       =   false;
+        this._pastForeColors    =   [];
+        this._pastHiliteColors  =   [];
         
         this.getCharObj();
     };
@@ -466,6 +468,8 @@ define([
         this.collab.subscribeSync('editorItalic', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorUnderline', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorStrikethrough', this, '_onRemoteStyle');
+        this.collab.subscribeSync('editorForeColor', this, '_onRemoteStyle');
+        this.collab.subscribeSync('editorHiliteColor', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
     };
     
@@ -684,6 +688,13 @@ define([
         }
     };    
     
+    proto._hidePalette = function(){
+		dojo.style(this._palette.domNode, 'display', 'none');
+		dojo.style(this._bgPalette.domNode, 'display', 'none');
+		this._hilitecolor = false;
+		this._forecolor = false;
+	};
+    
     proto._buildToolbar = function(){
         var toolbarNode = dojo.create('div',{style:'width:100%;height:50px;'},this.container,'first');
         var toolbar = new Toolbar({},toolbarNode);
@@ -752,11 +763,11 @@ define([
         
         //Color pallettes
         var paletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
-        this._palette = new ColorPalette({style:'position:fixed;display:none;left:80px'},paletteNode);
-        //dojo.connect(this._palette, 'onChange', this, '_onColorChange');
+        this._palette = new ColorPalette({style:'position:fixed;display:none;left:85px'},paletteNode);
+        dojo.connect(this._palette, 'onChange', this, '_onForeColorChange');
         var bgPaletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
-        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;left:120px'},bgPaletteNode);
-        //dojo.connect(this._bgPalette, 'onChange', this, 'changeBGColor');
+        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;left:115px'},bgPaletteNode);
+        dojo.connect(this._bgPalette, 'onChange', this, '_onHiliteColorChange');
         
         return toolbar;
     };
@@ -1044,8 +1055,37 @@ define([
         }
     };
     
-    proto._onForeColorChange = function() {
+    proto._onForeColorChange = function(color) {
+        var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
+        var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         
+        if(start == end){
+            if((this._prevForeColor == null || undefined) || (dojo.indexOf(this.filters,'color:'+this._prevForeColor+';') == -1)){
+                
+            }else if(this._prevForeColor){
+                this.filters[dojo.indexOf(this.filters,'color:'+this._prevForeColor+';')] = '';
+            }
+            this.filters.push('color:'+color+';');
+            this._prevForeColor = color;
+            dojo.attr(this.ForeColor.domNode, 'style', 'border-bottom:3px solid '+color);
+        }else{
+            for(var i=start; i<end; i++){
+                if(this.value.string[i]['filters'] == undefined){
+                    this.value.string[i]['filters'] = [];
+                }
+                for(var j=0; j<this._pastForeColors.length; j++){
+                    if(dojo.indexOf(this.value.string[i]['filters'],'color:'+this._pastForeColors[j]+';') != -1)
+                        this.value.string[i]['filters'][dojo.indexOf(this.value.string[i]['filters'],'color:'+this._pastForeColors[j]+';')] = '';
+                }
+                this.value.string[i]['filters'].push('color:'+color+';'); 
+            }
+            this.render();
+            this.collab.sendSync('editorForeColor', {'string':this.value.string}, null);
+        }
+
+        this._pastForeColors.push(color);
+        this.div.focus();
+        this._hidePalette();
     };
     
     proto._onHiliteColorClick = function() {
@@ -1060,8 +1100,37 @@ define([
         }
     };
     
-    proto._onHiliteColorChange = function() {
+    proto._onHiliteColorChange = function(color) {
+        var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
+        var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         
+        if(start == end){
+            if((this._prevHiliteColor == null || undefined) || (dojo.indexOf(this.filters,'background:'+this._prevHiliteColor+';') == -1)){
+                
+            }else if(this._prevHiliteColor){
+                this.filters[dojo.indexOf(this.filters,'background:'+this._prevForeColor+';')] = '';
+            }
+            this.filters.push('background:'+color+';');
+            this._prevHiliteColor = color;
+            dojo.attr(this.HiliteColor.domNode, 'style', 'border-bottom:3px solid '+color);
+        }else{
+            for(var i=start; i<end; i++){
+                if(this.value.string[i]['filters'] == undefined){
+                    this.value.string[i]['filters'] = [];
+                }
+                for(var j=0; j<this._pastHiliteColors.length; j++){
+                    if(dojo.indexOf(this.value.string[i]['filters'],'background:'+this._pastHiliteColors[j]+';') != -1)
+                        this.value.string[i]['filters'][dojo.indexOf(this.value.string[i]['filters'],'background:'+this._pastHiliteColors[j]+';')] = '';
+                }
+                this.value.string[i]['filters'].push('background:'+color+';'); 
+            }
+            this.render();
+            this.collab.sendSync('editorHiliteColor', {'string':this.value.string}, null);
+        }
+        
+        this._pastHiliteColors.push(color);
+        this.div.focus();
+        this._hidePalette();
     };
 
     proto._onNewPageClick = function() {
