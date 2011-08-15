@@ -134,9 +134,9 @@ define([
             if(test3[m]['char']==this.newLine){
                 u.push('<br>');
             }else if(test3[m]['char']==this.newSpace){
-                u.push('<span style="background-color:yellow;'+filter+'">&nbsp; </span>');
+                u.push('<span style="background-color:#99CCFF !important;'+filter+'">&nbsp; </span>');
             }else{
-                u.push('<span style="background-color:yellow;'+filter+'">'+test3[m]['char']+'</span>');
+                u.push('<span style="background-color:#99CCFF !important;'+filter+'">'+test3[m]['char']+'</span>');
             }
         }
         selection = u.join("");
