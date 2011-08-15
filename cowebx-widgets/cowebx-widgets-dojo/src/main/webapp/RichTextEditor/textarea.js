@@ -4,8 +4,9 @@ define([
     'dijit/form/ToggleButton',
     'dijit/ToolbarSeparator',
     'dijit/Dialog',
-    'cowebx/dojo/ShareButton/Button'
-], function(coweb, Toolbar, ToggleButton, Separator, Dialog, Button) {
+    'cowebx/dojo/ShareButton/Button',
+    'dijit/ColorPalette'
+], function(coweb, Toolbar, ToggleButton, Separator, Dialog, Button, ColorPalette) {
     var textarea = function(args){
         if(!args.domNode || !args.id)
             throw new Error("Textarea: missing arg");
@@ -57,6 +58,9 @@ define([
         this._bold          =   false;
         this._italic        =   false;
         this._underline     =   false;
+        this._strikethrough =   false;
+        this._forecolor     =   false;
+        this._hilitecolor   =   false;
         
         this.getCharObj();
     };
@@ -461,6 +465,7 @@ define([
         this.collab.subscribeSync('editorBold', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorItalic', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorUnderline', this, '_onRemoteStyle');
+        this.collab.subscribeSync('editorStrikethrough', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
     };
     
@@ -706,7 +711,20 @@ define([
         }));
         var sep = new Separator({});
         toolbar.addChild(sep);
-        dojo.forEach(["Bold", "Italic", "Underline"], dojo.hitch(this, function(label) {
+        dojo.forEach(["Bold", "Italic", "Underline", "Strikethrough"], dojo.hitch(this, function(label) {
+            var button = new ToggleButton({
+                label: label,
+                showLabel: false,
+                iconClass: "dijitEditorIcon dijitEditorIcon" + label
+            });
+            this[label] = button;
+            toolbar.addChild(button);
+            dojo.connect(button, 'onclick', this, '_on'+label+'Click');
+            dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
+        }));
+        var sep = new Separator({});
+        toolbar.addChild(sep);
+        dojo.forEach(["ForeColor", "HiliteColor"], dojo.hitch(this, function(label) {
             var button = new ToggleButton({
                 label: label,
                 showLabel: false,
@@ -731,6 +749,15 @@ define([
             dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
             dojo.style(button.domNode, 'float', 'right');
         }
+        
+        //Color pallettes
+        var paletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
+        this._palette = new ColorPalette({style:'position:fixed;display:none;left:80px'},paletteNode);
+        //dojo.connect(this._palette, 'onChange', this, '_onColorChange');
+        var bgPaletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
+        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;left:120px'},bgPaletteNode);
+        //dojo.connect(this._bgPalette, 'onChange', this, 'changeBGColor');
+        
         return toolbar;
     };
     
@@ -956,6 +983,86 @@ define([
         this._lastOp = 'underline';
         this.div.focus();
     };
+    
+    proto._onStrikethroughClick = function() {
+        if(this._lastOp != 'strikethrough')
+            this._hold = false;
+        var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
+        var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
+        if(start == end){
+            if(this._strikethrough == false){
+                this._strikethrough = true;
+                this.filters.push('text-decoration:line-through;');
+                dojo.attr(this.Strikethrough.domNode, 'style', 'border-bottom:3px solid red');
+            }else{
+                this._strikethrough = false;
+                this.filters[dojo.indexOf(this.filters,'text-decoration:line-through;')] = '';
+                dojo.attr(this.Strikethrough.domNode, 'style', 'border-bottom:3px solid black');
+            }
+        }else{
+            if(this._hold == false){
+                for(var i=start; i<end; i++){
+                    if(this.value.string[i]['filters'] == undefined){
+                        this.value.string[i]['filters'] = [];
+                    }
+                    if(dojo.indexOf(this.value.string[i]['filters'],'text-decoration:line-through;') == -1){
+                        this.value.string[i]['filters'].push('text-decoration:line-through;'); 
+                    }        
+                }
+                this.render();
+                this._hold = true;
+                this.collab.sendSync('editorStrikethrough', {'string':this.value.string}, null);
+            }else if(this._hold == true && this._lastOp == 'strikethrough'){
+                for(var i=start; i<end; i++){
+                    if(this.value.string[i]['filters'] == undefined){
+                        this.value.string[i]['filters'] = [];
+                    }
+                    if(dojo.indexOf(this.value.string[i]['filters'],'text-decoration:line-through;') == -1){
+                        this.value.string[i]['filters'].push('text-decoration:line-through;'); 
+                    }else{
+                        this.value.string[i]['filters'][dojo.indexOf(this.value.string[i]['filters'],'text-decoration:line-through;')] = '';
+                    }
+                }
+                this.render();
+                this._hold = true;
+                this.collab.sendSync('editorStrikethrough', {'string':this.value.string}, null);
+            }
+        }
+        this._lastOp = 'strikethrough';
+        this.div.focus();
+    };
+    
+    proto._onForeColorClick = function() {
+        if(this._forecolor == false){
+            dojo.style(this._bgPalette.domNode, 'display', 'none');
+            dojo.style(this._palette.domNode, 'display', 'block');
+            this._forecolor = true;
+            this._hilitecolor = false;
+        }else if(this._forecolor){
+            dojo.style(this._palette.domNode, 'display', 'none');
+            this._forecolor = false;
+        }
+    };
+    
+    proto._onForeColorChange = function() {
+        
+    };
+    
+    proto._onHiliteColorClick = function() {
+        if(this._hilitecolor == false){
+            dojo.style(this._palette.domNode, 'display', 'none');
+            dojo.style(this._bgPalette.domNode, 'display', 'block');
+            this._hilitecolor = true;
+            this._forecolor = false;
+        }else if(this._hilitecolor){
+            dojo.style(this._bgPalette.domNode, 'display', 'none');
+            this._hilitecolor = false;
+        }
+    };
+    
+    proto._onHiliteColorChange = function() {
+        
+    };
 
     proto._onNewPageClick = function() {
         this.dialog.set('content', "You may lose data if you are the only user in the current session. Do you really want to start a new Document?");
@@ -1015,7 +1122,6 @@ define([
         }
         dojo.attr('thisDiv','style','background:white;cursor:text;z-index:1000;height:100%;min-height:100%;');
         dojo.attr('lineNumbers','style','width:auto;height:100%;background:grey;min-width:30px;');
-        //
         dojo.style(this._div, 'height', (window.innerHeight-70)+'px');
     };
 
