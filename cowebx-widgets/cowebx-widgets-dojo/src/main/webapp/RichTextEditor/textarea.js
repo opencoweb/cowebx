@@ -663,7 +663,7 @@ define([
     };
     
     proto._scrollWith = function(){
-        this._div.scrollTop = this.selection.offsetTop-1000;
+        dojo.byId('divHolder').scrollTop = this.after.offsetTop;
     };
     
     proto._renderLineNumbers = function(){
@@ -735,7 +735,7 @@ define([
     };
     
     proto._buildTable = function(){
-        this._div = dojo.create('div', {'style':'width:100%;height:100%;overflow-y:auto;'}, this.container);
+        this._div = dojo.create('div', {'style':'width:100%;height:100%;overflow-y:auto;',id:'divHolder'}, this.container);
         var table = dojo.create('table',{'style':'width:100%;border-spacing:0px;border-collapse:true;height:100%;'},this._div);
         var tr = dojo.create('tr',{'style':'width:100%;height:100%;'},table);
         var td1 = dojo.create('td',{'style':'width:20px;height:100%;'},tr,'first');
