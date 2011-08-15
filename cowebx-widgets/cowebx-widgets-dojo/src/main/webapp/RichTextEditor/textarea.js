@@ -459,6 +459,7 @@ define([
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
         dojo.connect(this.div, 'onkeydown', this, '_listenForKeyCombo');
+        dojo.connect(this.div, 'onclick', this, '_hidePalette');
         document.onkeydown = this._overrideKeys;
     };
     
@@ -763,10 +764,10 @@ define([
         
         //Color pallettes
         var paletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
-        this._palette = new ColorPalette({style:'position:fixed;display:none;left:85px'},paletteNode);
+        this._palette = new ColorPalette({style:'position:fixed;display:none;left:265px'},paletteNode);
         dojo.connect(this._palette, 'onChange', this, '_onForeColorChange');
         var bgPaletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
-        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;left:115px'},bgPaletteNode);
+        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;left:300px'},bgPaletteNode);
         dojo.connect(this._bgPalette, 'onChange', this, '_onHiliteColorChange');
         
         return toolbar;
