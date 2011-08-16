@@ -50,7 +50,7 @@ define([], function() {
         if(this.displayButton == false)
             dojo.style(this.shareButton, 'display', 'none');
         dojo.connect(this.shareButton, 'onclick', this, 'onShareClick');
-        this.emailBox = dojo.create('div',{innerHTML:'email to send to:<br>','class':'emailBox',id:'sendBox'},this.shareButton,'after');
+        this.emailBox = dojo.create('div',{innerHTML:'email to send to:<br>','class':'emailBox',style:'display:none;',id:'sendBox'},this.shareButton,'after');
         this.emailInput = dojo.create('input',{type:'text',id:'sendInput'},this.emailBox,'last');
         dojo.connect(this.emailInput, 'onkeypress', this, function(e){
             if(e.keyCode == 8)
