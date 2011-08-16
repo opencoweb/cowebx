@@ -20,10 +20,10 @@ define([], function() {
     proto.onShareClick = function(e) {
         if(this.shareShowing == false){
             this.shareShowing = true;
+            dojo.style('sendBox','display','block')
             dojo.fadeIn({node:'sendBox'}).play();
         }else{
-            this.shareShowing = false;
-            dojo.fadeOut({node:'sendBox'}).play();
+            this._hide();
         }
     };
     
@@ -64,6 +64,7 @@ define([], function() {
         if(this.shareShowing == true){
             this.shareShowing = false;
             dojo.fadeOut({node:'sendBox'}).play();
+            setTimeout("dojo.style('sendBox','display','none')",1000);
         }
     };
     
