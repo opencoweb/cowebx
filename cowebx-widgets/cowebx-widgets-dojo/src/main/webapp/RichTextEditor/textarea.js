@@ -111,7 +111,7 @@ define([
         var s=[];
         var before='';
         var test = this.value.string.slice(0, start);
-        for(var i=0; i<test.length; i++){
+        for(var i=0, len=test.length; i<len; i++){
             var filter = test[i]['filters'];
             filter = filter.join("");
             if(test[i]['char']==this.newLine){
@@ -128,7 +128,7 @@ define([
         var u=[];
         var selection='';
         var test3 = this.value.string.slice(start, end);
-        for(var m=0; m<test3.length; m++){
+        for(var m=0, len=test3.length; m<len; m++){
             var filter = test3[m]['filters'];
             filter = filter.join("");
             if(test3[m]['char']==this.newLine){
@@ -145,7 +145,7 @@ define([
         var t=[];
         var after='';
         var test2 = this.value.string.slice(end, this.value.string.length);
-        for(var k=0; k<test2.length; k++){
+        for(var k=0, len=test2.length; k<len; k++){
             var filter = test2[k]['filters'];
             filter = filter.join("");
             if(test2[k]['char']==this.newLine){
@@ -1212,7 +1212,7 @@ define([
         var end = null;
         
         //Point in Polygon to find selection Start
-        dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
+        dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
             if(dojo.indexOf(ignore,node.id) == -1){
                 i++;
                 if(node.tagName == 'SPAN'){
@@ -1227,7 +1227,7 @@ define([
         }));
         
         //Point in Polygon to find selection End
-        dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
+        dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
             if(dojo.indexOf(ignore,node.id) == -1){
                 j++;
                 if(node.tagName == 'SPAN'){
@@ -1261,12 +1261,8 @@ define([
         //         }
         //         
         if(start && end){
-            this.value.start = start-1;
-            this.value.end = end-1;
-
-            if(end != start)
-                this.value.start = (start>0) ? start-1 : 0;
-
+            this.value.start = start;
+            this.value.end = end;
             this.render(true);
             this.getCharObj(true);
         }
