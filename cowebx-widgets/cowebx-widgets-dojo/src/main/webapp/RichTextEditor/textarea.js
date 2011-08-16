@@ -683,7 +683,7 @@ define([
             var div = dojo.byId('lineNumbers');
             div.innerHTML = '';
             for(var i=1; i<=this._count(this.rows); i++){
-                div.innerHTML = div.innerHTML+'<span style="color:grey;">1</span><span class="line">'+i+'</span><br>';
+                div.innerHTML = div.innerHTML+'<span style="color:grey;">'+i+'</span><span class="line">'+i+'</span><br>';
             }
             this._prevLineCount = this._count(this.rows);
         }
@@ -1242,24 +1242,23 @@ define([
         }));
         
         //Backup if no matches: is Point in Line? Go to end if so...
-        // var line = 0;
-        //         if(start == null && end == null){
-        //             dojo.query("#thisDiv span, br").forEach(dojo.hitch(this, function(node, index, arr){
-        //                 if(dojo.indexOf(ignore,node.id) == -1){
-        //                     k++;
-        //                     if(node.tagName == 'SPAN'){
-        //                         var pos = this._findPos(node);
-        //                         var height = node.offsetHeight;
-        //                         var points = {top: pos.top, bottom: pos.top+height};
-        //                         if(this._isPiL(points, {y:e.clientY}) == true){
-        //                            start = k;
-        //                            end = k;
-        //                         }
-        //                     }
-        //                 }
-        //             }));
-        //         }
-        //         
+        if(start == null && end == null){
+            dojo.query("#lineNumbers span").forEach(dojo.hitch(this, function(node, index, arr){
+                var pos = this._findPos(node);
+                var height = node.offsetHeight;
+                var points = {top: pos.top, bottom: pos.top+height};
+                if(this._isPiL(points, {y:e.clientY}) == true){
+                    var go = node.innerHTML;
+                    var s = 0;
+                    for(var i=1; i<=node.innerHTML; i++){
+                        s = this.rows[i]+1+s;
+                    }
+                    end = s-1;
+                    start = s-1;
+                }
+            }));
+        }
+                        
         if(start && end){
             this.value.start = start;
             this.value.end = end;
