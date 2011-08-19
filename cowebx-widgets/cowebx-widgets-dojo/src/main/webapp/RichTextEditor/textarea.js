@@ -1307,20 +1307,7 @@ define([
         
         //Backup if no matches: is Point in Line? Go to end if so...
         if(start == null && end == null){
-            dojo.query("#lineNumbers span").forEach(dojo.hitch(this, function(node, index, arr){
-                var pos = this._findPos(node);
-                var height = node.offsetHeight;
-                var points = {top: pos.top, bottom: pos.top+height};
-                if(this._isPiL(points, {y:e.clientY}) == true){
-                    // var go = node.innerHTML;
-                    // var s = 0;
-                    // for(var i=1; i<=node.innerHTML; i++){
-                    //     s = this.rows[i]+1+s;
-                    // }
-                    // end = s-1;
-                    // start = s-1;
-                }
-            }));
+            console.log('liine?');
         }
                         
         if(start && end){

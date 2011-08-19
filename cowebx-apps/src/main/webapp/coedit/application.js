@@ -35,13 +35,11 @@ define(
        			        window.location = document.URL+'?'+'session='+Math.floor(Math.random()*10000001);
        			    });
 			    }else{
+	        	    var sess = coweb.initSession();
+    			    sess.prepare().then(function(info) { });
    			        dojo.style('editorNode','display','block');
    			        dojo.fadeIn({node:'editorNode',duration:1000}).play();
 			    }
-			    
-			   	//4. Get a session instance & prep
-			    var sess = coweb.initSession();
-			    sess.prepare().then(function(info) { });
 			},
 			
 			aquireUrlParams: function(param){

@@ -58,7 +58,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         //this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
-                        this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters.join("")}, syncs[i].ty, syncs[i].pos+this.min);
+                        this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters}, syncs[i].ty, syncs[i].pos+this.min);
                     }   
                 }
             }else if(newLength < oldLength){
@@ -69,7 +69,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         //this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
-                        this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters.join("")}, syncs[i].ty, syncs[i].pos+mn);
+                        this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters}, syncs[i].ty, syncs[i].pos+mn);
                     }
                 }
             }else if(newLength == oldLength){
@@ -78,7 +78,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         //this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
-                        this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters.join("")}, syncs[i].ty, syncs[i].pos+this.min);
+                        this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters}, syncs[i].ty, syncs[i].pos+this.min);
                     }
                 }
             }
@@ -91,7 +91,8 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this.collab.pauseSync();
         if(this.q.length != 0){
             this.runOps();
-            this._textarea.getCharObj();
+            this._textarea._renderLineNumbers();
+            dojo.publish("editorHistory", [{save:dojo.clone(this._textarea.value)}]);
         }
         this.q = [];
         this.oldSnapshot = this.snapshot();
@@ -125,26 +126,26 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         por = this._por,
         start = por.start,
         end = por.end;
-        var f = (filter == null || undefined) ? '' : filter;
+        var f = (filter == null || undefined) ? [] : filter;
         
         t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f}]).concat(t.value.string.slice(pos));
         
         //2. custom render
         if(pos<t.value.start){
             if(c == t.newSpace){
-                var node = dojo.create('span',{style:f,innerHTML:'&nbsp; '},t.frame.childNodes[pos],'before');
+                var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},t.frame.childNodes[pos],'before');
             }else if(c == t.newLine){
                 dojo.create('br',{style:f,},t.frame.childNodes[pos],'before');
             }else{
-                var node = dojo.create('span',{style:f,innerHTML:c},t.frame.childNodes[pos],'before');
+                var node = dojo.create('span',{style:f.join(""),innerHTML:c},t.frame.childNodes[pos],'before');
             }
         }else{
             if(c == t.newSpace){
-                var node = dojo.create('span',{style:f,innerHTML:'&nbsp; '},t.frame.childNodes[pos],'after');
+                var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},t.frame.childNodes[pos],'after');
             }else if(c == t.newLine){
                 dojo.create('br',{style:f},t.frame.childNodes[pos],'after');
             }else{
-                var node = dojo.create('span',{style:f,innerHTML:c},t.frame.childNodes[pos],'after');
+                var node = dojo.create('span',{style:f.join(""),innerHTML:c},t.frame.childNodes[pos],'after');
             }
         }
         
@@ -183,14 +184,14 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         
     proto.updateChar = function(c, pos, filter) {
         var t = this._textarea;
-        var f = (filter == null || undefined) ? '' : filter;
-        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f}]).concat(t.value.string.slice(pos+1));
+        var f = (filter == null || undefined) ? [] : filter;
+        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f.join("")}]).concat(t.value.string.slice(pos+1));
         if(pos<t.value.start){
             t.frame.childNodes[pos].innerHTML = c;
-            dojo.attr(t.frame.childNodes[pos], 'style', dojo.attr(t.frame.childNodes[pos],'style')+filter);
+            dojo.attr(t.frame.childNodes[pos], 'style', dojo.attr(t.frame.childNodes[pos],'style')+filter.join(""));
         }else{
             t.frame.childNodes[pos+1].innerHTML = c;
-            dojo.attr(t.frame.childNodes[pos], 'style', dojo.attr(t.frame.childNodes[pos],'style')+filter);
+            dojo.attr(t.frame.childNodes[pos], 'style', dojo.attr(t.frame.childNodes[pos],'style')+filter.join(""));
         }
     };
 
@@ -239,7 +240,6 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this._textarea.title = obj.title;
         this._textarea._title.innerHTML = this._textarea.title;
         this._textarea.render();
-        this._textarea.getCharObj(true);
         this.slider.history = obj.history;
     };
     
