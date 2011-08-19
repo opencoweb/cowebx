@@ -77,7 +77,7 @@ define([
             reset = true;
             this.moveCaretRight(e.shiftKey);
         }else if(e.keyCode == 13){                          // newLine
-            if(this.value.string[this.value.start-1]['char'] == ' ')
+            if(this.value.string[this.value.start-1] && this.value.string[this.value.start-1]['char'] == ' ')
                 this._delete(1);
             setTimeout(dojo.hitch(this, function(){this.insert(this.newLine);}), 100);
         }else if(e.keyCode == 9){                           // tab
@@ -98,12 +98,11 @@ define([
             this.insert(String.fromCharCode(e.which));
         }
         e.preventDefault();
-        this.getCharObj(reset);
     };
 
-    // Rips through this.value and blasts proper html equiv into dom
+    // Rips through all of this.value and blasts proper html equiv into dom
     proto.render = function(slider) {
-        console.log('real render',this.value);
+        console.log('full render');
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var a = [];
@@ -197,7 +196,7 @@ define([
 
         this._renderLineNumbers();
         this._scrollWith();
-        //         dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
+        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     // Remove n chars at this.value.start & custom render
@@ -232,11 +231,11 @@ define([
 
             this._renderLineNumbers();
             this._scrollWith();
-            // dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
+            dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
         }
     };
 
-    // Clears current selection & custom render
+    // Clears current selection, sends caret to DIR ('left' or 'right') & custom render
     proto.clearSelection = function(dir) {
         var v = this.value;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
@@ -276,7 +275,7 @@ define([
         v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
     };
     
-    // Select all text
+    // Select all text & full render
     proto.selectAll = function() {
         var v = this.value;
         v.end=0; 

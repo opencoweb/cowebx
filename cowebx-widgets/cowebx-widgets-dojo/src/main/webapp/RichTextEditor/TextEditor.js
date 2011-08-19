@@ -120,13 +120,35 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this.q.push(obj);
     };
         
-    proto.insertChar = function(c, pos) {
+    proto.insertChar = function(c, pos) {      
+        //1. Adjust string in memory  
         var t = this._textarea,
         por = this._por,
         start = por.start,
         end = por.end;
         var f = this.buffer.slice();
         t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f}]).concat(t.value.string.slice(pos));
+        
+        //2. custom render
+        if(pos<t.value.start){
+            if(c == t.newSpace){
+                var node = dojo.create('span',{innerHTML:'&nbsp; '},t.frame.childNodes[pos],'before');
+            }else if(c == t.newLine){
+                dojo.create('br',{},t.frame.childNodes[pos],'before');
+            }else{
+                var node = dojo.create('span',{innerHTML:c},t.frame.childNodes[pos],'before');
+            }
+        }else{
+            if(c == t.newSpace){
+                var node = dojo.create('span',{innerHTML:'&nbsp; '},t.frame.childNodes[pos],'after');
+            }else if(c == t.newLine){
+                dojo.create('br',{},t.frame.childNodes[pos],'after');
+            }else{
+                var node = dojo.create('span',{innerHTML:c},t.frame.childNodes[pos],'after');
+            }
+        }
+        
+        //3. Adjust caret in memory
         if(pos < por.end) {
             if(pos >= por.start && por.end != por.start)
                 ++start;
@@ -139,8 +161,20 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
     };
   
     proto.deleteChar = function(pos) {
+        //1. Adjust string in memory
         var t = this._textarea;
         t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
+        
+        //2. custom render
+        if(pos<t.value.start){
+            if(t.frame.childNodes[pos])
+                dojo.destroy(t.frame.childNodes[pos]);
+        }else{
+            if(t.frame.childNodes[pos+1])
+                dojo.destroy(t.frame.childNodes[pos+1]);   
+        }
+        
+        //3. Adjust caret in memory
         if(pos < this._por.start)
             --this._por.start;
         if(pos < this._por.end)
@@ -149,7 +183,13 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         
     proto.updateChar = function(c, pos) {
         var t = this._textarea;
-        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':[]}]).concat(t.value.string.slice(pos+1));
+        var f = this.buffer.slice();
+        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f}]).concat(t.value.string.slice(pos+1));
+        if(pos<t.value.start){
+            t.frame.childNodes[pos].innerHTML = c;
+        }else{
+            t.frame.childNodes[pos+1].innerHTML = c;
+        }
     };
 
     proto.insertString = function(string, pos) {
@@ -204,6 +244,11 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this._textarea.getCharObj(true);
         this.slider.history = obj.history;
     };
+    
+    proto._moveCaretToPOR = function() {
+        this._textarea.value.start = this._por.start;
+        this._textarea.value.end = this._por.end;
+    };
 
     proto._updatePOR = function() {
         this._por.start = this._textarea.value.start;
@@ -241,12 +286,6 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         }
         var string = s.join("");
         return string;
-    };
-
-    proto._moveCaretToPOR = function() {
-        this._textarea.value.start = this._por.start;
-        this._textarea.value.end = this._por.end;
-        this._textarea.render();
     };
     
     proto._buildSlider = function() {
