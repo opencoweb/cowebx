@@ -62,6 +62,7 @@ define([
         this._hilitecolor       =   false;
         this._pastForeColors    =   [];
         this._pastHiliteColors  =   [];
+        this._lock              =   false;
         
         this.getCharObj();
     };
@@ -197,6 +198,7 @@ define([
         this._renderLineNumbers();
         this._scrollWith();
         dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
+        this._lock = false;  
     };
     
     // Remove n chars at this.value.start & custom render
@@ -232,6 +234,7 @@ define([
             this._renderLineNumbers();
             this._scrollWith();
             dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
+            this._lock = false; 
         }
     };
 
@@ -330,23 +333,27 @@ define([
             i++;
         }));
         
-        for(var k in line){
-            if(line[k]['node'].id=='selection')
-                var lineIndex = k;
+        if(!this._lock){
+            for(var k in line){
+                if(line[k]['node'].id=='selection')
+                    this._lineIndex = k;
+            }
+            this._lock = true;    
         }
+        
         var count = this._count(lineAbove);
         if(this._count(lineAbove)>0){
-            if(count >= lineIndex){
-                if(lineAbove[lineIndex]){
-                    this.value.start = lineAbove[lineIndex].index;
-                    this.value.end = lineAbove[lineIndex].index;
-                    dojo.place('selection', lineAbove[lineIndex].node, 'before');
+            if(count >= this._lineIndex){
+                if(lineAbove[this._lineIndex]){
+                    this.value.start = lineAbove[this._lineIndex].index;
+                    this.value.end = lineAbove[this._lineIndex].index;
+                    dojo.place('selection', lineAbove[this._lineIndex].node, 'before');
                 }else{
-                    this.value.start = lineAbove[lineIndex-1].index+1;
-                    this.value.end = lineAbove[lineIndex-1].index+1;
-                    dojo.place('selection', lineAbove[lineIndex-1].node, 'after');
+                    this.value.start = lineAbove[this._lineIndex-1].index+1;
+                    this.value.end = lineAbove[this._lineIndex-1].index+1;
+                    dojo.place('selection', lineAbove[this._lineIndex-1].node, 'after');
                 }
-            }else if(count < lineIndex){
+            }else if(count < this._lineIndex){
                 this.value.start = lineAbove[0].index+count-1;
                 this.value.end = lineAbove[0].index+count-1;
                 dojo.place('selection', lineAbove[count-1].node, 'after');
@@ -384,23 +391,27 @@ define([
             i++;
         }));
         
-        for(var k in line){
-            if(line[k]['node'].id=='selection')
-                var lineIndex = k;
+        if(!this._lock){
+            for(var k in line){
+                if(line[k]['node'].id=='selection')
+                    this._lineIndex = k;
+            }
+            this._lock = true;    
         }
+        
         var count = this._count(lineBelow);
         if(this._count(lineBelow)>0){
-            if(count >= lineIndex){
-                if(lineBelow[lineIndex]){
-                    this.value.start = lineBelow[lineIndex].index-1;
-                    this.value.end = lineBelow[lineIndex].index-1;
-                    dojo.place('selection', lineBelow[lineIndex].node, 'before');
+            if(count >= this._lineIndex){
+                if(lineBelow[this._lineIndex]){
+                    this.value.start = lineBelow[this._lineIndex].index-1;
+                    this.value.end = lineBelow[this._lineIndex].index-1;
+                    dojo.place('selection', lineBelow[this._lineIndex].node, 'before');
                 }else{
-                    this.value.start = lineBelow[lineIndex-1].index+1;
-                    this.value.end = lineBelow[lineIndex-1].index+1;
-                    dojo.place('selection', lineBelow[lineIndex-1].node, 'after');
+                    this.value.start = lineBelow[this._lineIndex-1].index+1;
+                    this.value.end = lineBelow[this._lineIndex-1].index+1;
+                    dojo.place('selection', lineBelow[this._lineIndex-1].node, 'after');
                 }
-            }else if(count < lineIndex){
+            }else if(count < this._lineIndex){
                 this.value.start = lineBelow[0].index+count-1;
                 this.value.end = lineBelow[0].index+count-1;
                 dojo.place('selection', lineBelow[count-1].node, 'after');
@@ -442,6 +453,7 @@ define([
                 dojo.attr(tmp,'style',curr+'background-color:#99CCFF;');   
             }
         }
+        this._lock = false;  
     };
     
     // Move caret right one char & custom render
@@ -472,6 +484,7 @@ define([
                 dojo.attr(tmp,'style',curr+'background-color:#99CCFF;');   
             }
         }
+        this._lock = false;  
     };
     
     proto._listenForKeyCombo = function(e) {
