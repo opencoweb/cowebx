@@ -22,6 +22,8 @@ define([], function() {
     };
     
 	proto.ld = function(a, b){
+	    console.log('A ',a);
+	    console.log('B ',b);
 	    if(a == null){
 	        var arr = [];
 	        for(var i=0; i<b.length; i++)

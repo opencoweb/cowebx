@@ -15,7 +15,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this.slider         =   this._buildSlider();
         this.oldSnapshot    =   this.snapshot();
         this.newSnapshot    =   '';
-        this.interval       =   100;            //Broadcast interval in ms
+        this.interval       =   100;           //Broadcast interval in ms
         this.t              =   null;           //Handle for timeouts
         this.q              =   [];             //Queue for incoming ops when paused
         this.min            =   0;              //Min caret pos in iteration loop
@@ -53,20 +53,27 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
 
             if(oldLength < newLength){
                 var mx = this.max+(newLength - oldLength);
-                if(this.oldSnapshot != this.newSnapshot)
+                if(newLength-oldLength>50){
+                    var text = this.newSnapshot.substring(this.min, mx);
+                    for(var i=0; i<text.length; i++){
+                        this.collab.sendSync('editorUpdate', {'char':text[i],'filter':this._textarea.filters}, 'insert', i+this.min);
+                    }
+                }else{
                     var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
-                if(syncs){
-                    for(var i=0; i<syncs.length; i++){
-                        //this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
-                        this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters}, syncs[i].ty, syncs[i].pos+this.min);
-                    }   
+                    if(syncs){
+                       // console.log(syncs);
+                        for(var i=0; i<syncs.length; i++){
+                            //this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters}, syncs[i].ty, syncs[i].pos+this.min);
+                        }   
+                    }
                 }
             }else if(newLength < oldLength){
                 var mx = this.max+(oldLength-newLength);
                 var mn = (this.min-1 > -1) ? this.min-1 : 0;
-                if(this.oldSnapshot != this.newSnapshot)
-                    var syncs = this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
+                var syncs = this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
                 if(syncs){
+                   // console.log(syncs);
                     for(var i=0; i<syncs.length; i++){
                         //this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
                         this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters}, syncs[i].ty, syncs[i].pos+mn);
@@ -76,6 +83,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
                 if(this.oldSnapshot != this.newSnapshot)
                     var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, this.max));
                 if(syncs){
+                   // console.log(syncs);
                     for(var i=0; i<syncs.length; i++){
                         //this.collab.sendSync('editorBuffer', {buffer:this._textarea.filters});
                         this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters}, syncs[i].ty, syncs[i].pos+this.min);
@@ -96,8 +104,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         }
         this.q = [];
         this.oldSnapshot = this.snapshot();
-        this.min = this._por.start;
-        this.max = this._por.end;
+        this._forcePOR();
         this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
     };
     
@@ -226,7 +233,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
     
     proto.onStateRequest = function(token){
         var state = {
-            string: this._textarea.value.string,
+            value: this._textarea.value,
             oldSnapshot: this.oldSnapshot,
             history : this.slider.history,
             title: this._textarea.title
@@ -236,9 +243,11 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
     
     proto.onStateResponse = function(obj){
         this.oldSnapshot = obj.oldSnapshot;
-        this._textarea.value.string = obj.string;
+        this._textarea.value = obj.value;
         this._textarea.title = obj.title;
         this._textarea._title.innerHTML = this._textarea.title;
+        this._textarea.value.start = 0;
+        this._textarea.value.end = 0;
         this._textarea.render();
         this.slider.history = obj.history;
     };
@@ -258,6 +267,13 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
             this.max = this._por.end;
     };
     
+    proto._forcePOR = function() {
+        this._por.start = this._textarea.value.start;
+        this._por.end = this._textarea.value.end;
+        this.min = this._por.start;
+        this.max = this._por.end;
+    };
+    
     proto._connectSyncs = function(){
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
@@ -265,6 +281,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this.collab.subscribeStateRequest(this, 'onStateRequest');
     	this.collab.subscribeStateResponse(this, 'onStateResponse');
     	dojo.connect(this._textarea.div, 'onkeypress', this, '_updatePOR');
+    	dojo.connect(this._textarea.div, 'onmouseup', this, '_forcePOR');
     };
 
     proto._getValueAttr = function() {

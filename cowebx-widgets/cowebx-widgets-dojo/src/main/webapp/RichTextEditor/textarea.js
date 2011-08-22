@@ -63,8 +63,6 @@ define([
         this._pastForeColors    =   [];
         this._pastHiliteColors  =   [];
         this._lock              =   false;
-        
-        this.getCharObj();
     };
     var proto = textarea.prototype;
     
@@ -183,15 +181,11 @@ define([
         for(var i=0; i<c.length; i++){
             var filters = v.string[v.start-i-1]['filters'].join("");
             if(c[i] == this.newSpace){
-                var node = dojo.create('span',{innerHTML:'&nbsp; '},dojo.byId('selection'),'before');
-                var curr = (dojo.attr(node,'style') == null) ? '' : dojo.attr(node,'style');
-                dojo.attr(node,'style',curr+filters);
+                var node = dojo.create('span',{innerHTML:'&nbsp; ', 'style':filters},dojo.byId('selection'),'before');
             }else if(c[i] == this.newLine){
                 dojo.create('br',{},dojo.byId('selection'),'before');
             }else{
-                var node = dojo.create('span',{innerHTML:c[i]},dojo.byId('selection'),'before');
-                var curr = (dojo.attr(node,'style') == null) ? '' : dojo.attr(node,'style');
-                dojo.attr(node,'style',curr+filters);
+                var node = dojo.create('span',{innerHTML:c[i],'style':filters},dojo.byId('selection'),'before');
             }
         }
 
