@@ -63,6 +63,7 @@ define([
         this._pastForeColors    =   [];
         this._pastHiliteColors  =   [];
         this._lock              =   false;
+        this._paste             =   false;
     };
     var proto = textarea.prototype;
     
@@ -163,10 +164,14 @@ define([
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var v = this.value;
+        if(paste)
+            this._paste = true;
         
-        if(start != end){
+        //1. clear selection if there is one
+        if(start != end)
             this.destroySelection();
-        }
+        
+        //2. change string in memory
         for(var i=c.length-1; i>=0; i--){
             var f = this.filters.slice();
             if(!paste || paste==undefined){
@@ -177,7 +182,8 @@ define([
             v.start = v.start+1;
             v.end = v.start;
         }
-
+        
+        //3. custom partial render of dom
         for(var i=0; i<c.length; i++){
             var filters = v.string[v.start-i-1]['filters'].join("");
             if(c[i] == this.newSpace){
@@ -188,7 +194,8 @@ define([
                 var node = dojo.create('span',{innerHTML:c[i],'style':filters},dojo.byId('selection'),'before');
             }
         }
-
+        
+        //4. housekeeping
         this._renderLineNumbers();
         this._scrollWith();
         dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
@@ -490,9 +497,9 @@ define([
             var sel = this._stripSpaces(this._stripTags(this.selection.innerHTML));
             this._hidden = dojo.create('textarea',{
                 id:'hidden',
-                style:'position:absolute;left:-10000px;top:0px;',
+                style:'position:absolute;left:-10000px;top:200px;',
                 innerHTML: sel
-            },this.div,'after');
+            },this.container,'before');
             document.getElementById('hidden').focus();
             document.getElementById('hidden').select();
             
@@ -746,8 +753,10 @@ define([
         var toolbarNode = dojo.create('div',{style:'width:100%;height:50px;'},this.container,'first');
         var toolbar = new Toolbar({},toolbarNode);
         dojo.attr(toolbar.domNode, 'class', 'gradient header');
+        
+        //1. Home button
         var home = new ToggleButton({
-            label: '<img style="width:18px;height:18;" src="images/home.png"/>',
+            label: '<img style="width:18px;height:18;" src="../lib/cowebx/dojo/RichTextEditor/images/home.png"/>',
             showLabel: true,
             id: 'homeButton'
         });
@@ -756,6 +765,8 @@ define([
         dojo.connect(home, 'onclick', this, '_onHomeClick');
         dojo.attr(home.domNode, 'style', 'border-bottom:3px solid black');
         dojo.style('homeButton_label', 'padding', '0px');
+        
+        //2. NewPage, Save
         dojo.forEach(["NewPage", "Save"], dojo.hitch(this, function(label) {
             var button = new ToggleButton({
                 label: label,
@@ -767,8 +778,22 @@ define([
             dojo.connect(button, 'onclick', this, '_on'+label+'Click');
             dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
         }));
+        
+        //3. Duplicate button
+        var dup = new ToggleButton({
+            label: '<img style="width:18px;height:18;" src="../lib/cowebx/dojo/RichTextEditor/images/duplicate.png"/>',
+            showLabel: true,
+            id: 'dupButton'
+        });
+        toolbar.addChild(dup);
+        this.duplicateButton = dup;
+        dojo.connect(dup, 'onclick', this, '_onDuplicateClick');
+        dojo.attr(dup.domNode, 'style', 'border-bottom:3px solid black');
+        dojo.style('dupButton_label', 'padding', '0px');
         var sep = new Separator({});
         toolbar.addChild(sep);
+        
+        //3. Bold, italic, underline, strikethrough
         dojo.forEach(["Bold", "Italic", "Underline", "Strikethrough"], dojo.hitch(this, function(label) {
             var button = new ToggleButton({
                 label: label,
@@ -782,6 +807,8 @@ define([
         }));
         var sep = new Separator({});
         toolbar.addChild(sep);
+        
+        //4. Colors
         dojo.forEach(["ForeColor", "HiliteColor"], dojo.hitch(this, function(label) {
             var button = new ToggleButton({
                 label: label,
@@ -795,6 +822,8 @@ define([
         }));
         var sep = new Separator({});
         toolbar.addChild(sep);
+        
+        //5. Slider
         if(!this.noSlider || this.noSlider == false){
             var button = new ToggleButton({
                 label: '<span style="font-family:Arial;font-size:14px;"><img src="../lib/cowebx/dojo/RichTextEditor/images/history.png" style="height:20px;width:20px;margin-right:3px"/>History</span>',
@@ -849,7 +878,7 @@ define([
             dojo.style(e.target, 'background', '');
             this.collab.sendSync('editorTitle', {'title':e.target.innerHTML}, null);   
         });
-        var edit = dojo.create('img',{src:'images/pencil.png','class':'editIcon'},title,'after');
+        var edit = dojo.create('img',{src:'../lib/cowebx/dojo/RichTextEditor/images/pencil.png','class':'editIcon'},title,'after');
         dojo.connect(title, 'onkeypress', this, function(e){
             if(e.keyCode == 8){
                 dojo.attr(e.target, 'innerHTML', '');
@@ -949,6 +978,7 @@ define([
         }
         this._lastOp = 'bold';
         this.div.focus();
+        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     proto._onItalicClick = function() {
@@ -1002,6 +1032,7 @@ define([
         }
         this._lastOp = 'italic';
         this.div.focus();
+        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     proto._onUnderlineClick = function() {
@@ -1055,6 +1086,7 @@ define([
         }
         this._lastOp = 'underline';
         this.div.focus();
+        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     proto._onStrikethroughClick = function() {
@@ -1108,6 +1140,7 @@ define([
         }
         this._lastOp = 'strikethrough';
         this.div.focus();
+        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     proto._onForeColorClick = function() {
@@ -1157,6 +1190,7 @@ define([
         this._pastForeColors.push(color);
         this.div.focus();
         this._hidePalette();
+        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     proto._onHiliteColorClick = function() {
@@ -1209,6 +1243,7 @@ define([
         this._pastHiliteColors.push(color);
         this.div.focus();
         this._hidePalette();
+        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
 
     proto._onNewPageClick = function() {
@@ -1253,6 +1288,10 @@ define([
         });
     };
     
+    proto._onDuplicateClick = function() {
+        window.open(window.location);
+    };
+    
     proto._onSliderClick = function(){
         dojo.publish("sliderToggle", [{}]);
     };
@@ -1263,6 +1302,7 @@ define([
     };
     
     proto._resize = function(initial) {
+        //Style on resize as a late hook, fix eventually
         dojo.attr('thisDiv','style','background:white;cursor:text;z-index:1000;height:100%;min-height:100%;');
         dojo.attr('lineNumbers','style','width:auto;height:100%;background:grey;min-width:30px;');
         dojo.style(this._div, 'height', (window.innerHeight-70)+'px');
