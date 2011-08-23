@@ -4,9 +4,8 @@ define([
     'dijit/form/ToggleButton',
     'dijit/ToolbarSeparator',
     'dijit/Dialog',
-    'cowebx/dojo/ShareButton/Button',
     'dijit/ColorPalette'
-], function(coweb, Toolbar, ToggleButton, Separator, Dialog, Button, ColorPalette) {
+], function(coweb, Toolbar, ToggleButton, Separator, Dialog, ColorPalette) {
     var textarea = function(args){
         if(!args.domNode || !args.id)
             throw new Error("Textarea: missing arg");
@@ -24,7 +23,6 @@ define([
         this.footer         =   this._buildFooter();
         this.selection      =   dojo.create('span',{id:'selection',style:'border-left:1px solid black'},this.frame,'last');
         this.dialog         =   this._buildConfirmDialog();
-        this.shareButton    =   this._buildShareButton();
         
         //3. Style and connect
         this._style();
@@ -64,6 +62,7 @@ define([
         this._pastHiliteColors  =   [];
         this._lock              =   false;
         this._paste             =   false;
+        this._caret             =   true;
     };
     var proto = textarea.prototype;
     
@@ -282,10 +281,15 @@ define([
     // Select all text & full render
     proto.selectAll = function() {
         var v = this.value;
-        v.end=0; 
-        v.start=v.string.length;
+        if(!(v.end == 0 && v.start == v.string.length)){
+            v.end=0; 
+            v.start=v.string.length;
         
-        this.render();
+            dojo.destroy('selection');
+            var tmp = dojo.byId('thisFrame').innerHTML+'';
+            dojo.byId('thisFrame').innerHTML = '';
+            this.selection = dojo.create('span',{id:'selection',innerHTML:tmp,style:'border-left:1px solid black;background-color:#99CCFF;'},this.frame,'last');
+        }
     };
     
     // Get plain string representation of curr value
@@ -494,7 +498,7 @@ define([
         if((e.which == 224) || (e.which == 91) || (e.which == 17)){
             
             //2. Put current selection in hidden div, change focus
-            var sel = this._stripSpaces(this._stripTags(this.selection.innerHTML));
+            var sel = this._stripTags(this._stripSpaces(this._replaceBR(this.selection.innerHTML)));
             this._hidden = dojo.create('textarea',{
                 id:'hidden',
                 style:'position:absolute;left:-10000px;top:200px;',
@@ -647,13 +651,13 @@ define([
     
     proto._blink = function(){
         if(this.displayCaret){
-            if(dojo.attr(dojo.byId('selection'), 'style') == 'border-left:1px solid black'){
-                dojo.attr(dojo.byId('selection'), 'style', 'border-left:1px solid white');
+            if(this._caret == true){
+                dojo.style('selection', 'border-left', '1px solid white;');
+                this._caret = false;
             }else{
-                dojo.attr(dojo.byId('selection'), 'style', 'border-left:1px solid black');
+                dojo.style('selection', 'border-left', '1px solid black;');
+                this._caret = true;
             }
-        }else{
-            dojo.attr(dojo.byId('selection'), 'style', 'border-left: 1px solid white');
         }
     };
     
@@ -661,6 +665,11 @@ define([
         //Backspace
         if (e.which == 8)
 			return false;
+    };
+    
+    proto._replaceBR = function(string){
+        var s = string.replace(new RegExp("<br>", 'g'),'^');
+        return s;
     };
     
     proto._stripTags = function (string) {
@@ -889,16 +898,6 @@ define([
         var col = dojo.create('span',{style:'float:right;',innerHTML:'Col: '+'<span id="col">0</span>'},div,'last');
         
         return footerNode;
-    };
-    
-    proto._buildShareButton = function(){
-        var button = new Button({
-            'domNode':this.toolbar.domNode,
-            'listenTo':this,
-            'id':'shareButton',
-            'displayButton':false});
-        dojo.style(button.emailBox, 'position', 'absolute');
-        dojo.style(button.emailBox, 'top', '49px');
     };
     
     proto._buildConfirmDialog = function(){

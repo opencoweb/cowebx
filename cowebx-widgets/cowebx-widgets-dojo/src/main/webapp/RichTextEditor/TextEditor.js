@@ -1,4 +1,4 @@
-define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,textarea,Slider) {
+define(['coweb/main','./ld', './textarea', './TimeSlider', 'cowebx/dojo/ShareButton/Button'], function(coweb,ld,textarea,Slider,Button) {
     var TextEditor = function(args){
         if(!args.id)
             throw new Error('missing id argument');
@@ -13,6 +13,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         this._textarea      =   new textarea({domNode:this._container,'id':'_textarea'});
         this.util           =   new ld({});
         this.slider         =   this._buildSlider();
+        this.shareButton    =   this._buildShareButton();
         this.oldSnapshot    =   this.snapshot();
         this.newSnapshot    =   '';
         this.interval       =   100;           //Broadcast interval in ms
@@ -313,6 +314,19 @@ define(['coweb/main','./ld', './textarea', './TimeSlider'], function(coweb,ld,te
         var holder = dojo.create('div',{'style':'width:100%;height:100%'},node);
         var slider = new Slider({'domNode':holder,textarea:this._textarea,'id':'slider','parent':this});
         return slider;
+    };
+    
+    proto._buildShareButton = function(){
+        var button = new Button({
+            'domNode':this._textarea.toolbar.domNode,
+            'listenTo':this,
+            'id':'shareButton',
+            'displayButton':false});
+        
+        
+        dojo.style(button.emailBox, 'position', 'absolute');
+        dojo.style(button.emailBox, 'top', '49px');
+        return button;
     };
     
 
