@@ -844,10 +844,10 @@ define([
         
         //Color pallettes
         var paletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
-        this._palette = new ColorPalette({style:'position:fixed;display:none;left:265px'},paletteNode);
+        this._palette = new ColorPalette({style:'position:fixed;display:none;left:295px'},paletteNode);
         dojo.connect(this._palette, 'onChange', this, '_onForeColorChange');
         var bgPaletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
-        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;left:300px'},bgPaletteNode);
+        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;left:330px'},bgPaletteNode);
         dojo.connect(this._bgPalette, 'onChange', this, '_onHiliteColorChange');
         
         return toolbar;
@@ -1304,46 +1304,27 @@ define([
     };
 
     proto._onMouseDown = function(e){
-        this._selStart = {x:e.clientX,y:e.clientY};
+        this._endNode = e.target;
     };
     
     proto._onClick = function(e){
-        var _prevStart = this.value.start;
-        var _prevEnd = this.value.end;
-        if(_prevStart != _prevEnd)
+        var startNode = e.target;
+        var endNode = this._endNode;
+        if(this.value.start != this.value.end)
             this.clearSelection();
-        var ignore = ['selection', 'before', 'after'];
-        var i=0; j = 0; k=0;
+        var i=0; j=0;
         var start = null;
         var end = null;
         
         //Point in Polygon to find selection Start
         dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
-            if(dojo.indexOf(ignore,node.id) == -1){
+            if(node.id != 'selection'){
                 i++;
-                if(node.tagName == 'SPAN'){
-                    var pos = this._findPos(node);
-                    var width = node.offsetWidth;
-                    var height = node.offsetHeight;
-                    var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
-                    if(this._isPiP(points, this._selStart) == true)
-                        start = i;
-                }
-            }
-        }));
-        
-        //Point in Polygon to find selection End
-        dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
-            if(dojo.indexOf(ignore,node.id) == -1){
-                j++;
-                if(node.tagName == 'SPAN'){
-                    var pos = this._findPos(node);
-                    var width = node.offsetWidth;
-                    var height = node.offsetHeight;
-                    var points = {top: pos.top, bottom: pos.top+height, left: pos.left, right: pos.left+width};
-                    if(this._isPiP(points, {x:e.clientX,y:e.clientY}) == true)
-                        end = j;
-                }
+                if(startNode == node)
+                    start = i;
+                    j++;
+                if(endNode == node)
+                    end = j;
             }
         }));
         
