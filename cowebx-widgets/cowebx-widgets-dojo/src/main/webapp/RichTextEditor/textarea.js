@@ -276,6 +276,7 @@ define([
         for(var i=0; i<l; i++)
             dojo.destroy(dojo.byId('selection').nextSibling);
         v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
+        this._renderLineNumbers();
     };
     
     // Select all text & full render
@@ -565,10 +566,7 @@ define([
             //Cut
             }else if(e.which == 88){
                 this._pause(100);
-                var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
-                var len = this._stripSpaces(this._stripTags(this.selection.innerHTML)).length;
-                this.value.start = end;
-                this._delete(len);
+                this.destroySelection();
             }
             
             setTimeout(dojo.hitch(this, function(){
@@ -589,7 +587,7 @@ define([
                     this.insert(text, true);
                 }), 100);
             //selectAll
-            }else if(e.which == 97 || 65){
+            }else if(e.which == (97 || 65)){
                 this.selectAll();
             //Copy
             }else if(e.which == 99){
@@ -597,10 +595,7 @@ define([
             //Cut
             }else if(e.which == 120){
                 this._pause(100);
-                var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
-                var len = this._stripSpaces(this._stripTags(this.selection.innerHTML)).length;
-                this.value.start = end;
-                this._delete(len);
+                this.destroySelection();
             }
             
             setTimeout(dojo.hitch(this, function(){
