@@ -580,6 +580,7 @@ define([
     
     proto._universalKeyCombo = function() {
         this._c = dojo.connect(this._hidden, 'onkeypress', this,function(e){
+            console.log(e);
             //Paste
             if(e.which == 118){
                 this.t = setTimeout(dojo.hitch(this, function(){
@@ -587,7 +588,7 @@ define([
                     this.insert(text, true);
                 }), 100);
             //selectAll
-            }else if(e.which == (97 || 65)){
+            }else if(e.which == 97 || e.which == 65){
                 this.selectAll();
             //Copy
             }else if(e.which == 99){
