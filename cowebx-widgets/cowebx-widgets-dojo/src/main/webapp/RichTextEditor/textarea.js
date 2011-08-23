@@ -499,12 +499,13 @@ define([
         if((e.which == 224) || (e.which == 91) || (e.which == 17)){
             
             //2. Put current selection in hidden div, change focus
-            var sel = this._stripTags(this._stripSpaces(this._replaceBR(this.selection.innerHTML)));
+            var sel = this._stripTags(this._stripSpaces(this._replaceBR(dojo.byId('selection').innerHTML)));
             this._hidden = dojo.create('textarea',{
                 id:'hidden',
                 style:'position:absolute;left:-10000px;top:200px;',
                 innerHTML: sel
             },this.container,'before');
+
             document.getElementById('hidden').focus();
             document.getElementById('hidden').select();
             
@@ -580,7 +581,6 @@ define([
     
     proto._universalKeyCombo = function() {
         this._c = dojo.connect(this._hidden, 'onkeypress', this,function(e){
-            console.log(e);
             //Paste
             if(e.which == 118){
                 this.t = setTimeout(dojo.hitch(this, function(){
@@ -588,7 +588,7 @@ define([
                     this.insert(text, true);
                 }), 100);
             //selectAll
-            }else if(e.which == 97 || e.which == 65){
+            }else if((e.which == 97) || (e.which == 65)){
                 this.selectAll();
             //Copy
             }else if(e.which == 99){
@@ -1319,10 +1319,9 @@ define([
         //Point in Polygon to find selection Start
         dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
             if(node.id != 'selection'){
-                i++;
+                i++; j++;
                 if(startNode == node)
                     start = i;
-                    j++;
                 if(endNode == node)
                     end = j;
             }
