@@ -351,18 +351,31 @@ define([
         if(this._count(lineAbove)>0){
             if(count >= this._lineIndex){
                 if(lineAbove[this._lineIndex]){
-                    this.value.start = lineAbove[this._lineIndex].index;
-                    this.value.end = lineAbove[this._lineIndex].index;
-                    dojo.place('selection', lineAbove[this._lineIndex].node, 'before');
+                    if(select){
+                        //move all nodes in between the current start and the new start
+                        //into the selection
+                    }else{
+                        this.value.start = lineAbove[this._lineIndex].index;
+                        this.value.end = lineAbove[this._lineIndex].index;
+                        dojo.place('selection', lineAbove[this._lineIndex].node, 'before');
+                    }
                 }else{
-                    this.value.start = lineAbove[this._lineIndex-1].index+1;
-                    this.value.end = lineAbove[this._lineIndex-1].index+1;
-                    dojo.place('selection', lineAbove[this._lineIndex-1].node, 'after');
+                    if(select){
+                        
+                    }else{
+                        this.value.start = lineAbove[this._lineIndex-1].index+1;
+                        this.value.end = lineAbove[this._lineIndex-1].index+1;
+                        dojo.place('selection', lineAbove[this._lineIndex-1].node, 'after');
+                    }
                 }
             }else if(count < this._lineIndex){
-                this.value.start = lineAbove[0].index+count-1;
-                this.value.end = lineAbove[0].index+count-1;
-                dojo.place('selection', lineAbove[count-1].node, 'after');
+                if(select){
+                    
+                }else{
+                    this.value.start = lineAbove[0].index+count-1;
+                    this.value.end = lineAbove[0].index+count-1;
+                    dojo.place('selection', lineAbove[count-1].node, 'after');
+                }
             }
         }else{
             if(line[0].node.previousSibling){
@@ -526,7 +539,7 @@ define([
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
         dojo.connect(this.div, 'onkeydown', this, '_listenForKeyCombo');
-        dojo.connect(this.div, 'onclick', this, '_hidePalette');
+        dojo.subscribe("hideAll", dojo.hitch(this, function(message){ this._hidePalette(); }));
         document.onkeydown = this._overrideKeys;
     };
     
@@ -1343,7 +1356,7 @@ define([
         this.displayCaret = true;
         if(dojo.byId('hidden'))
             dojo.destroy('hidden');
-        dojo.publish("shareHide", [{}]);
+        dojo.publish("hideAll", [{}]);
     };
     
     proto._onBlur = function(){

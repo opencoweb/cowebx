@@ -69,12 +69,8 @@ define([], function() {
     };
     
     proto._connect = function() {
-        dojo.subscribe("shareClick", dojo.hitch(this, function(message){
-             this.onShareClick();
-        }));
-        dojo.subscribe("shareHide", dojo.hitch(this, function(message){
-             this._hide();
-        }));
+        dojo.subscribe("shareClick", dojo.hitch(this, function(message){ this.onShareClick(); }));
+        dojo.subscribe("hideAll", dojo.hitch(this, function(message){ this._hide(); }));
     };
     
     proto._formatShareMsg = function(){
