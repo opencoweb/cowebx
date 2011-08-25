@@ -54,6 +54,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', 'cowebx/dojo/ShareBut
 
             if(oldLength < newLength){
                 var mx = this.max+(newLength - oldLength);
+                //Paste optimization
                 if(newLength-oldLength>50){
                     var text = this.newSnapshot.substring(this.min, mx);
                     for(var i=0; i<text.length; i++)

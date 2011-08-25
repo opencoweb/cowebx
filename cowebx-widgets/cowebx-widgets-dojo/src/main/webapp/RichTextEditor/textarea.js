@@ -21,7 +21,7 @@ define([
         this.frame          =   dojo.create('div',{id:'thisFrame'},this.div,'first');
         this.toolbar        =   this._buildToolbar();
         this.footer         =   this._buildFooter();
-        this.selection      =   dojo.create('span',{id:'selection',style:'border-left:1px solid black'},this.frame,'last');
+        this.selection      =   dojo.create('span',{id:'selection',style:'border-left:1px solid black;'},this.frame,'last');
         this.dialog         =   this._buildConfirmDialog();
         
         //3. Style and connect
@@ -143,7 +143,7 @@ define([
         var tempC = c.join("");
 
         this.frame.innerHTML = tempA;
-        this.selection = dojo.create('span',{id:'selection',innerHTML:tempB,style:'border-left:1px solid black'},this.frame,'last');
+        this.selection = dojo.create('span',{id:'selection',innerHTML:tempB,style:'border-left:1px solid black;'},this.frame,'last');
         this.frame.innerHTML = this.frame.innerHTML + tempC;
 
         //Get char object
@@ -227,7 +227,7 @@ define([
                     }
                 }else{
                     this.frame.innerHTML = '';
-                    this.selection = dojo.create('span',{id:'selection',innerHTML:tempB,style:'border-left:1px solid black'},this.frame,'last');
+                    this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black;'},this.frame,'last');
                 }
             }
 
@@ -283,13 +283,13 @@ define([
     proto.selectAll = function() {
         var v = this.value;
         if(!(v.end == 0 && v.start == v.string.length)){
-            v.end=0; 
-            v.start=v.string.length;
-        
+            this.clearSelection('right');
             dojo.destroy('selection');
             var tmp = dojo.byId('thisFrame').innerHTML+'';
             dojo.byId('thisFrame').innerHTML = '';
             this.selection = dojo.create('span',{id:'selection',innerHTML:tmp,style:'border-left:1px solid black;background-color:#99CCFF;'},this.frame,'last');
+            v.end=v.string.length;
+            v.start=0;
         }
     };
     
@@ -309,10 +309,10 @@ define([
         this.value.string = s;
         
         this.frame.innerHTML = '';
-        this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black'},this.frame,'last');
+        this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black;'},this.frame,'last');
         this.insert(string, true);
-        // this._renderLineNumbers();
-        // dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
+        this._renderLineNumbers();
+        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     // Move caret up one line & custom render
@@ -352,8 +352,7 @@ define([
             if(count >= this._lineIndex){
                 if(lineAbove[this._lineIndex]){
                     if(select){
-                        //move all nodes in between the current start and the new start
-                        //into the selection
+                       
                     }else{
                         this.value.start = lineAbove[this._lineIndex].index;
                         this.value.end = lineAbove[this._lineIndex].index;
@@ -422,17 +421,18 @@ define([
         if(this._count(lineBelow)>0){
             if(count >= this._lineIndex){
                 if(lineBelow[this._lineIndex]){
-                    this.value.start = lineBelow[this._lineIndex].index-1;
-                    this.value.end = lineBelow[this._lineIndex].index-1;
+                    this.value.start = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
+                    this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
                     dojo.place('selection', lineBelow[this._lineIndex].node, 'before');
                 }else{
-                    this.value.start = lineBelow[this._lineIndex-1].index+1;
-                    this.value.end = lineBelow[this._lineIndex-1].index+1;
+                    this.value.start = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
+                    this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
+                    
                     dojo.place('selection', lineBelow[this._lineIndex-1].node, 'after');
                 }
             }else if(count < this._lineIndex){
-                this.value.start = lineBelow[0].index+count-1;
-                this.value.end = lineBelow[0].index+count-1;
+                this.value.start = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
+                this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
                 dojo.place('selection', lineBelow[count-1].node, 'after');
             }
         }else{
@@ -580,7 +580,7 @@ define([
             //Cut
             }else if(e.which == 88){
                 this._pause(100);
-                this.destroySelection();
+                this._delete();
             }
             
             setTimeout(dojo.hitch(this, function(){
@@ -609,9 +609,8 @@ define([
             //Cut
             }else if(e.which == 120){
                 this._pause(100);
-                this.destroySelection();
+                this._delete();
             }
-            
             setTimeout(dojo.hitch(this, function(){
                 dojo.disconnect(this._c);
                 dojo.destroy(this._hidden);
@@ -661,10 +660,10 @@ define([
     proto._blink = function(){
         if(this.displayCaret){
             if(this._caret == true){
-                dojo.style('selection', 'border-left', '1px solid white;');
+                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-left:1px solid black;','border-left:1px solid white;'));
                 this._caret = false;
             }else{
-                dojo.style('selection', 'border-left', '1px solid black;');
+                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-left:1px solid white;','border-left:1px solid black;'));
                 this._caret = true;
             }
         }
@@ -1342,7 +1341,7 @@ define([
         
         //Backup if no matches: is Point in Line? Go to end if so...
         if(start == null && end == null){
-            console.log('liine?');
+            console.log(this.value);
         }
                         
         if(start && end){
