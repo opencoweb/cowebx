@@ -194,10 +194,6 @@ define([
             }
         }
         
-        //4. housekeeping
-        this._renderLineNumbers();
-        this._scrollWith();
-        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
         this._lock = false;  
     };
     
@@ -230,10 +226,7 @@ define([
                     this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black;'},this.frame,'last');
                 }
             }
-
-            this._renderLineNumbers();
-            this._scrollWith();
-            dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
+            
             this._lock = false; 
         }
     };
@@ -276,7 +269,6 @@ define([
         for(var i=0; i<l; i++)
             dojo.destroy(dojo.byId('selection').nextSibling);
         v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
-        this._renderLineNumbers();
     };
     
     // Select all text & full render
@@ -311,8 +303,6 @@ define([
         this.frame.innerHTML = '';
         this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black;'},this.frame,'last');
         this.insert(string, true);
-        this._renderLineNumbers();
-        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     // Move caret up one line & custom render
@@ -723,7 +713,9 @@ define([
     };
     
     proto._scrollWith = function(){
-        dojo.byId('divHolder').scrollTop = dojo.byId('selection').offsetTop;
+        // var a = dojo.byId('selection');
+        //         if(a.previousSibling && a.previousSibling.innerHTML != '&nbsp; ')
+        //             dojo.byId('divHolder').scrollTop = dojo.byId('selection').offsetTop;
     };
     
     proto._renderLineNumbers = function(){

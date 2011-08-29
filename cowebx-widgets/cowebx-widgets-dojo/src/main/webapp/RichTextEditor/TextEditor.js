@@ -113,6 +113,8 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', 'cowebx/dojo/ShareBut
         this.q = [];
         this.oldSnapshot = this.snapshot();
         this._forcePOR();
+        this._textarea._renderLineNumbers();
+        this._textarea._scrollWith();
         this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
     };
     
