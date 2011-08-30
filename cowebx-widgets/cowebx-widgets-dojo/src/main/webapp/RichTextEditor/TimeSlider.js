@@ -107,40 +107,40 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
     };
     
     proto._onBlur = function() {
-        this.index = this.history.length-1;
-        var state = this.history[this.index];
-        if(state){
-            this._textarea.value.string = state.string;
-            this._textarea.render(true);
-            this._textarea.getCharObj(true);
-            this.slider.destroy();
-            var h = dojo.create('div',{style:'width:100%;height:100%'},this._sliderCell);
-            this.slider = new dijit.form.HorizontalSlider({
-                name: "slider",
-                value: 1,
-                minimum: 0,
-                maximum: 1,
-                intermediateChanges: true,
-                style: "width:100%;",
-                onChange: dojo.hitch(this, function(value) {
-                    this._onChange(value);
-                })
-            },h);
-        }else{
-            this.slider.destroy();
-            var h = dojo.create('div',{style:'width:100%;height:100%'},this._sliderCell);
-            this.slider = new dijit.form.HorizontalSlider({
-                name: "slider",
-                value: 1,
-                minimum: 0,
-                maximum: 1,
-                intermediateChanges: true,
-                style: "width:100%;",
-                onChange: dojo.hitch(this, function(value) {
-                    this._onChange(value);
-                })
-            },h);
-        }
+        // this.index = this.history.length-1;
+        //         var state = this.history[this.index];
+        //         if(state){
+        //             this._textarea.value.string = state.string;
+        //             this._textarea.render(true);
+        //             this._textarea.getCharObj(true);
+        //             this.slider.destroy();
+        //             var h = dojo.create('div',{style:'width:100%;height:100%'},this._sliderCell);
+        //             this.slider = new dijit.form.HorizontalSlider({
+        //                 name: "slider",
+        //                 value: 1,
+        //                 minimum: 0,
+        //                 maximum: 1,
+        //                 intermediateChanges: true,
+        //                 style: "width:100%;",
+        //                 onChange: dojo.hitch(this, function(value) {
+        //                     this._onChange(value);
+        //                 })
+        //             },h);
+        //         }else{
+        //             this.slider.destroy();
+        //             var h = dojo.create('div',{style:'width:100%;height:100%'},this._sliderCell);
+        //             this.slider = new dijit.form.HorizontalSlider({
+        //                 name: "slider",
+        //                 value: 1,
+        //                 minimum: 0,
+        //                 maximum: 1,
+        //                 intermediateChanges: true,
+        //                 style: "width:100%;",
+        //                 onChange: dojo.hitch(this, function(value) {
+        //                     this._onChange(value);
+        //                 })
+        //             },h);
+        //         }
         this.parent.on = true;
     };
     
@@ -162,9 +162,9 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
     proto._connect = function(){
         this.collab = coweb.initCollab({id : this.id}); 
         this.collab.subscribeSync('editorReset', this, 'reset');
-        dojo.connect(this._textarea.div,'onclick',this,function(){
-            this._onBlur();
-        });
+        // dojo.connect(this._textarea.div,'onclick',this,function(){
+        //     this._onBlur();
+        // });
         dojo.subscribe("editorHistory", dojo.hitch(this, function(message){
              this.history.push(message.save);
         }));
