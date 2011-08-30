@@ -50,7 +50,6 @@ define([
             17 : 'control',
             16 : 'shift'
         };
-        
         // styles
         this._bold              =   false;
         this._italic            =   false;
