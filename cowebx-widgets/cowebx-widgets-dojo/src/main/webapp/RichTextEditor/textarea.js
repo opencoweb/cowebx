@@ -21,7 +21,7 @@ define([
         this.frame          =   dojo.create('div',{id:'thisFrame'},this.div,'first');
         this.toolbar        =   this._buildToolbar();
         this.footer         =   this._buildFooter();
-        this.selection      =   dojo.create('span',{id:'selection',style:'border-left:1px solid black;'},this.frame,'last');
+        this.selection      =   dojo.create('span',{id:'selection',style:'border-left:1px solid black;background-color:#99CCFF;'},this.frame,'last');
         this.dialog         =   this._buildConfirmDialog();
         
         //3. Style and connect
@@ -142,7 +142,7 @@ define([
         var tempC = c.join("");
 
         this.frame.innerHTML = tempA;
-        this.selection = dojo.create('span',{id:'selection',innerHTML:tempB,style:'border-left:1px solid black;'},this.frame,'last');
+        this.selection = dojo.create('span',{id:'selection',innerHTML:tempB,style:'border-left:1px solid black;background-color:#99CCFF;'},this.frame,'last');
         this.frame.innerHTML = this.frame.innerHTML + tempC;
 
         //Get char object
@@ -150,11 +150,6 @@ define([
 
         if(!slider || slider==false)
            dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
-    };
-    
-    // Maps current text to this.rows
-    proto.getCharObj = function(set){
-
     };
     
     // Insert single char at this.value.start & custom render
@@ -222,7 +217,7 @@ define([
                     }
                 }else{
                     this.frame.innerHTML = '';
-                    this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black;'},this.frame,'last');
+                    this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black;background-color:#99CCFF;'},this.frame,'last');
                 }
             }
             
@@ -235,25 +230,20 @@ define([
         var v = this.value;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
-        
-        if(!dir || dir == 'left'){
-            v.start = start;
-            v.end = start;
-            for(var i=dojo.byId('selection').childNodes.length-1; i>=0; i--){
-                var x = dojo.byId('selection').childNodes[i];
-                if(dojo.attr(x, "style"))
-                    dojo.attr(x,'style', dojo.attr(x,'style').replace('background-color:#99CCFF;',''));
-                dojo.place(x,dojo.byId('selection'),'after');   
-            }
-        }else if(dir && dir == 'right'){
-            v.start = end;
-            v.end = end;
-            for(var i=0, len=dojo.byId('selection').childNodes.length; i<len; i++){
-                var x = dojo.byId('selection').childNodes[0];
-                if(dojo.attr(x, "style"))
-                    dojo.attr(x,'style', dojo.attr(x,'style').replace('background-color:#99CCFF;',''));
-                dojo.place(x,dojo.byId('selection'),'before');
-            }
+        if(this.value.start != this.value.end){
+             if(!dir || dir == 'left'){
+                    v.start = start;
+                    v.end = start;
+                    var tmp = dojo.byId('selection').innerHTML+'';
+                    dojo.byId('selection').innerHTML = '';
+                    dojo.place(tmp,'selection','after');
+                }else if(dir && dir == 'right'){
+                    v.start = start;
+                    v.end = start;
+                    var tmp = dojo.byId('selection').innerHTML+'';
+                    dojo.byId('selection').innerHTML = '';
+                    dojo.place(tmp,'selection','before');
+                }
         }
     };
     
@@ -262,19 +252,19 @@ define([
         var v = this.value;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
-        var l = dojo.byId('selection').childNodes.length;
-        this.clearSelection();
-        
-        for(var i=0; i<l; i++)
-            dojo.destroy(dojo.byId('selection').nextSibling);
+        this.selection = dojo.create('span',{innerHTML:'',style:'border-left:1px solid black;background-color:#99CCFF;'},'selection','after');
+        dojo.destroy('selection');
+        dojo.attr(this.selection, 'id', 'selection');
         v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
+        this.value.end = start;
     };
     
     // Select all text & full render
     proto.selectAll = function() {
         var v = this.value;
         if(!(v.end == 0 && v.start == v.string.length)){
-            this.clearSelection('right');
+            if(v.start != v.end)
+                this.clearSelection('right');
             dojo.destroy('selection');
             var tmp = dojo.byId('thisFrame').innerHTML+'';
             dojo.byId('thisFrame').innerHTML = '';
@@ -300,7 +290,7 @@ define([
         this.value.string = s;
         
         this.frame.innerHTML = '';
-        this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black;'},this.frame,'last');
+        this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black;background-color:#99CCFF;'},this.frame,'last');
         this.insert(string, true);
     };
     
@@ -457,8 +447,6 @@ define([
                 this.value.start = start;
                 var tmp = dojo.byId('selection').previousSibling;
                 dojo.place(tmp, dojo.byId('selection'), 'first');
-                var curr = (dojo.attr(tmp,'style') == null) ? '' : dojo.attr(tmp,'style');
-                dojo.attr(tmp,'style',curr+'background-color:#99CCFF;');   
             }
         }
         this._lock = false;  
@@ -488,11 +476,39 @@ define([
                 this.value.end = end;
                 var tmp = dojo.byId('selection').nextSibling;
                 dojo.place(tmp, dojo.byId('selection'), 'last');
-                var curr = (dojo.attr(tmp,'style') == null) ? '' : dojo.attr(tmp,'style');
-                dojo.attr(tmp,'style',curr+'background-color:#99CCFF;');   
             }
         }
         this._lock = false;  
+    };
+    
+    proto._onClick = function(e){
+        var startNode = e.target;
+        var endNode = this._endNode;
+        if(this.value.start != this.value.end)
+            this.clearSelection();
+        var i=0; j=0;
+        var start = null;
+        var end = null;
+        
+        dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
+            if(node.id != 'selection'){
+                i++; j++;
+                if(startNode == node)
+                    start = i;
+                if(endNode == node)
+                    end = j;
+            }
+        }));    
+            
+        if(start && end){
+            this.value.start = start;
+            this.value.end = end;
+            if(start == end){
+               dojo.place('selection',startNode,'after');
+            }else{
+
+            }
+        }
     };
     
     proto._listenForKeyCombo = function(e) {
@@ -576,7 +592,6 @@ define([
                 dojo.disconnect(this._c);
                 dojo.destroy(this._hidden);
                 this.div.focus();
-                //this.getCharObj(true);
             }), 100);
         });  
     };
@@ -604,37 +619,9 @@ define([
                 dojo.disconnect(this._c);
                 dojo.destroy(this._hidden);
                 this.div.focus();
-                //this.getCharObj(true);
             }), 100);
         });
         
-    };
-    
-    proto._isPiP = function(points, pt){
-        var y = 0;
-        var x = 0;
-        
-        if(pt.y <= points.bottom && pt.y >= points.top)
-            y = 1;
-        if(pt.x <= points.right && pt.x >= points.left)
-            x = 1;
-        if(x==1 && y==1){
-            return true;
-        }else{
-            return false;
-        }   
-    };
-    
-    proto._isPiL = function(points, pt){
-        var y = 0;
-        
-        if(pt.y <= points.bottom && pt.y >= points.top)
-            y = 1;
-        if(y==1){
-            return true;
-        }else{
-            return false;
-        }
     };
     
     proto._loadTemplate = function(url) {
@@ -1308,38 +1295,6 @@ define([
 
     proto._onMouseDown = function(e){
         this._endNode = e.target;
-    };
-    
-    proto._onClick = function(e){
-        var startNode = e.target;
-        var endNode = this._endNode;
-        if(this.value.start != this.value.end)
-            this.clearSelection();
-        var i=0; j=0;
-        var start = null;
-        var end = null;
-        
-        //Point in Polygon to find selection Start
-        dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
-            if(node.id != 'selection'){
-                i++; j++;
-                if(startNode == node)
-                    start = i;
-                if(endNode == node)
-                    end = j;
-            }
-        }));
-        
-        //Backup if no matches: is Point in Line? Go to end if so...
-        if(start == null && end == null){
-            console.log(this.value);
-        }
-                        
-        if(start && end){
-            this.value.start = start;
-            this.value.end = end;
-            this.render(true);
-        }
     };
     
     proto._onFocus = function(e){

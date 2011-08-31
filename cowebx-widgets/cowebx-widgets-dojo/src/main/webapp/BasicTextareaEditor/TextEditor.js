@@ -33,7 +33,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         dojo.connect(this._textarea, 'onkeyup', this, '_updatePOR');
         dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
         dojo.connect(this._textarea, 'onblur', this, '_onBlur');
-    
+
         this.util = new ld({});
 
         if(this.go == true)

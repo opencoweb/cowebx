@@ -69,7 +69,6 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
             if(state){
                 this._textarea.value = state;
                 this._textarea.render(true);
-                this._textarea.getCharObj(true);
                 this.slider.destroy();
                 var h = dojo.create('div',{style:'width:100%;height:100%'},this._sliderCell);
                 this.slider = new dijit.form.HorizontalSlider({
@@ -102,7 +101,6 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         if(state){
             this._textarea.value = state;
             this._textarea.render(true);
-            this._textarea.getCharObj(true);
         }
     };
     
@@ -112,7 +110,6 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         //         if(state){
         //             this._textarea.value.string = state.string;
         //             this._textarea.render(true);
-        //             this._textarea.getCharObj(true);
         //             this.slider.destroy();
         //             var h = dojo.create('div',{style:'width:100%;height:100%'},this._sliderCell);
         //             this.slider = new dijit.form.HorizontalSlider({
