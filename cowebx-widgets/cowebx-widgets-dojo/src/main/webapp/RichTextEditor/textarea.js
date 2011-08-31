@@ -125,7 +125,7 @@ define([
                }else if(i>=end){
                    c.push('<span style='+filter+'>&nbsp; </span>');
                }else{
-                   b.push('<span style='+filter+sel+'>&nbsp; </span>')
+                   b.push('<span style='+filter+'>&nbsp; </span>')
                }
            }else{
                if(i<start){
@@ -133,7 +133,7 @@ define([
                }else if(i>=end){
                    c.push('<span style='+filter+'>'+p['char']+'</span>');
                }else{
-                   b.push('<span style='+filter+sel+'>'+p['char']+'</span>');
+                   b.push('<span style='+filter+'>'+p['char']+'</span>');
                }
            }
         }
@@ -489,7 +489,7 @@ define([
         var i=0; j=0;
         var start = null;
         var end = null;
-        
+
         dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
             if(node.id != 'selection'){
                 i++; j++;
@@ -501,12 +501,13 @@ define([
         }));    
             
         if(start && end){
-            this.value.start = start;
-            this.value.end = end;
             if(start == end){
-               dojo.place('selection',startNode,'after');
+                this.value.start = start;
+                this.value.end = start;
+                dojo.place('selection',startNode,'after');
             }else{
-
+               //click and drag to select routine
+               //TODO
             }
         }
     };
