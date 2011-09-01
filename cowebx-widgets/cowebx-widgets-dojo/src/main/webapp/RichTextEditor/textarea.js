@@ -238,8 +238,8 @@ define([
                     dojo.byId('selection').innerHTML = '';
                     dojo.place(tmp,'selection','after');
                 }else if(dir && dir == 'right'){
-                    v.start = start;
-                    v.end = start;
+                    v.start = end;
+                    v.end = end;
                     var tmp = dojo.byId('selection').innerHTML+'';
                     dojo.byId('selection').innerHTML = '';
                     dojo.place(tmp,'selection','before');
@@ -300,7 +300,7 @@ define([
         var top = Math.round(dojo.byId('selection').offsetTop-this._lineHeight);
         var lineAbove = {};
         var line = {};
-        if(this.value.start != this.value.end)
+        if(this.value.start != this.value.end && !select)
             this.clearSelection();
         
         dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
@@ -327,11 +327,18 @@ define([
         }
         
         var count = this._count(lineAbove);
-        if(this._count(lineAbove)>0){
+        if(count>0){
             if(count >= this._lineIndex){
                 if(lineAbove[this._lineIndex]){
                     if(select){
-                       
+                        this.value.start = lineAbove[this._lineIndex].index;
+                        var s = dojo.byId('selection').previousSibling;
+                        while(s != lineAbove[this._lineIndex].node){
+                            dojo.place(s, 'selection', 'first');
+                            s = dojo.byId('selection').previousSibling
+                        }
+                        s = dojo.byId('selection').previousSibling
+                        dojo.place(s, 'selection', 'first');
                     }else{
                         this.value.start = lineAbove[this._lineIndex].index;
                         this.value.end = lineAbove[this._lineIndex].index;
@@ -339,7 +346,14 @@ define([
                     }
                 }else{
                     if(select){
-                        
+                        this.value.start = lineAbove[this._lineIndex-1].index+1;
+                        var s = dojo.byId('selection').previousSibling;
+                        while(s != lineAbove[this._lineIndex-1].node){
+                            dojo.place(s, 'selection', 'first');
+                            s = dojo.byId('selection').previousSibling
+                        }
+                        s = dojo.byId('selection').previousSibling
+                        dojo.place(s, 'selection', 'first');
                     }else{
                         this.value.start = lineAbove[this._lineIndex-1].index+1;
                         this.value.end = lineAbove[this._lineIndex-1].index+1;
@@ -348,7 +362,12 @@ define([
                 }
             }else if(count < this._lineIndex){
                 if(select){
-                    
+                    this.value.start = lineAbove[0].index+count-1;
+                    var s = dojo.byId('selection').previousSibling;
+                    while(s != lineAbove[count-1].node){
+                        dojo.place(s, 'selection', 'first');
+                        s = dojo.byId('selection').previousSibling
+                    }
                 }else{
                     this.value.start = lineAbove[0].index+count-1;
                     this.value.end = lineAbove[0].index+count-1;
@@ -356,10 +375,22 @@ define([
                 }
             }
         }else{
-            if(line[0].node.previousSibling){
-                this.value.start = line[0].index-1;
-                this.value.end = line[0].index-1;
-                dojo.place('selection', line[0].node.previousSibling, 'before');   
+            if(select){
+                if(this._lineIndex > 1){
+                    this.value.start = line[0].index-1;
+                    var s = dojo.byId('selection').previousSibling;
+                    while(s != line[0].node){
+                        dojo.place(s, 'selection', 'first');
+                        s = dojo.byId('selection').previousSibling
+                    }
+                }
+                this.moveCaretLeft(true);
+            }else{
+                if(line[0].node.previousSibling){
+                    this.value.start = line[0].index-1;
+                    this.value.end = line[0].index-1;
+                    dojo.place('selection', line[0].node.previousSibling, 'before');   
+                }
             }
         }
     };
@@ -400,25 +431,46 @@ define([
         if(this._count(lineBelow)>0){
             if(count >= this._lineIndex){
                 if(lineBelow[this._lineIndex]){
-                    this.value.start = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
-                    this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
-                    dojo.place('selection', lineBelow[this._lineIndex].node, 'before');
+                    if(select){
+                        
+                    }else{
+                        this.value.start = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
+                        this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
+                        dojo.place('selection', lineBelow[this._lineIndex].node, 'before');
+                    }
                 }else{
-                    this.value.start = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
-                    this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
-                    
-                    dojo.place('selection', lineBelow[this._lineIndex-1].node, 'after');
+                    if(select){
+                        
+                    }else{
+                        this.value.start = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
+                        this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
+                        dojo.place('selection', lineBelow[this._lineIndex-1].node, 'after');
+                    }
                 }
             }else if(count < this._lineIndex){
-                this.value.start = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
-                this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
-                dojo.place('selection', lineBelow[count-1].node, 'after');
+                if(select){
+                    
+                }else{
+                    this.value.start = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
+                    this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
+                    dojo.place('selection', lineBelow[count-1].node, 'after');
+                }
             }
         }else{
-            if(line[this._count(line)-1].node.nextSibling){
-                this.value.start = line[this._count(line)-1].index+1;
+            if(select){
                 this.value.end = line[this._count(line)-1].index+1;
-                dojo.place('selection', line[this._count(line)-1].node.nextSibling, 'after');   
+                var s = dojo.byId('selection').nextSibling;
+                while(s != line[this._count(line)-1].node){
+                    dojo.place(s, 'selection', 'last');
+                    s = dojo.byId('selection').nextSibling;
+                }
+                this.moveCaretRight(true);
+            }else{
+                if(line[this._count(line)-1].node.nextSibling){
+                    this.value.start = line[this._count(line)-1].index+1;
+                    this.value.end = line[this._count(line)-1].index+1;
+                    dojo.place('selection', line[this._count(line)-1].node.nextSibling, 'after');   
+                }
             }
         }
     };
@@ -485,7 +537,7 @@ define([
         var startNode = e.target;
         var endNode = this._endNode;
         if(this.value.start != this.value.end)
-            this.clearSelection();
+            //this.clearSelection();
         var i=0; j=0;
         var start = null;
         var end = null;
@@ -509,6 +561,8 @@ define([
                //click and drag to select routine
                //TODO
             }
+        }else{
+            console.log(this.value.start+' , '+this.value.end);
         }
     };
     
