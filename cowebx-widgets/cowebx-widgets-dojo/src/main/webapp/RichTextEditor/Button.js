@@ -11,7 +11,6 @@ define([], function() {
         this.shareShowing       =   false;              //Is dialog open
         
         //2. Connect and style stuff
-        this._loadStylesheet('../lib/cowebx/dojo/ShareButton/textarea.css');
         this._connect();
         this._buildShareButton();
     };
@@ -79,15 +78,6 @@ define([], function() {
         var time = 'Shared at:<br></strong>'+date+'<br><br>';
         var doc = '<strong>Document:<br></strong>'+this.listenTo._getCleanValueAttr();
         return title+time+doc;
-    };
-    
-    proto._loadStylesheet = function(url) {
-       var e = document.createElement("link");
-       e.href = url;
-       e.type = "text/css";
-       e.rel = "stylesheet";
-       e.media = "screen";
-       document.getElementsByTagName("head")[0].appendChild(e);
     };
     
     proto._loadScript = function(url) {

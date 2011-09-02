@@ -1,4 +1,4 @@
-define(['coweb/main','./ld', './textarea', './TimeSlider', 'cowebx/dojo/ShareButton/Button'], function(coweb,ld,textarea,Slider,Button) {
+define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function(coweb,ld,textarea,Slider,Button) {
     var TextEditor = function(args){
         if(!args.id)
             throw new Error('missing id argument');
