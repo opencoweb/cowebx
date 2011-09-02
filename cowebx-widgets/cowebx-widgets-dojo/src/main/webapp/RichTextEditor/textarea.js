@@ -331,14 +331,7 @@ define([
             if(count >= this._lineIndex){
                 if(lineAbove[this._lineIndex]){
                     if(select){
-                        this.value.start = lineAbove[this._lineIndex].index;
-                        var s = dojo.byId('selection').previousSibling;
-                        while(s != lineAbove[this._lineIndex].node){
-                            dojo.place(s, 'selection', 'first');
-                            s = dojo.byId('selection').previousSibling
-                        }
-                        s = dojo.byId('selection').previousSibling
-                        dojo.place(s, 'selection', 'first');
+                        
                     }else{
                         this.value.start = lineAbove[this._lineIndex].index;
                         this.value.end = lineAbove[this._lineIndex].index;
@@ -354,6 +347,8 @@ define([
                         }
                         s = dojo.byId('selection').previousSibling
                         dojo.place(s, 'selection', 'first');
+                        this.moveCaretLeft(true);
+                                                this.moveCaretLeft(true);
                     }else{
                         this.value.start = lineAbove[this._lineIndex-1].index+1;
                         this.value.end = lineAbove[this._lineIndex-1].index+1;
@@ -362,12 +357,7 @@ define([
                 }
             }else if(count < this._lineIndex){
                 if(select){
-                    this.value.start = lineAbove[0].index+count-1;
-                    var s = dojo.byId('selection').previousSibling;
-                    while(s != lineAbove[count-1].node){
-                        dojo.place(s, 'selection', 'first');
-                        s = dojo.byId('selection').previousSibling
-                    }
+                    
                 }else{
                     this.value.start = lineAbove[0].index+count-1;
                     this.value.end = lineAbove[0].index+count-1;
@@ -376,15 +366,7 @@ define([
             }
         }else{
             if(select){
-                if(this._lineIndex > 1){
-                    this.value.start = line[0].index-1;
-                    var s = dojo.byId('selection').previousSibling;
-                    while(s != line[0].node){
-                        dojo.place(s, 'selection', 'first');
-                        s = dojo.byId('selection').previousSibling
-                    }
-                }
-                this.moveCaretLeft(true);
+                
             }else{
                 if(line[0].node.previousSibling){
                     this.value.start = line[0].index-1;
@@ -401,7 +383,7 @@ define([
         var top = Math.round(dojo.byId('selection').offsetTop+this._lineHeight);
         var lineBelow = {};
         var line = {};
-        if(this.value.start != this.value.end)
+        if(this.value.start != this.value.end && !select)
             this.clearSelection();
         
         dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
@@ -449,7 +431,7 @@ define([
                 }
             }else if(count < this._lineIndex){
                 if(select){
-                    
+                   
                 }else{
                     this.value.start = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
                     this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
@@ -458,13 +440,7 @@ define([
             }
         }else{
             if(select){
-                this.value.end = line[this._count(line)-1].index+1;
-                var s = dojo.byId('selection').nextSibling;
-                while(s != line[this._count(line)-1].node){
-                    dojo.place(s, 'selection', 'last');
-                    s = dojo.byId('selection').nextSibling;
-                }
-                this.moveCaretRight(true);
+                
             }else{
                 if(line[this._count(line)-1].node.nextSibling){
                     this.value.start = line[this._count(line)-1].index+1;
@@ -537,7 +513,7 @@ define([
         var startNode = e.target;
         var endNode = this._endNode;
         if(this.value.start != this.value.end)
-            //this.clearSelection();
+            this.clearSelection();
         var i=0; j=0;
         var start = null;
         var end = null;
@@ -561,8 +537,6 @@ define([
                //click and drag to select routine
                //TODO
             }
-        }else{
-            console.log(this.value.start+' , '+this.value.end);
         }
     };
     
