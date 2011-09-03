@@ -523,7 +523,9 @@ define([
         var i=0; j=0;
         var start = null;
         var end = null;
-
+        var diff = 10000;
+        var min = null;
+        
         dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
             if(node.id != 'selection'){
                 i++; j++;
@@ -531,6 +533,12 @@ define([
                     start = i;
                 if(endNode == node)
                     end = j;
+                
+                if(Math.abs(e.clientY - this._findPos(node).top) <= diff && node.tagName != "BR"){
+                    min = node;
+                    diff = Math.abs(e.clientY - this._findPos(node).top);
+                    console.log(node);
+                }
             }
         }));    
             
@@ -543,6 +551,8 @@ define([
                //click and drag to select routine
                //TODO
             }
+        }else{
+            dojo.place('selection',min,'after');
         }
     };
     
@@ -967,7 +977,6 @@ define([
                     x++;
                 }
                 this._hold = true;
-                this.collab.sendSync('editorBold', {'string':this.value.string}, null);   
             }else if(this._hold == true && this._lastOp == 'bold'){
                 var x=0;
                 for(var i=start; i<end; i++){
@@ -985,8 +994,8 @@ define([
                     x++;
                 }
                 this._hold = true;
-                this.collab.sendSync('editorBold', {'string':this.value.string}, null);
             }
+            this.collab.sendSync('editorBold', {'string':this.value.string}, null);
         }
         this._lastOp = 'bold';
         this.div.focus();
