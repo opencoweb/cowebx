@@ -114,7 +114,6 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
         this.oldSnapshot = this.snapshot();
         this._forcePOR();
         this._textarea._renderLineNumbers();
-        this._textarea._scrollWith();
         this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
     };
     
@@ -165,6 +164,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
                 var node = dojo.create('span',{style:f.join(""),innerHTML:c},t.frame.childNodes[pos],'after');
             }
         }
+        this._textarea._scrollWith();
         
         //3. Adjust caret in memory
         if(pos < por.end) {
@@ -191,6 +191,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
             if(t.frame.childNodes[pos+1])
                 dojo.destroy(t.frame.childNodes[pos+1]);   
         }
+        this._textarea._scrollWith();
         
         //3. Adjust caret in memory
         if(pos < this._por.start)

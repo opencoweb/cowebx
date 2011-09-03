@@ -16,7 +16,7 @@ define([
         this.id             =   args.id;
 
         //2. Build stuff
-        this.container      =   dojo.create('div',{'style':'height:100%;min-width:800px;overflow:hidden;'},this.domNode);
+        this.container      =   dojo.create('div',{'style':'height:100%;min-width:800px;'},this.domNode);
         this.div            =   this._buildTable();
         this.frame          =   dojo.create('div',{id:'thisFrame'},this.div,'first');
         this.toolbar        =   this._buildToolbar();
@@ -175,6 +175,7 @@ define([
             v.start = v.start+1;
             v.end = v.start;
         }
+        this._scrollWith();
         
         //3. custom partial render of dom
         for(var i=0; i<c.length; i++){
@@ -223,6 +224,7 @@ define([
             
             this._lock = false; 
         }
+        this._scrollWith();
     };
 
     // Clears current selection, sends caret to DIR ('left' or 'right') & custom render
@@ -375,6 +377,7 @@ define([
                 }
             }
         }
+        this._scrollWith();
     };
     
     // Move caret down one line & custom render
@@ -449,6 +452,7 @@ define([
                 }
             }
         }
+        this._scrollWith();
     };
     
     // Move caret left one char & custom render
@@ -477,6 +481,7 @@ define([
                 dojo.place(tmp, dojo.byId('selection'), 'first');
             }
         }
+        this._scrollWith();
         this._lock = false;  
     };
     
@@ -506,6 +511,7 @@ define([
                 dojo.place(tmp, dojo.byId('selection'), 'last');
             }
         }
+        this._scrollWith();
         this._lock = false;  
     };
     
@@ -549,7 +555,7 @@ define([
             var sel = this._stripTags(this._stripSpaces(this._replaceBR(dojo.byId('selection').innerHTML)));
             this._hidden = dojo.create('textarea',{
                 id:'hidden',
-                style:'position:absolute;left:-10000px;top:200px;',
+                style:'position:absolute;left:-10000px;top:200px;height:100px;overflow:auto;',
                 innerHTML: sel
             },this.container,'before');
 
@@ -622,6 +628,7 @@ define([
                 dojo.destroy(this._hidden);
                 this.div.focus();
             }), 100);
+            
         });  
     };
     
@@ -728,9 +735,12 @@ define([
     };
     
     proto._scrollWith = function(){
-        // var a = dojo.byId('selection');
-        //         if(a.previousSibling && a.previousSibling.innerHTML != '&nbsp; ')
-        //             dojo.byId('divHolder').scrollTop = dojo.byId('selection').offsetTop;
+        if(dojo.byId('selection').offsetTop+50 >= (dojo.byId('divHolder').scrollTop+dojo.style('divHolder','height'))){
+            dojo.byId('divHolder').scrollTop = dojo.byId('divHolder').scrollTop+50;
+        }else if(dojo.byId('selection').offsetTop-50 <= (dojo.byId('divHolder').scrollTop)){
+            dojo.byId('divHolder').scrollTop = dojo.byId('selection').offsetTop-50;
+        }
+            
     };
     
     proto._renderLineNumbers = function(){
@@ -851,10 +861,10 @@ define([
         
         //Color pallettes
         var paletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
-        this._palette = new ColorPalette({style:'position:fixed;display:none;left:295px'},paletteNode);
+        this._palette = new ColorPalette({style:'position:fixed;display:none;left:255px'},paletteNode);
         dojo.connect(this._palette, 'onChange', this, '_onForeColorChange');
         var bgPaletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
-        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;left:330px'},bgPaletteNode);
+        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;left:295px'},bgPaletteNode);
         dojo.connect(this._bgPalette, 'onChange', this, '_onHiliteColorChange');
         
         return toolbar;
