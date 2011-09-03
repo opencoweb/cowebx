@@ -28,8 +28,8 @@ define([], function() {
     proto.onSendClick = function(e) {
         var email = dojo.byId('sendInput').value;
         if(email != ''){
-            var username = 'Username=opencoweb';
-            var password = '&Password=777132XK';
+            var username = 'Username=paboucho';
+            var password = '&Password=opencoweb';
             var fromName = '&FromName=OpenCoweb';
             var fromEmail = '&FromEmail=opencoweb@us.ibm.com';
             var toEmail = '&ToEmailAddress='+email;
