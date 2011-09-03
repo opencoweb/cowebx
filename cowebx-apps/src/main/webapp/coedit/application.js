@@ -13,7 +13,6 @@ define(
 		'dojox/mobile/parser',
 		//'cowebx/dojo/BasicTextareaEditor/TextEditor',
 		'cowebx/dojo/RichTextEditor/TextEditor',
-		'cowebx/dojo/ShareButton/Button'
 	],
 
 	function(
