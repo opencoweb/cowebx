@@ -325,10 +325,6 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
             'listenTo':this,
             'id':'shareButton',
             'displayButton':false});
-        
-        
-        dojo.style(button.emailBox, 'position', 'absolute');
-        dojo.style(button.emailBox, 'top', '49px');
         return button;
     };
     

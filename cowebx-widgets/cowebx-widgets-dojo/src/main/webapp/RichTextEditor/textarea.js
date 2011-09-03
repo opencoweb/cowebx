@@ -748,7 +748,7 @@ define([
             var diff = lines - this._prevLines;
             var div = dojo.byId('lineNumbers');
             for(var i=1; i<=diff; i++){
-                dojo.create('span',{style:'color:grey;visibility:hidden;',innerHTML:i+this._prevLines,id:i+this._prevLines+'a'},div,'last');
+                dojo.create('span',{style:'color:grey;visibility:hidden;',innerHTML:'1',id:i+this._prevLines+'a'},div,'last');
                 dojo.create('span',{'class':'line',innerHTML:i+this._prevLines,id:i+this._prevLines+'b'},div,'last');
                 dojo.create('br',{id:i+this._prevLines+'c'},div,'last');
             }
@@ -802,18 +802,6 @@ define([
             dojo.connect(button, 'onclick', this, '_on'+label+'Click');
             dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
         }));
-        
-        //3. Duplicate button
-        var dup = new ToggleButton({
-            label: '<img style="width:18px;height:18;" src="../lib/cowebx/dojo/RichTextEditor/images/duplicate.png"/>',
-            showLabel: true,
-            id: 'dupButton'
-        });
-        toolbar.addChild(dup);
-        this.duplicateButton = dup;
-        dojo.connect(dup, 'onclick', this, '_onDuplicateClick');
-        dojo.attr(dup.domNode, 'style', 'border-bottom:3px solid black');
-        dojo.style('dupButton_label', 'padding', '0px');
         var sep = new Separator({});
         toolbar.addChild(sep);
         
@@ -876,7 +864,7 @@ define([
         this._div = dojo.create('div', {'style':'width:100%;height:100%;overflow-y:auto;',id:'divHolder'}, this.container);
         var table = dojo.create('table',{'style':'width:100%;border-spacing:0px;border-collapse:true;height:100%;'},this._div);
         var tr = dojo.create('tr',{'style':'width:100%;height:100%;'},table);
-        var td1 = dojo.create('td',{'style':'width:20px;height:100%;'},tr,'first');
+        var td1 = dojo.create('td',{'style':'width:40px;height:100%;'},tr,'first');
         var td2 = dojo.create('td',{'style':'height:100%;'},tr,'last');
         var d = dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, td2);
         var l = dojo.create('div', {id:'lineNumbers','class':'lineNumbers'}, td1);
@@ -1300,10 +1288,6 @@ define([
             dojo.disconnect(two);
             dojo.disconnect(three);
         });
-    };
-    
-    proto._onDuplicateClick = function() {
-        window.open(window.location);
     };
     
     proto._onSliderClick = function(){

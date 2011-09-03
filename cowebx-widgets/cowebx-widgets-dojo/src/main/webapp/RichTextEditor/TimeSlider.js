@@ -147,12 +147,12 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
             this.sliderShowing = true;
             dojo.attr(button.domNode, 'style', 'border-bottom:3px solid red;');
             dojo.style(button.domNode, 'float', 'right');
-            dojo.fadeIn({node:'sliderHolder'}).play();
+            dojo.style('sliderHolder', 'display', 'block');
         }else{
             dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
             dojo.style(button.domNode, 'float', 'right');
             this.sliderShowing = false;
-            dojo.fadeOut({node:'sliderHolder'}).play();
+            dojo.style('sliderHolder', 'display', 'none');
         }
     };
     
