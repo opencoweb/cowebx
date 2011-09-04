@@ -534,10 +534,10 @@ define([
                 if(endNode == node)
                     end = j;
                 
-                if(Math.abs(e.clientY - this._findPos(node).top) <= diff && node.tagName != "BR"){
-                    min = node;
-                    diff = Math.abs(e.clientY - this._findPos(node).top);
+                if((Math.abs(this._findPos(node).top - e.clientY) <= diff) && (node.tagName != 'BR')){
                     console.log(node);
+                    diff = Math.abs(this._findPos(node).top - e.clientY);
+                    min = node;                    
                 }
             }
         }));    
@@ -548,8 +548,7 @@ define([
                 this.value.end = start;
                 dojo.place('selection',startNode,'after');
             }else{
-               //click and drag to select routine
-               //TODO
+                
             }
         }else{
             dojo.place('selection',min,'after');
