@@ -9,7 +9,7 @@ define([
     var textarea = function(args){
         if(!args.domNode || !args.id)
             throw new Error("Textarea: missing arg");
-            
+
         //1. Process args
         this.noSlider       =   (!args.noSlider) ? false : args.noSlider;
         this.domNode        =   args.domNode;
@@ -333,7 +333,7 @@ define([
             if(count >= this._lineIndex){
                 if(lineAbove[this._lineIndex]){
                     if(select){
-                        
+
                     }else{
                         this.value.start = lineAbove[this._lineIndex].index;
                         this.value.end = lineAbove[this._lineIndex].index;
@@ -341,16 +341,7 @@ define([
                     }
                 }else{
                     if(select){
-                        this.value.start = lineAbove[this._lineIndex-1].index+1;
-                        var s = dojo.byId('selection').previousSibling;
-                        while(s != lineAbove[this._lineIndex-1].node){
-                            dojo.place(s, 'selection', 'first');
-                            s = dojo.byId('selection').previousSibling
-                        }
-                        s = dojo.byId('selection').previousSibling
-                        dojo.place(s, 'selection', 'first');
-                        this.moveCaretLeft(true);
-                                                this.moveCaretLeft(true);
+
                     }else{
                         this.value.start = lineAbove[this._lineIndex-1].index+1;
                         this.value.end = lineAbove[this._lineIndex-1].index+1;
@@ -533,11 +524,10 @@ define([
                     start = i;
                 if(endNode == node)
                     end = j;
-                
+                    
                 if((Math.abs(this._findPos(node).top - e.clientY) <= diff) && (node.tagName != 'BR')){
-                    console.log(node);
                     diff = Math.abs(this._findPos(node).top - e.clientY);
-                    min = node;                    
+                    min = node;
                 }
             }
         }));    
@@ -548,10 +538,40 @@ define([
                 this.value.end = start;
                 dojo.place('selection',startNode,'after');
             }else{
-                
+                //drag to select
             }
         }else{
-            dojo.place('selection',min,'after');
+            if(diff<15){
+                dojo.place('selection',min,'after');
+            }else{
+                this._moveToEmptyLine(e.clientY);
+            }
+        }
+    };
+    
+    proto._moveToEmptyLine = function(clickHt) {
+        var diff = 100000;
+        var diff2 = 100000;
+        var to = null;
+        var from = null;
+        dojo.query('#lineNumbers span').forEach(dojo.hitch(this, function(node, index, arr){
+            if(node.innerHTML == 1 && dojo.attr(node, 'num')){
+                if(Math.abs(clickHt - this._findPos(node).top) < diff){
+                    diff = Math.abs(clickHt - this._findPos(node).top);
+                    to = dojo.attr(node, 'num');
+                }
+                if(Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top) < diff2){
+                    diff2 = Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top);
+                    from = dojo.attr(node, 'num');
+                }
+            }
+        }));
+        if(from <= to){
+            for(var i=0; i<to-from; i++)
+                this.moveCaretDown();
+        }else{
+            for(var i=0; i<from-to; i++)
+                this.moveCaretUp();
         }
     };
     
@@ -767,7 +787,7 @@ define([
             var diff = lines - this._prevLines;
             var div = dojo.byId('lineNumbers');
             for(var i=1; i<=diff; i++){
-                dojo.create('span',{style:'color:grey;visibility:hidden;',innerHTML:'1',id:i+this._prevLines+'a'},div,'last');
+                dojo.create('span',{style:'color:grey;visibility:hidden;',innerHTML:'1',id:i+this._prevLines+'a','num':i+this._prevLines},div,'last');
                 dojo.create('span',{'class':'line',innerHTML:i+this._prevLines,id:i+this._prevLines+'b'},div,'last');
                 dojo.create('br',{id:i+this._prevLines+'c'},div,'last');
             }
