@@ -256,7 +256,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
         this.oldSnapshot = obj.oldSnapshot;
         this._textarea.value = obj.value;
         this._textarea.title = obj.title;
-        this._textarea._title.innerHTML = this._textarea.title;
+        this._textarea._title.value = this._textarea.title;
         this._textarea.value.start = 0;
         this._textarea.value.end = 0;
         this._textarea.render();

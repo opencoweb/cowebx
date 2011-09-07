@@ -42,6 +42,7 @@ define([
         this.title          =   'Untitled Document';
         this.newLine        =   '^';
         this.newSpace       =   ' ';
+        this.tab            =   '    ';
         this.filters        =   [];
         this.cancelKeys     =   {
             27 : 'esc',
@@ -75,12 +76,12 @@ define([
             reset = true;
             this.moveCaretRight(e.shiftKey);
         }else if(e.keyCode == 13){                          // newLine
-            if(this.value.string[this.value.start-1] && this.value.string[this.value.start-1]['char'] == ' ')
+            if(this.value.string[this.value.start-1] && this.value.string[this.value.start-1]['char'] == this.newSpace)
                 this._delete(1);
             setTimeout(dojo.hitch(this, function(){this.insert(this.newLine);}), 100);
         }else if(e.keyCode == 9){                           // tab
             reset = true;
-            this.insert('    ');
+            this.insert(this.tab);
         }else if(e.charCode == 32){                         // newSpace
             reset = true;     
             this.insert(this.newSpace); 
@@ -203,7 +204,7 @@ define([
 
             if(start != end){
                 this.destroySelection();
-            }else{
+            }else if(this.value.start>0){
                 var beforeLength = v.string.length+0;
                 v.string = v.string.slice(0,v.start-n).concat(v.string.slice(v.start,v.string.length));
                 var afterLength = v.string.length+0;
@@ -531,7 +532,7 @@ define([
                 }
             }
         }));    
-            
+        
         if(start && end){
             if(start == end){
                 this.value.start = start;
@@ -541,11 +542,7 @@ define([
                 //drag to select
             }
         }else{
-            if(diff<15){
-                dojo.place('selection',min,'after');
-            }else{
-                this._moveToEmptyLine(e.clientY);
-            }
+            this._moveToEmptyLine(e.clientY);
         }
     };
     
@@ -566,6 +563,8 @@ define([
                 }
             }
         }));
+        this._lock = true;
+        this._lineIndex = 10000;
         if(from <= to){
             for(var i=0; i<to-from; i++)
                 this.moveCaretDown();
@@ -914,26 +913,21 @@ define([
     proto._buildFooter = function(){
         var footerNode = dojo.create('div',{'class':'footer gradient'},this.container,'last');
         var div = dojo.create('div',{'class':'footerDiv',id:'footerDiv'},footerNode,'first');
-        var color = dojo.create('div',{'class':'color',style:'background-color:'+this.localColor},footerNode,'first');
-        var title = dojo.create('span',{'class':'title',innerHTML:'Untitled Document'},footerNode,'first');
+        var title = dojo.create('input',{'class':'title',value:'Untitled Document',type:'text'},footerNode,'first');
         dojo.connect(title, 'onclick', this, function(e){
             dojo.style(e.target, 'background', 'white');
-            e.target.innerHTML = '';
-            e.target.contentEditable = true;
-            e.target.focus();
+            e.target.value = '';
         });
         dojo.connect(title, 'onblur', this, function(e){
-            this.title = (e.target.innerHTML.length > 0) ? e.target.innerHTML : this.title;
-            e.target.innerHTML = this.title;
-            e.target.contentEditable = false;
+            this.title = (e.target.value.length > 0) ? e.target.value : this.title;
+            e.target.value = this.title;
             dojo.style(e.target, 'background', '');
-            this.collab.sendSync('editorTitle', {'title':e.target.innerHTML}, null);   
+            this.collab.sendSync('editorTitle', {'title':e.target.value}, null);   
         });
         var edit = dojo.create('img',{src:'../lib/cowebx/dojo/RichTextEditor/images/pencil.png','class':'editIcon'},title,'after');
         dojo.connect(title, 'onkeypress', this, function(e){
-            if(e.keyCode == 8){
-                dojo.attr(e.target, 'innerHTML', '');
-            } 
+            if(e.keyCode == 8)
+                dojo.attr(e.target, 'value', ''); 
         });
         this._title = title;
         var line = dojo.create('span',{style:'float:left',innerHTML:'Line: '+'<span id="line">0</span>'},div,'last');
@@ -1334,7 +1328,7 @@ define([
     
     proto._onRemoteTitle = function(obj){
         this.title = obj.value.title;
-        this._title.innerHTML = this.title;
+        this._title.value = this.title;
     };
     
     proto._resize = function(initial) {
