@@ -299,7 +299,6 @@ define([
     
     // Move caret up one line & custom render
     proto.moveCaretUp = function(select) {
-        console.log('up');
         var i=0;
         var top = Math.round(dojo.byId('selection').offsetTop-this._lineHeight);
         var lineAbove = {};
@@ -554,8 +553,8 @@ define([
         var from = null;
         dojo.query('#lineNumbers span').forEach(dojo.hitch(this, function(node, index, arr){
             if(node.innerHTML == 1 && dojo.attr(node, 'num')){
-                if(Math.abs(clickHt - this._findPos(node).top) < diff){
-                    diff = Math.abs(clickHt - this._findPos(node).top);
+                if(Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop)) < diff){
+                    diff = Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop));
                     to = parseInt(dojo.attr(node, 'num'));
                 }
                 if(Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top) < diff2){
