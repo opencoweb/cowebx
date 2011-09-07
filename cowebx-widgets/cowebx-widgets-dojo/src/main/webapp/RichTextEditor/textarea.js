@@ -299,6 +299,7 @@ define([
     
     // Move caret up one line & custom render
     proto.moveCaretUp = function(select) {
+        console.log('up');
         var i=0;
         var top = Math.round(dojo.byId('selection').offsetTop-this._lineHeight);
         var lineAbove = {};
@@ -555,16 +556,17 @@ define([
             if(node.innerHTML == 1 && dojo.attr(node, 'num')){
                 if(Math.abs(clickHt - this._findPos(node).top) < diff){
                     diff = Math.abs(clickHt - this._findPos(node).top);
-                    to = dojo.attr(node, 'num');
+                    to = parseInt(dojo.attr(node, 'num'));
                 }
                 if(Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top) < diff2){
                     diff2 = Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top);
-                    from = dojo.attr(node, 'num');
+                    from = parseInt(dojo.attr(node, 'num'));
                 }
             }
         }));
         this._lock = true;
         this._lineIndex = 10000;
+
         if(from <= to){
             for(var i=0; i<to-from; i++)
                 this.moveCaretDown();
