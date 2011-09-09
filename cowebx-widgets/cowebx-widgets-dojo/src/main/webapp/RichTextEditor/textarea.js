@@ -544,6 +544,7 @@ define([
         }else{
             this._moveToEmptyLine(e.clientY);
         }
+        this._lock = false;
     };
     
     proto._moveToEmptyLine = function(clickHt) {

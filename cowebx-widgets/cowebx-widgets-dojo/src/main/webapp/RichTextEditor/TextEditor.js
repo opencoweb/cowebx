@@ -138,7 +138,12 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
         
     proto.insertChar = function(c, pos, filter) {
         //1. Adjust string in memory  
-        var t = this._textarea,
+        var t = this._textarea;
+        if(pos>t.value.start && pos<t.value.end){
+            t.clearSelection();
+            this._updatePOR();
+        }
+        var sel = Math.abs(t.value.start-t.value.end);
         por = this._por,
         start = por.start,
         end = por.end;
@@ -156,12 +161,22 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
                 var node = dojo.create('span',{style:f.join(""),innerHTML:c},t.frame.childNodes[pos],'before');
             }
         }else{
-            if(c == t.newSpace){
-                var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},t.frame.childNodes[pos],'after');
-            }else if(c == t.newLine){
-                dojo.create('br',{style:f},t.frame.childNodes[pos],'after');
+            if(pos==t.value.start && sel>0){
+                if(c == t.newSpace){
+                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},t.frame.childNodes[pos],'before');
+                }else if(c == t.newLine){
+                    dojo.create('br',{style:f},t.frame.childNodes[pos],'before');
+                }else{
+                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},t.frame.childNodes[pos],'before');
+                }                
             }else{
-                var node = dojo.create('span',{style:f.join(""),innerHTML:c},t.frame.childNodes[pos],'after');
+                if(c == t.newSpace){
+                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},t.frame.childNodes[pos-sel],'after');
+                }else if(c == t.newLine){
+                    dojo.create('br',{style:f},t.frame.childNodes[pos-sel],'after');
+                }else{
+                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},t.frame.childNodes[pos-sel],'after');
+                }
             }
         }
         this._textarea._scrollWith();
