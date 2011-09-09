@@ -63,6 +63,7 @@ define([
         this._lock              =   false;
         this._paste             =   false;
         this._caret             =   true;
+        this._blinkDir          =   'left';
     };
     var proto = textarea.prototype;
     
@@ -299,6 +300,7 @@ define([
     
     // Move caret up one line & custom render
     proto.moveCaretUp = function(select) {
+        this._blinkDir = 'left';
         var i=0;
         var top = Math.round(dojo.byId('selection').offsetTop-this._lineHeight);
         var lineAbove = {};
@@ -374,6 +376,7 @@ define([
     
     // Move caret down one line & custom render
     proto.moveCaretDown = function(select) {
+        this._blinkDir = 'right';
         var i=0;
         var top = Math.round(dojo.byId('selection').offsetTop+this._lineHeight);
         var lineBelow = {};
@@ -449,6 +452,7 @@ define([
     
     // Move caret left one char & custom render
     proto.moveCaretLeft = function(select) {
+        this._blinkDir = 'left';
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
         
@@ -479,6 +483,7 @@ define([
     
     // Move caret right one char & custom render
     proto.moveCaretRight = function(select) {
+        this._blinkDir = 'right';
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
 
@@ -702,10 +707,22 @@ define([
     proto._blink = function(){
         if(this.displayCaret){
             if(this._caret == true){
-                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-left:1px solid black;','border-left:1px solid white;'));
+                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-left:1px solid black;',''));
+                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-right:1px solid black;',''));
+                if(this._blinkDir == 'left'){
+                    dojo.attr('selection', 'style', dojo.attr('selection','style')+'border-left:1px solid white;');
+                }else{
+                    dojo.attr('selection', 'style', dojo.attr('selection','style')+'border-right:1px solid white;');
+                }
                 this._caret = false;
             }else{
-                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-left:1px solid white;','border-left:1px solid black;'));
+                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-left:1px solid white;',''));
+                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-right:1px solid white;',''));
+                if(this._blinkDir == 'left'){
+                    dojo.attr('selection', 'style', dojo.attr('selection','style')+'border-left:1px solid black;');
+                }else{
+                    dojo.attr('selection', 'style', dojo.attr('selection','style')+'border-right:1px solid black;');
+                }
                 this._caret = true;
             }
         }
