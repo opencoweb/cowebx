@@ -513,8 +513,8 @@ define([
     };
     
     proto._onClick = function(e){
-        var startNode = e.target;
-        var endNode = this._endNode;
+        var endNode = e.target;
+        var startNode = this._endNode;
         if(this.value.start != this.value.end)
             this.clearSelection();
         var i=0; j=0;
@@ -523,7 +523,7 @@ define([
         var diff = 10000;
         var min = null;
         
-        dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
+        var nl = dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
             if(node.id != 'selection'){
                 i++; j++;
                 if(startNode == node)
@@ -544,7 +544,26 @@ define([
                 this.value.end = start;
                 dojo.place('selection',startNode,'after');
             }else{
-                //drag to select
+                window.getSelection().removeAllRanges();
+                if(start<end){
+                    this.value.start = start;
+                    this.value.end = start;
+                    dojo.place('selection',startNode,'after');
+                    var tmp = nl.slice(nl.indexOf(startNode)+1,nl.indexOf(endNode)+1);
+                    this.value.start = start;
+                    this.value.end = end;
+                    for(var i=0; i<tmp.length; i++)
+                        dojo.place(tmp[i],'selection','last');
+                }else{
+                    this.value.start = end;
+                    this.value.end = end;
+                    dojo.place('selection',endNode,'after');
+                    var tmp = nl.slice(nl.indexOf(endNode)+1,nl.indexOf(startNode)+1);
+                    this.value.start = end;
+                    this.value.end = start;
+                    for(var i=0; i<tmp.length; i++)
+                        dojo.place(tmp[i],'selection','last');
+                }
             }
         }else{
             this._moveToEmptyLine(e.clientY);
