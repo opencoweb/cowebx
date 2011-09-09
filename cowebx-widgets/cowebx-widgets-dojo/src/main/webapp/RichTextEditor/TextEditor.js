@@ -196,6 +196,11 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
     proto.deleteChar = function(pos) {
         //1. Adjust string in memory
         var t = this._textarea;
+        if(pos>t.value.start && pos<t.value.end){
+            t.clearSelection();
+            this._updatePOR();
+        }
+        var sel = Math.abs(t.value.start-t.value.end);
         t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
         
         //2. custom render
@@ -203,8 +208,8 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
             if(t.frame.childNodes[pos])
                 dojo.destroy(t.frame.childNodes[pos]);
         }else{
-            if(t.frame.childNodes[pos+1])
-                dojo.destroy(t.frame.childNodes[pos+1]);   
+            if(t.frame.childNodes[pos+1-sel])
+                dojo.destroy(t.frame.childNodes[pos+1-sel]);   
         }
         this._textarea._scrollWith();
         
@@ -217,14 +222,19 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
         
     proto.updateChar = function(c, pos, filter) {
         var t = this._textarea;
+        if(pos>t.value.start && pos<t.value.end){
+            t.clearSelection();
+            this._updatePOR();
+        }
+        var sel = Math.abs(t.value.start-t.value.end);
         var f = (filter == null || undefined) ? [] : filter;
         t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f.join("")}]).concat(t.value.string.slice(pos+1));
         if(pos<t.value.start){
             t.frame.childNodes[pos].innerHTML = c;
             dojo.attr(t.frame.childNodes[pos], 'style', dojo.attr(t.frame.childNodes[pos],'style')+filter.join(""));
         }else{
-            t.frame.childNodes[pos+1].innerHTML = c;
-            dojo.attr(t.frame.childNodes[pos], 'style', dojo.attr(t.frame.childNodes[pos],'style')+filter.join(""));
+            t.frame.childNodes[pos+1-sel].innerHTML = c;
+            dojo.attr(t.frame.childNodes[pos], 'style', dojo.attr(t.frame.childNodes[pos+1-sel],'style')+filter.join(""));
         }
     };
 
