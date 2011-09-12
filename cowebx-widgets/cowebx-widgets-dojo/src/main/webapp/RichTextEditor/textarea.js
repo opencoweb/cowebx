@@ -552,8 +552,10 @@ define([
                     var tmp = nl.slice(nl.indexOf(startNode)+1,nl.indexOf(endNode)+1);
                     this.value.start = start;
                     this.value.end = end;
-                    for(var i=0; i<tmp.length; i++)
-                        dojo.place(tmp[i],'selection','last');
+                    for(var i=0; i<tmp.length; i++){
+                        if(tmp[i].id != 'selection')
+                            dojo.place(tmp[i],'selection','last');
+                    }
                 }else{
                     this.value.start = end;
                     this.value.end = end;
