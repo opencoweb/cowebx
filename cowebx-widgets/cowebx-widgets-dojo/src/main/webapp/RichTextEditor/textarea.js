@@ -305,7 +305,7 @@ define([
         var top = Math.round(dojo.byId('selection').offsetTop-this._lineHeight);
         var lineAbove = {};
         var line = {};
-        if(this.value.start != this.value.end && !select)
+        if(this.value.start != this.value.end)
             this.clearSelection();
         
         dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
@@ -336,6 +336,7 @@ define([
             if(count >= this._lineIndex){
                 if(lineAbove[this._lineIndex]){
                     if(select){
+                        console.log('1');
 
                     }else{
                         this.value.start = lineAbove[this._lineIndex].index;
@@ -344,7 +345,7 @@ define([
                     }
                 }else{
                     if(select){
-
+                        
                     }else{
                         this.value.start = lineAbove[this._lineIndex-1].index+1;
                         this.value.end = lineAbove[this._lineIndex-1].index+1;
@@ -550,21 +551,23 @@ define([
                     this.value.end = start;
                     dojo.place('selection',startNode,'after');
                     var tmp = nl.slice(nl.indexOf(startNode)+1,nl.indexOf(endNode)+1);
+                    tmp.forEach(function(node, index, array){
+                        if(node.id != 'selection')
+                            dojo.place(node, dojo.byId('selection'), 'last');
+                    });
                     this.value.start = start;
                     this.value.end = end;
-                    for(var i=0; i<tmp.length; i++){
-                        if(tmp[i].id != 'selection')
-                            dojo.place(tmp[i],'selection','last');
-                    }
                 }else{
                     this.value.start = end;
                     this.value.end = end;
                     dojo.place('selection',endNode,'after');
                     var tmp = nl.slice(nl.indexOf(endNode)+1,nl.indexOf(startNode)+1);
+                    tmp.forEach(function(node, index, array){
+                        if(node.id != 'selection')
+                            dojo.place(node, dojo.byId('selection'), 'last');
+                    });
                     this.value.start = end;
                     this.value.end = start;
-                    for(var i=0; i<tmp.length; i++)
-                        dojo.place(tmp[i],'selection','last');
                 }
             }
         }else{
