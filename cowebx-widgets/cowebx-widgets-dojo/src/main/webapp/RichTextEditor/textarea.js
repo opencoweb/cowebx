@@ -526,66 +526,59 @@ define([
     };
     
     proto._onClick = function(e){
-        var endNode = e.target;
-        var startNode = this._endNode;
-        if(this.value.start != this.value.end)
-            this.clearSelection();
-        var i=0; j=0;
-        var start = null;
-        var end = null;
-        var diff = 10000;
-        var min = null;
+        var sel = window.getSelection();
         
-        var nl = dojo.query("#thisDiv span,#thisDiv br").forEach(dojo.hitch(this, function(node, index, arr){
-            if(node.id != 'selection'){
-                i++; j++;
-                if(startNode == node)
-                    start = i;
+        //Selection
+        //TODO: support starting or ending anywhere
+        if(sel.toString().length > 0){
+            var range = sel.getRangeAt(0);
+            if((range.endContainer.id && range.startContainer.id) == 'thisFrame'){
+                var start = range.startContainer.childNodes[range.startOffset];
+                var end = range.endContainer.childNodes[range.endOffset];
+            }else if(range.endContainer.id == 'thisFrame'){
+                var start = (range.startOffset == 0) ? range.startContainer.parentNode : range.startContainer.parentNode.nextSibling;
+                var end = range.endContainer.childNodes[range.endOffset];
+            }else if(range.startContainer.id == 'thisFrame'){
+                var start = range.startContainer.childNodes[range.startOffset];
+                var end = (range.endOffset == 0) ? range.endContainer.parentNode : range.endContainer.parentNode.nextSibling;
+            }else{
+                var start = (range.startOffset == 0) ? range.startContainer.parentNode : range.startContainer.parentNode.nextSibling;
+                var end = (range.endOffset == 0) ? range.endContainer.parentNode : range.endContainer.parentNode.nextSibling;
+            }
+            dojo.place('selection',start,'before');
+            var nl = dojo.query("#thisDiv span,#thisDiv br");
+            var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length));
+            this.value.start = nlFixed.indexOf(start);
+            this.value.end = nlFixed.indexOf(end);
+            var tmp = nlFixed.slice(nlFixed.indexOf(start),nlFixed.indexOf(end));
+            tmp.forEach(function(node, index, array){
+               if(node.id != 'selection')
+                   dojo.place(node, dojo.byId('selection'), 'last');
+            });
+            window.getSelection().removeAllRanges();
+
+        //Click
+        }else{
+            var endNode = e.target;
+            var j=0;
+            var end = null;
+            var nl = dojo.query("#thisDiv span,#thisDiv br");
+            var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length));
+            nlFixed.forEach(dojo.hitch(this, function(node, index, arr){
+                j++;
                 if(endNode == node)
                     end = j;
-                    
-                if((Math.abs(this._findPos(node).top - e.clientY) <= diff) && (node.tagName != 'BR')){
-                    diff = Math.abs(this._findPos(node).top - e.clientY);
-                    min = node;
-                }
-            }
-        }));    
-        
-        if(start && end){
-            if(start == end){
-                this.value.start = start;
-                this.value.end = start;
-                dojo.place('selection',startNode,'after');
+            }));
+            
+            if(end == null){
+                this._onFocus();
+                this._moveToEmptyLine(e.clientY);
             }else{
-                window.getSelection().removeAllRanges();
-                if(start<end){
-                    this.value.start = start;
-                    this.value.end = start;
-                    dojo.place('selection',startNode,'after');
-                    var tmp = nl.slice(nl.indexOf(startNode)+1,nl.indexOf(endNode)+1);
-                    tmp.forEach(function(node, index, array){
-                        if(node.id != 'selection')
-                            dojo.place(node, dojo.byId('selection'), 'last');
-                    });
-                    this.value.start = start;
-                    this.value.end = end;
-                }else{
-                    this.value.start = end;
-                    this.value.end = end;
-                    dojo.place('selection',endNode,'after');
-                    var tmp = nl.slice(nl.indexOf(endNode)+1,nl.indexOf(startNode)+1);
-                    tmp.forEach(function(node, index, array){
-                        if(node.id != 'selection')
-                            dojo.place(node, dojo.byId('selection'), 'last');
-                    });
-                    this.value.start = end;
-                    this.value.end = start;
-                }
+                this.value.start = end;
+                this.value.end = end;
+                dojo.place('selection',endNode,'after');
             }
-        }else{
-            this._moveToEmptyLine(e.clientY);
         }
-        this._lock = false;
     };
     
     proto._moveToEmptyLine = function(clickHt) {
@@ -1394,7 +1387,7 @@ define([
     };
 
     proto._onMouseDown = function(e){
-        this._endNode = e.target;
+        this.clearSelection();
     };
     
     proto._onFocus = function(e){
