@@ -336,7 +336,7 @@ define([
             if(count >= this._lineIndex){
                 if(lineAbove[this._lineIndex]){
                     if(select){
-                        console.log('1');
+                        //console.log('1');
                         var a = dojo.query('#selection span, #selection br');
                         nl.slice( nl.indexOf(lineAbove[this._lineIndex].node) , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
                         this.value.start = lineAbove[this._lineIndex].index; 
@@ -347,7 +347,7 @@ define([
                     }
                 }else{
                     if(select){
-                        console.log('2');
+                        //console.log('2');
                         var a = dojo.query('#selection span, #selection br');
                         nl.slice( nl.indexOf(lineAbove[this._lineIndex-1].node)+1 , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
                         this.value.start = lineAbove[this._lineIndex-1].index+1;
@@ -359,7 +359,7 @@ define([
                 }
             }else if(count < this._lineIndex){
                 if(select){
-                    console.log('3');
+                    //console.log('3');
                     var a = dojo.query('#selection span, #selection br');
                     nl.slice( nl.indexOf(lineAbove[count-1].node)+1, nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
                     this.value.start = lineAbove[0].index+count;
@@ -371,7 +371,7 @@ define([
             }
         }else{
             if(select){
-                console.log('4');
+                //console.log('4');
                 var a = dojo.query('#selection span, #selection br');
                 nl.slice( nl.indexOf(line[0].node), nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
                 this.value.start = line[0].index;
