@@ -391,14 +391,15 @@ define([
     proto.moveCaretDown = function(select) {
         this._blinkDir = 'right';
         var i=0;
-        var top = Math.round(dojo.byId('selection').offsetTop+this._lineHeight);
+        var top = Math.round(dojo.byId('selection').offsetTop+dojo.byId('selection').offsetHeight);
         var lineBelow = {};
         var line = {};
         if(this.value.start != this.value.end && !select)
             this.clearSelection();
         
-        dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-            if(node.offsetTop > top-2 && node.offsetTop < top+2 && node.tagName != 'BR'){
+        //use offset height
+        var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
+            if(node.offsetTop > top-5 && node.offsetTop < top+5 && node.tagName != 'BR'){
                 lineBelow[this._count(lineBelow)] = {
                     node: node,
                     index: i
@@ -411,7 +412,7 @@ define([
             }
             i++;
         }));
-        
+
         if(!this._lock){
             for(var k in line){
                 if(line[k]['node'].id=='selection')
@@ -425,7 +426,9 @@ define([
             if(count >= this._lineIndex){
                 if(lineBelow[this._lineIndex]){
                     if(select){
-                        
+                        //console.log('1');
+                        nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[this._lineIndex].node)).place(dojo.byId('selection'));
+                        this.value.end = lineBelow[this._lineIndex].index;
                     }else{
                         this.value.start = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
                         this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
@@ -433,7 +436,9 @@ define([
                     }
                 }else{
                     if(select){
-                        
+                        //console.log('2');
+                        nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[this._lineIndex-1].node)+1).place(dojo.byId('selection'));
+                        this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
                     }else{
                         this.value.start = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
                         this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
@@ -442,7 +447,9 @@ define([
                 }
             }else if(count < this._lineIndex){
                 if(select){
-                   
+                    //console.log('3');
+                    nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[count-1].node)+1).place(dojo.byId('selection'));
+                    this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
                 }else{
                     this.value.start = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
                     this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
@@ -451,7 +458,25 @@ define([
             }
         }else{
             if(select){
-                
+                //console.log('4');
+                line = {};
+                var anchor = dojo.byId('selection').nextSibling;
+                i=0;
+                if(anchor && anchor.tagName != 'BR'){
+                    var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
+                        if(node.offsetTop == anchor.offsetTop){
+                            line[this._count(line)] = {
+                                node: node,
+                                index: i
+                            };
+                        }
+                        i++;
+                    }));
+                    nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(line[this._count(line)-1].node)+1).place(dojo.byId('selection'));
+                    this.value.end = line[this._count(line)-1].index;
+                }else{
+                    this.moveCaretRight(true);
+                }
             }else{
                 if(line[this._count(line)-1].node.nextSibling){
                     this.value.start = line[this._count(line)-1].index+1;
@@ -514,10 +539,13 @@ define([
                 }
             }
         }else{
+           // console.log(end);
+            // console.log(this.value.string.length);
             if(end<this.value.string.length){
                 end++;
                 this.value.end = end;
                 var tmp = dojo.byId('selection').nextSibling;
+              //  console.log('tmp = ',tmp);
                 dojo.place(tmp, dojo.byId('selection'), 'last');
             }
         }
