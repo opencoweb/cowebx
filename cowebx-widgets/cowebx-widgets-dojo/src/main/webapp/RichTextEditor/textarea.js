@@ -70,7 +70,25 @@ define([
     // Determines key-specific action
     proto.onKeyPress = function(e) {
         var reset = false;
-        if(e.keyCode == 37){                                // left
+        if(e.charChode == 35){                              // end
+            this.value.start = this.value.string.length;
+            this.value.end = this.value.string.length;
+            var last = null;
+            var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
+                last = node;
+            }));
+            if(last)
+                dojo.place(dojo.byId('selection'),last,'after');
+        }else if(e.charChode == 36){                        // home
+            this.value.start = 0;
+            this.value.end = 0;
+            var first = null;
+            var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
+                if(!first)
+                    first = node;
+            }));
+            dojo.place(dojo.byId('selection'),first,'before');
+        }else if(e.keyCode == 37){                          // left
             reset = true;
             this.moveCaretLeft(e.shiftKey);                   
         }else if(e.keyCode == 39){                          // right
