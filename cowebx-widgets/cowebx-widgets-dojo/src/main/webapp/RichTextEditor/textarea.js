@@ -23,6 +23,7 @@ define([
         this.footer         =   this._buildFooter();
         this.selection      =   dojo.create('span',{id:'selection',style:'border-left:1px solid black;background-color:#99CCFF;'},this.frame,'last');
         this.dialog         =   this._buildConfirmDialog();
+        this.ipadFloat      =   dojo.create('textarea',{id:'ipadFloat',style:'width:90%;height:90%;opacity:0;position:absolute;'},this.div,'first');
         
         //3. Style and connect
         this._style();
@@ -689,6 +690,10 @@ define([
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
         dojo.connect(this.div, 'onkeydown', this, '_listenForKeyCombo');
+        dojo.connect(this.ipadFloat, 'onfocus', this, function(){ 
+            dojo.style(this.ipadFloat, 'display', 'none'); 
+            this.div.focus();
+        });
         dojo.subscribe("hideAll", dojo.hitch(this, function(message){ this._hidePalette(); }));
         document.onkeydown = this._overrideKeys;
     };
@@ -1444,6 +1449,7 @@ define([
     };
     
     proto._onBlur = function(){
+        dojo.style(this.ipadFloat,'display','block');
         this.displayCaret = false;
     };
     
