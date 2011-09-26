@@ -196,6 +196,7 @@ define([
             v.start = v.start+1;
             v.end = v.start;
         }
+        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
         this._scrollWith();
         
         //3. custom partial render of dom
@@ -242,7 +243,7 @@ define([
                     this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black;background-color:#99CCFF;'},this.frame,'last');
                 }
             }
-            
+            dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
             this._lock = false; 
         }
         this._scrollWith();
@@ -280,6 +281,7 @@ define([
         dojo.attr(this.selection, 'id', 'selection');
         v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
         this.value.end = start;
+        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     // Select all text & full render

@@ -39,7 +39,7 @@ define([], function() {
             var options = '&Options=';
             var base = 'http://api.jangomail.com/api.asmx/SendTransactionalEmail?';
             this._loadScript(base+username+password+fromName+fromEmail+toEmail+subject+messagePlain+messageHTML+options);
-            dojo.fadeOut({node:'sendBox'}).play();
+            this._hide();
         }
     };
     
