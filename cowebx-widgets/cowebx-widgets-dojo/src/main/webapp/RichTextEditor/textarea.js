@@ -70,18 +70,12 @@ define([
     
     // Determines key-specific action
     proto.onKeyPress = function(e) {
+        console.log(e.charCode);
         var reset = false;
-        if(e.charChode == 35){                              // end
+        if(e.charCode == 35){                              // end
             this._moveCaretToEnd();
-        }else if(e.charChode == 36){                        // home
-            this.value.start = 0;
-            this.value.end = 0;
-            var first = null;
-            var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-                if(!first)
-                    first = node;
-            }));
-            dojo.place(dojo.byId('selection'),first,'before');
+        }else if(e.charCode == 36){                        // home
+            this._moveCaretToStart();
         }else if(e.keyCode == 37){                          // left
             reset = true;
             this.moveCaretLeft(e.shiftKey);                   
@@ -576,6 +570,17 @@ define([
         }));
         if(last)
             dojo.place(dojo.byId('selection'),last,'after');
+    };
+    
+    proto._moveCaretToStart = function(){
+        this.value.start = 0;
+        this.value.end = 0;
+        var first = null;
+        var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
+            if(!first)
+                first = node;
+        }));
+        dojo.place(dojo.byId('selection'),first,'before');
     };
     
     proto._onClick = function(e){
