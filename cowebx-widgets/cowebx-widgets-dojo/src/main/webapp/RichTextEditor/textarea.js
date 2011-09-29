@@ -72,14 +72,7 @@ define([
     proto.onKeyPress = function(e) {
         var reset = false;
         if(e.charChode == 35){                              // end
-            this.value.start = this.value.string.length;
-            this.value.end = this.value.string.length;
-            var last = null;
-            var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-                last = node;
-            }));
-            if(last)
-                dojo.place(dojo.byId('selection'),last,'after');
+            this._moveCaretToEnd();
         }else if(e.charChode == 36){                        // home
             this.value.start = 0;
             this.value.end = 0;
@@ -572,6 +565,17 @@ define([
         }
         this._scrollWith();
         this._lock = false;  
+    };
+    
+    proto._moveCaretToEnd = function(){
+        this.value.start = this.value.string.length;
+        this.value.end = this.value.string.length;
+        var last = null;
+        var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
+            last = node;
+        }));
+        if(last)
+            dojo.place(dojo.byId('selection'),last,'after');
     };
     
     proto._onClick = function(e){

@@ -48,19 +48,21 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         this.history = this.history.slice(0, this.index+1);
         this.collab.sendSync('editorReset',{
             string: this._textarea.value.string,
-            oldSnapshot: this.parent.oldSnapshot,
             history : this.history
         });
         this._reRenderSlider();
     };
     
     proto.remoteReset = function(obj){
-        console.log('called');
-        this._textarea.value.string = obj.value.string;
-        this.parent.oldSnapshot = obj.value.oldSnapshot;
+        var t = this._textarea;
+        if(t.value.start > obj.value.string.length)
+            t.value.start = obj.value.string.length;
+        if(t.value.end > obj.value.string.length)
+            t.value.end = obj.value.string.length;
+        t.value.string = obj.value.string;
         this.history = obj.value.history;
-        this._textarea.render();
-        
+        this._reRenderSlider();
+        t.render(true);
     };
     
     proto.play = function(){
