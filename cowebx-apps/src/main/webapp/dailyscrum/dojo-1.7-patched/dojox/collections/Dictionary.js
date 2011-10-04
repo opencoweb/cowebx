@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+define(["dojo/_base/array","./_base"],function(_1,_2){_2.Dictionary=function(_3){var _4={};this.count=0;var _5={};this.add=function(k,v){var b=(k in _4);_4[k]=new _2.DictionaryEntry(k,v);if(!b){this.count++;}};this.clear=function(){_4={};this.count=0;};this.clone=function(){return new _2.Dictionary(this);};this.contains=this.containsKey=function(k){if(_5[k]){return false;}return (_4[k]!=null);};this.containsValue=function(v){var e=this.getIterator();while(e.get()){if(e.element.value==v){return true;}}return false;};this.entry=function(k){return _4[k];};this.forEach=function(fn,_6){var a=[];for(var p in _4){if(!_5[p]){a.push(_4[p]);}}_1.forEach(a,fn,_6);};this.getKeyList=function(){return (this.getIterator()).map(function(_7){return _7.key;});};this.getValueList=function(){return (this.getIterator()).map(function(_8){return _8.value;});};this.item=function(k){if(k in _4){return _4[k].valueOf();}return undefined;};this.getIterator=function(){return new _2.DictionaryIterator(_4);};this.remove=function(k){if(k in _4&&!_5[k]){delete _4[k];this.count--;return true;}return false;};if(_3){var e=_3.getIterator();while(e.get()){this.add(e.element.key,e.element.value);}}};return _2.Dictionary;});

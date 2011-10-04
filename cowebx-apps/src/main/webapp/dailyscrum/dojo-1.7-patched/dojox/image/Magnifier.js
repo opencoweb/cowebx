@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+define(["dojo","dijit","dojox","dojox/gfx","dojox/image/MagnifierLite"],function(_1,_2,_3){_1.getObject("dojox.image.Magnifier",1);_1.declare("dojox.image.Magnifier",_3.image.MagnifierLite,{_createGlass:function(){this.glassNode=_1.create("div",{style:{height:this.glassSize+"px",width:this.glassSize+"px"},"className":"glassNode"},_1.body());this.surfaceNode=_1.create("div",null,this.glassNode);this.surface=_3.gfx.createSurface(this.surfaceNode,this.glassSize,this.glassSize);this.img=this.surface.createImage({src:this.domNode.src,width:this._zoomSize.w,height:this._zoomSize.h});},_placeGlass:function(e){var x=e.pageX-2,y=e.pageY-2,_4=this.offset.x+this.offset.w+2,_5=this.offset.y+this.offset.h+2;if(x<this.offset.x||y<this.offset.y||x>_4||y>_5){this._hideGlass();}else{this.inherited(arguments);}},_setImage:function(e){var _6=(e.pageX-this.offset.l)/this.offset.w,_7=(e.pageY-this.offset.t)/this.offset.h,x=(this._zoomSize.w*_6*-1)+(this.glassSize*_6),y=(this._zoomSize.h*_7*-1)+(this.glassSize*_7);this.img.setShape({x:x,y:y});}});});require(["dojox/image/Magnifier"]);

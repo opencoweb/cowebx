@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+define(["dojo/_base/array","./_base"],function(_1,_2){dojox.mobile.loadCssFile=function(_3){dojo.create("LINK",{href:_3,type:"text/css",rel:"stylesheet"},dojo.doc.getElementsByTagName("head")[0]);};dojox.mobile.themeMap=dojox.mobile.themeMap||[["Android","android",[]],["BlackBerry","blackberry",[]],["iPad","iphone",[dojo.moduleUrl("dojox.mobile","themes/iphone/ipad.css")]],[".*","iphone",[]]];dojox.mobile.loadDeviceTheme=function(){var t=dojo.config["mblThemeFiles"]||dojox.mobile.themeFiles||["@theme"];if(!dojo.isArray(t)){}var i,j;var m=dojox.mobile.themeMap;var ua=(location.search.match(/theme=(\w+)/))?RegExp.$1:navigator.userAgent;for(i=0;i<m.length;i++){if(ua.match(new RegExp(m[i][0]))){var _4=m[i][1];var _5=m[i][2];for(j=t.length-1;j>=0;j--){var _6=dojo.isArray(t[j])?t[j][0]:"dojox.mobile";var _7=dojo.isArray(t[j])?t[j][1]:t[j];var f="themes/"+_4+"/"+(_7==="@theme"?_4:_7)+".css";_5.unshift(dojo.moduleUrl(_6,f));}for(j=0;j<_5.length;j++){dojox.mobile.loadCssFile(_5[j].toString());}break;}}};if(dojox.mobile.configDeviceTheme){dojox.mobile.configDeviceTheme();}dojox.mobile.loadDeviceTheme();return dojox.mobile.deviceTheme;});

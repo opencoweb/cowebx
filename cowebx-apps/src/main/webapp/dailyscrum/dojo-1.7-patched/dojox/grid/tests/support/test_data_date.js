@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+(function(){data={identifier:"id",label:"id",items:[]};var s=(new Date()).getTime();data_list=[{col1:"normal",col2:false,col3:"new",col4:"But are not followed by two hexadecimal",col5:29.91,col6:10,col7:false,col8:new Date()},{col1:"important",col2:false,col3:"new",col4:"Because a % sign always indicates",col5:9.33,col6:-5,col7:false,col8:new Date()},{col1:"important",col2:false,col3:"read",col4:"Signs can be selectively",col5:19.34,col6:0,col7:true,col8:new Date()},{col1:"note",col2:false,col3:"read",col4:"However the reserved characters",col5:15.63,col6:0,col7:true,col8:new Date()},{col1:"normal",col2:false,col3:"replied",col4:"It is therefore necessary",col5:24.22,col6:5.5,col7:true,col8:new Date()},{col1:"important",col2:false,col3:"replied",col4:"To problems of corruption by",col5:9.12,col6:-3,col7:true,col8:new Date()},{col1:"note",col2:false,col3:"replied",col4:"Which would simply be awkward in",col5:12.15,col6:-4,col7:false,col8:new Date()}];var _1=100;for(var i=0,l=data_list.length;i<_1;i++){data.items.push(dojo.mixin({id:i},data_list[i%l]));}test_store=new dojo.data.ItemFileWriteStore({data:data});})();
