@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+define(["dojo","dijit","dojox","dojox/collections/Set"],function(_1,_2,_3){_1.getObject("dojox.collections.tests.Set",1);(function(){var _4=_3.collections.Set;var a=["apple","bear","candy","donut","epiphite","frank"];var b=["bear","epiphite","google","happy","joy"];tests.register("dojox.collections.tests.Set",[function testUnion(t){var _5=_4.union(a,b);t.assertEqual("apple,bear,candy,donut,epiphite,frank,google,happy,joy",_5.toArray().join(","));},function testIntersection(t){var _6=_4.intersection(a,b);t.assertEqual("bear,epiphite",_6.toArray().join(","));t.assertEqual("bear",_4.intersection(["bear","apple"],["bear"]));},function testDifference(t){var d=_4.difference(a,b);t.assertEqual("apple,candy,donut,frank",d.toArray().join(","));},function testIsSubSet(t){t.assertFalse(_4.isSubSet(a,["bear","candy"]));t.assertTrue(_4.isSubSet(["bear","candy"],a));},function testIsSuperSet(t){t.assertTrue(_4.isSuperSet(a,["bear","candy"]));t.assertFalse(_4.isSuperSet(["bear","candy"],a));}]);})();});require(["dojox/collections/tests/Set"]);

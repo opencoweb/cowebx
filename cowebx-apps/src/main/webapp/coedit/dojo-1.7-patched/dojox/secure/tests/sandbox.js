@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+define(["dojo","dijit","dojox"],function(_1,_2,_3){_1.getObject("dojox.secure.tests.sandbox",1);doh.register("dojox.secure.tests.sandbox.good",[function setup(){var _4=document.createElement("div");document.body.appendChild(_4);_4.innerHTML="Sandboxed div:";_4.style.position="absolute";_4.style.top="100px";_4.style.left="100px";_4.style.backgroundColor="red";_4.style.color="white";container=document.createElement("div");container.style.backgroundColor="cyan";container.style.color="black";_4.appendChild(container);},function innerHTML(t){_3.secure.evaluate("element.innerHTML = 'Hi there';",container);t.assertEqual("Hi there",container.innerHTML);},function docWrite(t){_3.secure.evaluate("document.write(\"<div style='color:red'>written</div>\");",container);t.t(container.innerHTML.match(/written/));}]);function _5(_6){return {name:_6.name,runTest:function(t){var _7;try{_6(t);_7=true;}catch(e){}t.f(_7);}};};doh.register("dojox.secure.tests.sandbox.bad",[function parentNode(t){t.f(_3.secure.evaluate("document.body",container));},function innerHTMLScript(t){try{_3.secure.evaluate("bad = true",container);}catch(e){}t.t(typeof bad=="undefined");}]);});require(["dojox/secure/tests/sandbox"]);

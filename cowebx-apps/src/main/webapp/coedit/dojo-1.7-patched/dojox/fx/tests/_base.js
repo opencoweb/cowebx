@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+define(["dojo","dijit","dojox","dojox/fx/_core","dojox/fx"],function(_1,_2,_3){_1.getObject("dojox.fx.tests._base",1);tests.register("dojox.fx.tests._base",[function simpleLineTest(t){var _4=new _3.fx._Line([0,100],[100,0]);var _5=_4.getValue(0);t.assertEqual(_5[0],0);t.assertEqual(_5[1],100);var _6=_4.getValue(0.5);t.assertEqual(_6[0],50);t.assertEqual(_6[1],50);var _7=_4.getValue(1);t.assertEqual(_7[0],100);t.assertEqual(_7[1],0);},function singleLineTest(t){var _8=new _3.fx._Line(0,100);t.assertEqual(_8.getValue(0),0);t.assertEqual(_8.getValue(0.5),50);t.assertEqual(_8.getValue(1),100);},function multiDimensionalTest(t){var _9=[5,10,15,20,25,30,35];var _a=[35,30,25,20,15,10,5];var _b=new _3.fx._Line(_9,_a);var _c=_b.getValue(0);var _d=_b.getValue(0.5);var _e=_b.getValue(1);t.assertEqual(_c.length,7);t.assertEqual(_e.length,7);t.assertEqual(_9[0],_c[0]);t.assertEqual(_9[1],_c[1]);t.assertEqual(_9[5],_c[5]);var _f=20;_1.forEach(_b.getValue(0.5),function(val,i){t.assertEqual(_f,val);});}]);});require(["dojox/fx/tests/_base"]);

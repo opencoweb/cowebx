@@ -30,19 +30,19 @@ var reqConfig = {
     },
     packages:[{
         name: 'dojo',
-        location:'../lib/dojo-1.7-patched/dojo',
+        location:'./dojo-1.7-patched/dojo',
         main:'./main',
         lib: '.'
     },
     {
         name: 'dijit',
-        location:'../lib/dojo-1.7-patched/dijit',
+        location:'./dojo-1.7-patched/dijit',
         main:'./main',
         lib: '.'
     },
     {
         name: 'dojox',
-        location:'../lib/dojo-1.7-patched/dojox',
+        location:'./dojo-1.7-patched/dojox',
         main:'./main',
         lib: '.'
     }]

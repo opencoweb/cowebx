@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+define(["dijit/_WidgetBase","dijit/_Container","dijit/_Contained","dojo/_base/xhr","./ProgressIndicator"],function(_1,_2,_3,_4,_5){return dojo.declare("dojox.mobile.ContentPane",[dijit._WidgetBase,dijit._Container,dijit._Contained],{href:"",content:"",parseOnLoad:true,prog:true,startup:function(){if(this._started){return;}if(this.prog){this._p=dojox.mobile.ProgressIndicator.getInstance();}if(this.href){this.set("href",this.href);}else{if(this.content){this.set("content",this.content);}}var _6=this.getParent&&this.getParent();if(!_6||!_6.resize){this.resize();}this.inherited(arguments);},resize:function(){dojo.forEach(this.getChildren(),function(_7){if(_7.resize){_7.resize();}});},loadHandler:function(_8){this.set("content",_8);},errorHandler:function(_9){if(p){p.stop();}},onLoad:function(){},_setHrefAttr:function(_a){var p=this._p;if(p){dojo.body().appendChild(p.domNode);p.start();}this.href=_a;dojo.xhrGet({url:_a,handleAs:"text",load:dojo.hitch(this,"loadHandler"),error:dojo.hitch(this,"errorHandler")});},_setContentAttr:function(_b){this.destroyDescendants();if(typeof _b==="object"){this.domNode.appendChild(_b);}else{this.domNode.innerHTML=_b;}if(this.parseOnLoad){dojo.parser.parse(this.domNode);}if(this._p){this._p.stop();}this.onLoad();}});});

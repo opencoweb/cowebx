@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+define(["dojo/_base/kernel","dojo/on","dojo/_base/array","dojo/_base/connect","dojo/_base/declare","dojo/_base/sniff","dojo/_base/unload","dojo/_base/window"],function(_1,on){var _2=null;if(_1.isIE){(function(){var _3=function(_4){_2=_4.srcElement;};_1.doc.attachEvent("onkeydown",_3);_1.addOnWindowUnload(function(){_1.doc.detachEvent("onkeydown",_3);});})();}else{_1.doc.addEventListener("keydown",function(_5){_2=_5.target;},true);}var _6=function(_7,_8){if(/input|button/i.test(_7.nodeName)){return function(_9,_a){return on(_9,type,_a);};}else{function _b(e){return (e.keyCode==_1.keys.ENTER||e.keyCode==_1.keys.SPACE)&&!e.ctrlKey&&!e.shiftKey&&!e.altKey&&!e.metaKey;};var _c=[on(_7,"keypress",function(e){if(_b(e)){_2=e.target;e.preventDefault();}}),on(_7,"keyup",function(e){if(_b(e)&&e.target==_2){_2=null;_8.call(this,e);}}),on(_7,"click",function(e){_8.call(this,e);})];return {cancel:function(){_1.forEach(_c,function(h){h.cancel();});}};}};_1.declare("dijit._OnDijitClickMixin",null,{connect:function(_d,_e,_f){return this.inherited(arguments,[_d,_e=="ondijitclick"?_6:_e,_f]);}});return dijit._OnDijitClickMixin;});

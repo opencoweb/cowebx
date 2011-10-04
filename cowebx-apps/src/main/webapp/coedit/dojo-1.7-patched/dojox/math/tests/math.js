@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+define(["dojo","dijit","dojox","dojox/math"],function(_1,_2,_3){_1.getObject("dojox.math.tests.math",1);(function(){function _4(r){return Math.floor(r*(1<<30))/(1<<30);};tests.register("dojox.math.tests.factorial",[function fact0(t){t.assertEqual(1,_3.math.factorial(0));},function fact1(t){t.assertEqual(1,_3.math.factorial(1));},function fact2(t){t.assertEqual(2,_3.math.factorial(2));},function fact5(t){t.assertEqual(120,_3.math.factorial(5));},function fact5minus(t){t.assertEqual(_4(119.9998047504966),_4(_3.math.factorial(5-1/1048576)));},function fact5plus(t){t.assertEqual(_4(120.00019524984087),_4(_3.math.factorial(5+1/1048576)));},function factNeg1half(t){t.assertEqual(Math.sqrt(Math.PI),_3.math.factorial(-0.5));},function factPos1half(t){t.assertEqual(_4(Math.sqrt(Math.PI)/2),_4(_3.math.factorial(0.5)));},function factNeg3halves(t){t.assertEqual(_4(-Math.sqrt(Math.PI)*2),_4(_3.math.factorial(-1.5)));},function factNeg5halves(t){t.assertEqual(_4(Math.sqrt(Math.PI)*4/3),_4(_3.math.factorial(-2.5)));},function factPos5halves(t){t.assertEqual(_4(Math.sqrt(Math.PI)*15/8),_4(_3.math.factorial(2.5)));},function factNeg1(t){t.assertEqual(NaN,_3.math.factorial(-1));},function factNeg2(t){t.assertEqual(NaN,_3.math.factorial(-2));}]);})();});require(["dojox/math/tests/math"]);

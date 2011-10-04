@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+define(["dojo","dijit","dojox","dijit/_Templated","dijit/_Widget"],function(_1,_2,_3){_1.getObject("dojox.data.demos.widgets.FileView",1);_1.declare("dojox.data.demos.widgets.FileView",[_2._Widget,_2._Templated],{templateString:_1.cache("dojox","data/demos/widgets/templates/FileView.html"),titleNode:null,descriptionNode:null,imageNode:null,authorNode:null,name:"",path:"",size:0,directory:false,parentDir:"",children:[],postCreate:function(){this.nameNode.appendChild(document.createTextNode(this.name));this.pathNode.appendChild(document.createTextNode(this.path));this.sizeNode.appendChild(document.createTextNode(this.size));this.directoryNode.appendChild(document.createTextNode(this.directory));this.parentDirNode.appendChild(document.createTextNode(this.parentDir));if(this.children&&this.children.length>0){var i;for(i=0;i<this.children.length;i++){var _4=document.createTextNode(this.children[i]);this.childrenNode.appendChild(_4);if(i<(this.children.length-1)){this.childrenNode.appendChild(document.createElement("br"));}}}}});});require(["dojox/data/demos/widgets/FileView"]);

@@ -1,0 +1,7 @@
+/*
+	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Available via Academic Free License >= 2.1 OR the modified BSD license.
+	see: http://dojotoolkit.org/license for details
+*/
+
+define(["dojo/_base/array","./_base"],function(_1,_2){_2.ArrayList=function(_3){var _4=[];if(_3){_4=_4.concat(_3);}this.count=_4.length;this.add=function(_5){_4.push(_5);this.count=_4.length;};this.addRange=function(a){if(a.getIterator){var e=a.getIterator();while(!e.atEnd()){this.add(e.get());}this.count=_4.length;}else{for(var i=0;i<a.length;i++){_4.push(a[i]);}this.count=_4.length;}};this.clear=function(){_4.splice(0,_4.length);this.count=0;};this.clone=function(){return new _2.ArrayList(_4);};this.contains=function(_6){for(var i=0;i<_4.length;i++){if(_4[i]==_6){return true;}}return false;};this.forEach=function(fn,_7){_1.forEach(_4,fn,_7);};this.getIterator=function(){return new _2.Iterator(_4);};this.indexOf=function(_8){for(var i=0;i<_4.length;i++){if(_4[i]==_8){return i;}}return -1;};this.insert=function(i,_9){_4.splice(i,0,_9);this.count=_4.length;};this.item=function(i){return _4[i];};this.remove=function(_a){var i=this.indexOf(_a);if(i>=0){_4.splice(i,1);}this.count=_4.length;};this.removeAt=function(i){_4.splice(i,1);this.count=_4.length;};this.reverse=function(){_4.reverse();};this.sort=function(fn){if(fn){_4.sort(fn);}else{_4.sort();}};this.setByIndex=function(i,_b){_4[i]=_b;this.count=_4.length;};this.toArray=function(){return [].concat(_4);};this.toString=function(_c){return _4.join((_c||","));};};return _2.ArrayList;});
