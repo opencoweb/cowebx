@@ -201,7 +201,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
             this._updatePOR();
         }
         var sel = Math.abs(this._por.start-this._por.end);
-        console.log('sel = ',sel);
+
         t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
         //2. custom render
         if(pos<t.value.start){
