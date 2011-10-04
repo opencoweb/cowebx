@@ -1,8 +1,8 @@
-#Coweb Editor Application
+#Coedit Application
 
 ##About
 
-This is a demo application that allows for collaborative editing of text via the browser using the Coweb framework.
+This is a demo application that allows for collaborative editing of text via the browser using the [Open Coweb Framework](http://opencoweb.org/).
 
 ##Quick Start
 
@@ -12,26 +12,8 @@ This is a demo application that allows for collaborative editing of text via the
 ```console
 $ git clone git@github.com:opencoweb/cowebx
 ```
-3. Create a new directory in ```cowebx/cowebx-apps/src/main/webapp/``` and call it ```dojo-1.7-patched```
-4. Download or clone a copy of Dojo, Dijit, and DojoX into the new folder
-5. The file ```dojo/i18n.js``` currently has a bug (Dojo's, not ours) and needs to be patched before this app will function: on line 148, the change the following line from:
-
-```
-return require.toAbsMid(mid);
-```
-
-to:
-
-```
-return mid;
-```
-6. Symlink this folder to your local server environment:
-
-```console
-$ ln -s cowebx/cowebx-apps/src/main/webapp/dojo-1.7-patched ~/your/work/path/www/lib/dojo-1.7-patched
-```
-7. Start a coweb server instance.
-8. Visit the app in your browser.
+3. Start a coweb server instance.
+4. Visit the app in your browser, which my default is located at [http://localhost:8080/cowebx-apps/](http://localhost:8080/cowebx-apps/).
 	
 ##A Brief Tour
 
@@ -45,7 +27,7 @@ The structure of this directory is extremely straight forward. The following fil
 ##Important Development Notes
 
 * In the bootstrap file, ```main.js``` , the global dependency 'org/cometd' should be uncommented only if you are using a [Developer's Setup](https://github.com/opencoweb/coweb/wiki/Developer-Setup).
-* The Maven project build tool that can be used to deploy other Coweb applications currently will NOT work with this application. This is because Daily Scrum currently uses unstable Dojo 1.7, rather than a stable, baked copy of Dojo.
+* The Maven project build tool that can be used to deploy other Coweb applications currently will NOT work with this application. This is because Coedit currently uses unstable Dojo 1.7, rather than a stable, baked copy of Dojo.
 
 ##License
 

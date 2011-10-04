@@ -196,13 +196,13 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
     proto.deleteChar = function(pos) {
         //1. Adjust string in memory
         var t = this._textarea;
-        if(pos>t.value.start && pos<t.value.end){
+        if(pos>=t.value.start && pos<=t.value.end){
             t.clearSelection();
             this._updatePOR();
         }
-        var sel = Math.abs(t.value.start-t.value.end);
+        var sel = Math.abs(this._por.start-this._por.end);
+        console.log('sel = ',sel);
         t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
-        
         //2. custom render
         if(pos<t.value.start){
             if(t.frame.childNodes[pos])
@@ -222,11 +222,11 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
         
     proto.updateChar = function(c, pos, filter) {
         var t = this._textarea;
-        if(pos>t.value.start && pos<t.value.end){
+        if(pos>=t.value.start && pos<=t.value.end){
             t.clearSelection();
             this._updatePOR();
         }
-        var sel = Math.abs(t.value.start-t.value.end);
+        var sel = Math.abs(this._por.start-this._por.end);
         var f = (filter == null || undefined) ? [] : filter;
         t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f.join("")}]).concat(t.value.string.slice(pos+1));
         if(pos<t.value.start){
