@@ -21,7 +21,7 @@ define([
         this.frame          =   dojo.create('div',{id:'thisFrame'},this.div,'first');
         this.toolbar        =   this._buildToolbar();
         this.footer         =   this._buildFooter();
-        this.selection      =   dojo.create('span',{id:'selection',style:'border-left:1px solid black;background:#99CCFF !important;'},this.frame,'last');
+        this.selection      =   dojo.create('span',{id:'selection',style:'background:#99CCFF'},this.frame,'last');
         this.dialog         =   this._buildConfirmDialog();
         this.ipadFloat      =   dojo.create('textarea',{id:'ipadFloat',style:'width:90%;height:90%;opacity:0;position:absolute;'},this.div,'first');
         
@@ -30,7 +30,7 @@ define([
         this._connect();
         this._connectSyncs();
         this._resize(true);
-        setInterval(dojo.hitch(this, '_blink'), 300);
+        //setInterval(dojo.hitch(this, '_blink'), 300);
         
         // properties
         this.history        =   [];
@@ -149,7 +149,7 @@ define([
         var tempC = c.join("");
 
         this.frame.innerHTML = tempA;
-        this.selection = dojo.create('span',{id:'selection',innerHTML:tempB,style:'border-left:1px solid black;background:#99CCFF !important;'},this.frame,'last');
+        this.selection = dojo.create('span',{id:'selection',innerHTML:tempB,style:'background:#99CCFF'},this.frame,'last');
         this.frame.innerHTML = this.frame.innerHTML + tempC;
 
         //Get char object
@@ -226,7 +226,7 @@ define([
                     }
                 }else{
                     this.frame.innerHTML = '';
-                    this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black;background:#99CCFF !important;'},this.frame,'last');
+                    this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'background:#99CCFF'},this.frame,'last');
                 }
             }
             dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
@@ -279,7 +279,7 @@ define([
             dojo.destroy('selection');
             var tmp = dojo.byId('thisFrame').innerHTML+'';
             dojo.byId('thisFrame').innerHTML = '';
-            this.selection = dojo.create('span',{id:'selection',innerHTML:tmp,style:'border-left:1px solid black;background:#99CCFF !important;'},this.frame,'last');
+            this.selection = dojo.create('span',{id:'selection',innerHTML:tmp,style:'background:#99CCFF'},this.frame,'last');
             v.end=v.string.length;
             v.start=0;
         }
@@ -301,7 +301,7 @@ define([
         this.value.string = s;
         
         this.frame.innerHTML = '';
-        this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'border-left:1px solid black;background:#99CCFF !important;'},this.frame,'last');
+        this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'background:#99CCFF'},this.frame,'last');
         this.insert(string, true);
     };
     

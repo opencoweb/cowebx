@@ -19,8 +19,7 @@ define(
 	    dojo,
 		coweb,
 		parser,
-		TextEditor,
-		Button) {
+		TextEditor) {
 		
 		var app = {
 			init: function(){
