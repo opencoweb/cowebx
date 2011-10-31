@@ -222,3 +222,7 @@
     transition: background-color .25s linear;
     background-color:red;
 }
+
+.trans{
+    background:transparent !important;
+}
