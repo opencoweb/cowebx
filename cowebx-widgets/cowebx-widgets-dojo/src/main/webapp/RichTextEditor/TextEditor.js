@@ -1,4 +1,10 @@
-define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function(coweb,ld,textarea,Slider,Button) {
+define([
+    'coweb/main',
+    './ld', 
+    './textarea', 
+    './TimeSlider', 
+    './ShareButton'
+], function(coweb,ld,textarea,Slider,ShareButton) {
     var TextEditor = function(args){
         if(!args.id)
             throw new Error('missing id argument');
@@ -11,7 +17,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
         this._por           =   {start : 0, end: 0};
         this._container     =   dojo.create('div',{'class':'container'},args.domNode);
         this._textarea      =   new textarea({domNode:this._container,'id':'_textarea'});
-        this.util           =   new ld({});
+        this._util          =   new ld({});
         this.slider         =   this._buildSlider();
         this.shareButton    =   this._buildShareButton();
         this.oldSnapshot    =   this.snapshot();
@@ -60,7 +66,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
                     for(var i=0; i<text.length; i++)
                         this.collab.sendSync('editorUpdate', {'char':text[i],'filter':[]}, 'insert', i+this.min);
                 }else{
-                    var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
+                    var syncs = this._util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
                     if(syncs){
                         for(var i=0; i<syncs.length; i++){
                             if(this._textarea._paste){
@@ -74,7 +80,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
             }else if(newLength < oldLength){
                 var mx = this.max+(oldLength-newLength);
                 var mn = (this.min-1 > -1) ? this.min-1 : 0;
-                var syncs = this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
+                var syncs = this._util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         if(this._textarea._paste){
@@ -86,7 +92,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
                 }
             }else if(newLength == oldLength){
                 if(this.oldSnapshot != this.newSnapshot)
-                    var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, this.max));
+                    var syncs = this._util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, this.max));
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         if(this._textarea._paste){
@@ -346,7 +352,7 @@ define(['coweb/main','./ld', './textarea', './TimeSlider', './Button'], function
     };
     
     proto._buildShareButton = function(){
-        var button = new Button({
+        var button = new ShareButton({
             'domNode':this._textarea.toolbar.domNode,
             'listenTo':this,
             'id':'shareButton',

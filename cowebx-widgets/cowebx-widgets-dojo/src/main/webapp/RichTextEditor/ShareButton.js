@@ -1,5 +1,5 @@
 define([], function() {
-    var Button = function(args){
+    var ShareButton = function(args){
         if(!args.domNode || !args.id || !args.listenTo)
             throw new Error('ShareButton: missing argument');
             
@@ -10,13 +10,35 @@ define([], function() {
         this.displayButton      =   (args.displayButton == null) ? true : args.displayButton;
         this.shareShowing       =   false;              //Is dialog open
         
-        //2. Connect and style stuff
+        //2. Connect things
         this._connect();
-        this._buildShareButton();
+        
+        //3. Render
+        this.render();
     };
-    var proto = Button.prototype;
+    var proto = ShareButton.prototype;
+    
+    proto.render = function() {
+        //Build share button (in case not linked with toolbar)
+        this.shareButton = dojo.create('a',{innerHTML:'share', 'class':'shareButton', id:'shareButton'},this.domNode,'before');
+        if(this.displayButton == false)
+            dojo.style(this.shareButton, 'display', 'none');
+        dojo.connect(this.shareButton, 'onclick', this, 'toggle');
+        
+        //Build email box
+        this.emailBox = dojo.create('div',{innerHTML:'email to send to:<br>','class':'emailBox',style:'display:none;',id:'sendBox'},this.shareButton,'after');
+        this.emailInput = dojo.create('input',{type:'text',id:'sendInput'},this.emailBox,'last');
+        dojo.connect(this.emailInput, 'onkeypress', this, function(e){
+            if(e.keyCode == 8)
+                e.target.value = '';
+        });
+        
+        //Build send button
+        this.sendButton = dojo.create('a',{innerHTML:'send', 'class':'sendButton'}, this.emailInput, 'after');
+        dojo.connect(this.sendButton, 'onclick', this, 'send');
+    };
 
-    proto.onShareClick = function(e) {
+    proto.toggle = function(e) {
         if(this.shareShowing == false){
             this.shareShowing = true;
             dojo.style('sendBox','display','block')
@@ -25,7 +47,7 @@ define([], function() {
         }
     };
     
-    proto.onSendClick = function(e) {
+    proto.send = function(e) {
         var email = dojo.byId('sendInput').value;
         if(email != ''){
             var username = 'Username=paboucho';
@@ -43,21 +65,6 @@ define([], function() {
         }
     };
     
-    proto._buildShareButton = function() {
-        this.shareButton = dojo.create('a',{innerHTML:'share', 'class':'share', id:'shareButton'},this.domNode,'before');
-        if(this.displayButton == false)
-            dojo.style(this.shareButton, 'display', 'none');
-        dojo.connect(this.shareButton, 'onclick', this, 'onShareClick');
-        this.emailBox = dojo.create('div',{innerHTML:'email to send to:<br>','class':'emailBox',style:'display:none;',id:'sendBox'},this.shareButton,'after');
-        this.emailInput = dojo.create('input',{type:'text',id:'sendInput'},this.emailBox,'last');
-        dojo.connect(this.emailInput, 'onkeypress', this, function(e){
-            if(e.keyCode == 8)
-                e.target.value = '';
-        });
-        this.sendButton = dojo.create('a',{innerHTML:'send', 'class':'send'}, this.emailInput, 'after');
-        dojo.connect(this.sendButton, 'onclick', this, 'onSendClick');
-    };
-    
     proto._hide = function(){
         if(this.shareShowing == true){
             this.shareShowing = false;
@@ -66,7 +73,7 @@ define([], function() {
     };
     
     proto._connect = function() {
-        dojo.subscribe("shareClick", dojo.hitch(this, function(message){ this.onShareClick(); }));
+        dojo.subscribe("shareClick", dojo.hitch(this, function(message){ this.toggle(); }));
         dojo.subscribe("hideAll", dojo.hitch(this, function(message){ this._hide(); }));
     };
     
@@ -94,5 +101,5 @@ define([], function() {
         document.getElementsByTagName('head')[0].appendChild(script);
     };
 
-    return Button;
+    return ShareButton;
 });

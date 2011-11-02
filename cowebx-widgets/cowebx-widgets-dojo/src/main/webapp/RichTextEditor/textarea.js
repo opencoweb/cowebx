@@ -750,7 +750,7 @@ define([
     };
     
     proto._style = function(){
-        this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/textarea.css');
+        this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
         if(dojo.isMozilla){
             dojo.style('footerDiv','top','3px');
         }else{

@@ -37,8 +37,8 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
             })
         },
         h);
-        //var play = dojo.create('a',{'class':'go',innerHTML:'Play'},this._buttonCell); 
-        var reset = dojo.create('a',{'class':'go',innerHTML:'Revert'},this._buttonCell);
+        //var play = dojo.create('a',{'class':'sliderButton',innerHTML:'Play'},this._buttonCell); 
+        var reset = dojo.create('a',{'class':'sliderButton',innerHTML:'Revert'},this._buttonCell);
         //dojo.connect(play, 'onclick', this, 'play'); 
         dojo.connect(reset, 'onclick', this, 'reset');
         this.history.push(dojo.clone(this._textarea.value));
