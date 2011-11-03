@@ -21,25 +21,19 @@ define([
         this.frame          =   dojo.create('div',{id:'thisFrame'},this.div,'first');
         this.toolbar        =   this._buildToolbar();
         this.footer         =   this._buildFooter();
-        this.selection      =   dojo.create('span',{id:'selection',style:'background:#99CCFF;border-left:1px solid black'},this.frame,'last');
+        this.selection      =   dojo.create('span',{id:'selection','class':'selection'},this.frame,'last');
         this.dialog         =   this._buildConfirmDialog();
-        this.ipadFloat      =   dojo.create('textarea',{id:'ipadFloat',style:'width:90%;height:90%;opacity:0;position:absolute;'},this.div,'first');
+        this.ipadFloat      =   dojo.create('textarea',{id:'ipadFloat','class':'ipadFloat'},this.div,'first');
         
         //3. Style and connect
         this._style();
         this._connect();
         this._connectSyncs();
-        this._resize(true);
-        //setInterval(dojo.hitch(this, '_blink'), 300);
+        this._resize();
         
         // properties
-        this.history        =   [];
         this.value          =   {start:0,end:0,string:[]};
-        this.currLine       =   0;
-        this.currLineIndex  =   0;
         this.displayCaret   =   false;
-        this.sliderShowing  =   false;
-        this.lastIndex      =   0;
         this.title          =   'Untitled Document';
         this.newLine        =   '^';
         this.newSpace       =   ' ';
@@ -52,6 +46,7 @@ define([
             17 : 'control',
             16 : 'shift'
         };
+        
         // styles
         this._bold              =   false;
         this._italic            =   false;
@@ -63,33 +58,26 @@ define([
         this._pastHiliteColors  =   [];
         this._lock              =   false;
         this._paste             =   false;
-        this._caret             =   true;
-        this._blinkDir          =   'left';
     };
     var proto = textarea.prototype;
     
     // Determines key-specific action
-    proto.onKeyPress = function(e) {
-        var reset = false;
+    proto._onKeyPress = function(e) {
         if(e.charCode == 35){                              // end
             this._moveCaretToEnd();
         }else if(e.charCode == 36){                        // home
             this._moveCaretToStart();
         }else if(e.keyCode == 37){                          // left
-            reset = true;
             this.moveCaretLeft(e.shiftKey);                   
         }else if(e.keyCode == 39){                          // right
-            reset = true;
             this.moveCaretRight(e.shiftKey);
         }else if(e.keyCode == 13){                          // newLine
             if(this.value.string[this.value.start-1] && this.value.string[this.value.start-1]['char'] == this.newSpace)
                 this._delete(1);
             setTimeout(dojo.hitch(this, function(){this.insert(this.newLine);}), 100);
         }else if(e.keyCode == 9){                           // tab
-            reset = true;
             this.insert(this.tab);
-        }else if(e.charCode == 32){                         // newSpace
-            reset = true;     
+        }else if(e.charCode == 32){                         // newSpace   
             this.insert(this.newSpace); 
         }else if(e.keyCode == 38){                          // up
             this.moveCaretUp(e.shiftKey);
@@ -98,9 +86,9 @@ define([
         }else if(e.keyCode == 8){                           // delete
             this._delete(1);
         }else if(this.cancelKeys[e.which] != undefined){    // cancelKeys
-        }else{
-            reset = true;                                   // otherwise, insert
-            this.insert(String.fromCharCode(e.which));
+            
+        }else{                                              // otherwise, insert
+            this.insert(String.fromCharCode(e.which));      
         }
         e.preventDefault();
     };
@@ -149,7 +137,7 @@ define([
         var tempC = c.join("");
 
         this.frame.innerHTML = tempA;
-        this.selection = dojo.create('span',{id:'selection',innerHTML:tempB,style:'background:#99CCFF;border-left:1px solid black'},this.frame,'last');
+        this.selection = dojo.create('span',{id:'selection',innerHTML:tempB,'class':'selection'},this.frame,'last');
         this.frame.innerHTML = this.frame.innerHTML + tempC;
 
         //Get char object
@@ -208,7 +196,7 @@ define([
             var v = this.value;
             if(!n)
                 var n = 1;
-
+            
             if(start != end){
                 this.destroySelection();
             }else if(this.value.start>0){
@@ -226,7 +214,7 @@ define([
                     }
                 }else{
                     this.frame.innerHTML = '';
-                    this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'background:#99CCFF;border-left:1px solid black'},this.frame,'last');
+                    this.selection = dojo.create('span',{id:'selection',innerHTML:'','class':'selection'},this.frame,'last');
                 }
             }
             dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
@@ -242,24 +230,24 @@ define([
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
         if(this.value.start != this.value.end){
              if(!dir || dir == 'left'){
-                    v.start = start;
-                    v.end = start;
-                    dojo.query('#selection > *').forEach(function(node, index, arr){
-                        dojo.removeClass(node,'trans');
-                    });
-                    var tmp = dojo.byId('selection').innerHTML+'';
-                    dojo.byId('selection').innerHTML = '';
-                    dojo.place(tmp,'selection','after');
-                }else if(dir && dir == 'right'){
-                    v.start = end;
-                    v.end = end;
-                    dojo.query('#selection > *').forEach(function(node, index, arr){
-                        dojo.removeClass(node,'trans');
-                    });
-                    var tmp = dojo.byId('selection').innerHTML+'';
-                    dojo.byId('selection').innerHTML = '';
-                    dojo.place(tmp,'selection','before');
-                }
+                v.start = start;
+                v.end = start;
+                dojo.query('#selection > *').forEach(function(node, index, arr){
+                    dojo.removeClass(node,'trans');
+                });
+                var tmp = dojo.byId('selection').innerHTML+'';
+                dojo.byId('selection').innerHTML = '';
+                dojo.place(tmp,'selection','after');
+            }else if(dir && dir == 'right'){
+                v.start = end;
+                v.end = end;
+                dojo.query('#selection > *').forEach(function(node, index, arr){
+                    dojo.removeClass(node,'trans');
+                });
+                var tmp = dojo.byId('selection').innerHTML+'';
+                dojo.byId('selection').innerHTML = '';
+                dojo.place(tmp,'selection','before');
+            }
         }
     };
     
@@ -268,7 +256,7 @@ define([
         var v = this.value;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
-        this.selection = dojo.create('span',{innerHTML:'',style:'background:#99CCFF;border-left:1px solid black'},'selection','after');
+        this.selection = dojo.create('span',{innerHTML:'','class':'selection'},'selection','after');
         dojo.destroy('selection');
         dojo.attr(this.selection, 'id', 'selection');
         v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
@@ -285,7 +273,7 @@ define([
             dojo.destroy('selection');
             var tmp = dojo.byId('thisFrame').innerHTML+'';
             dojo.byId('thisFrame').innerHTML = '';
-            this.selection = dojo.create('span',{id:'selection',innerHTML:tmp,style:'background:#99CCFF;border-left:1px solid black'},this.frame,'last');
+            this.selection = dojo.create('span',{id:'selection',innerHTML:tmp,'class':'selection'},this.frame,'last');
             v.end=v.string.length;
             v.start=0;
         }
@@ -307,20 +295,18 @@ define([
         this.value.string = s;
         
         this.frame.innerHTML = '';
-        this.selection = dojo.create('span',{id:'selection',innerHTML:'',style:'background:#99CCFF;border-left:1px solid black'},this.frame,'last');
+        this.selection = dojo.create('span',{id:'selection',innerHTML:'','class':'selection'},this.frame,'last');
         this.insert(string, true);
     };
     
     // Move caret up one line & custom render
     proto.moveCaretUp = function(select) {
-        this._blinkDir = 'left';
         var i=0;
         var top = Math.round(dojo.byId('selection').offsetTop-this._lineHeight);
         var lineAbove = {};
         var line = {};
         if((this.value.start != this.value.end) && !select)
             this.clearSelection();
-        
         var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
             if(node.offsetTop > top-2 && node.offsetTop < top+2 && node.tagName != 'BR'){
                 lineAbove[this._count(lineAbove)] = {
@@ -413,16 +399,13 @@ define([
     };
     
     // Move caret down one line & custom render
-    proto.moveCaretDown = function(select) {
-        this._blinkDir = 'right';
+    proto.moveCaretDown = function(select) {  
         var i=0;
         var top = Math.round(dojo.byId('selection').offsetTop+dojo.byId('selection').offsetHeight);
         var lineBelow = {};
         var line = {};
         if(this.value.start != this.value.end && !select)
             this.clearSelection();
-        
-        //use offset height
         var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
             if(node.offsetTop > top-5 && node.offsetTop < top+5 && node.tagName != 'BR'){
                 lineBelow[this._count(lineBelow)] = {
@@ -527,10 +510,8 @@ define([
     
     // Move caret left one char & custom render
     proto.moveCaretLeft = function(select) {
-        this._blinkDir = 'left';
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
-        var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
-        
+        var end = (this.value.end>this.value.start) ? this.value.end : this.value.start; 
         if(!select){
             if(dojo.byId('selection').childNodes.length > 0){
                 this.clearSelection('left');
@@ -559,10 +540,8 @@ define([
     
     // Move caret right one char & custom render
     proto.moveCaretRight = function(select) {
-        this._blinkDir = 'right';
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
-
         if(!select){
             if(dojo.byId('selection').childNodes.length > 0){
                 this.clearSelection('right');
@@ -614,7 +593,7 @@ define([
     proto._onClick = function(e){
         var sel = window.getSelection();
         
-        //Selection
+        //If dragging to select
         if(sel.toString().length > 0){
             var range = sel.getRangeAt(0);
             if((range.endContainer.id && range.startContainer.id) == 'thisFrame'){
@@ -644,7 +623,7 @@ define([
             });
             window.getSelection().removeAllRanges();
 
-        //Click
+        //If clicking
         }else{
             var endNode = e.target;
             var j=0;
@@ -728,7 +707,7 @@ define([
         dojo.connect(this.div, 'onmouseup', this, '_onClick');
         dojo.connect(this.div, 'onfocus', this, '_onFocus');
         dojo.connect(this.div, 'onblur', this, '_onBlur');
-        dojo.connect(this.div, 'onkeypress', this, 'onKeyPress');
+        dojo.connect(this.div, 'onkeypress', this, '_onKeyPress');
         dojo.connect(this.div, 'onkeydown', this, '_listenForKeyCombo');
         dojo.connect(this.ipadFloat, 'onfocus', this, function(){ 
             dojo.style(this.ipadFloat, 'display', 'none'); 
@@ -740,22 +719,12 @@ define([
     
     proto._connectSyncs = function() {
         this.collab = coweb.initCollab({id : this.id});
-        this.collab.subscribeSync('editorBold', this, '_onRemoteStyle');
-        this.collab.subscribeSync('editorItalic', this, '_onRemoteStyle');
-        this.collab.subscribeSync('editorUnderline', this, '_onRemoteStyle');
-        this.collab.subscribeSync('editorStrikethrough', this, '_onRemoteStyle');
-        this.collab.subscribeSync('editorForeColor', this, '_onRemoteStyle');
-        this.collab.subscribeSync('editorHiliteColor', this, '_onRemoteStyle');
+        this.collab.subscribeSync('editorStyle', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
     };
     
     proto._style = function(){
         this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
-        if(dojo.isMozilla){
-            dojo.style('footerDiv','top','3px');
-        }else{
-            dojo.style('footerDiv','top','-25px');
-        }
     };
     
     proto._chromeKeyCombo = function() {
@@ -822,30 +791,6 @@ define([
        e.rel = "stylesheet";
        e.media = "screen";
        document.getElementsByTagName("head")[0].appendChild(e);
-    };
-    
-    proto._blink = function(){
-        if(this.displayCaret){
-            if(this._caret == true){
-                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-left:1px solid black;',''));
-                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-right:1px solid black;',''));
-                if(this._blinkDir == 'left'){
-                    dojo.attr('selection', 'style', dojo.attr('selection','style')+'border-left:1px solid white;');
-                }else{
-                    dojo.attr('selection', 'style', dojo.attr('selection','style')+'border-right:1px solid white;');
-                }
-                this._caret = false;
-            }else{
-                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-left:1px solid white;',''));
-                dojo.attr('selection', 'style', dojo.attr('selection','style').replace('border-right:1px solid white;',''));
-                if(this._blinkDir == 'left'){
-                    dojo.attr('selection', 'style', dojo.attr('selection','style')+'border-left:1px solid black;');
-                }else{
-                    dojo.attr('selection', 'style', dojo.attr('selection','style')+'border-right:1px solid black;');
-                }
-                this._caret = true;
-            }
-        }
     };
     
     proto._overrideKeys = function(e) {
@@ -1040,7 +985,7 @@ define([
     
     proto._buildTable = function(){
         this._div = dojo.create('div', {'style':'width:100%;height:100%;overflow-y:auto;',id:'divHolder'}, this.container);
-        var table = dojo.create('table',{'style':'width:100%;border-spacing:0px;border-collapse:true;height:100%;'},this._div);
+        var table = dojo.create('table',{'class':'divTable'},this._div);
         var tr = dojo.create('tr',{'style':'width:100%;height:100%;'},table);
         var td1 = dojo.create('td',{'style':'width:40px;height:100%;'},tr,'first');
         var td2 = dojo.create('td',{'style':'height:100%;'},tr,'last');
@@ -1053,7 +998,12 @@ define([
     proto._buildFooter = function(){
         var footerNode = dojo.create('div',{'class':'footer gradient'},this.container,'last');
         var div = dojo.create('div',{'class':'footerDiv',id:'footerDiv'},footerNode,'first');
+        
+        //1. Title box & image
         var title = dojo.create('input',{'class':'title',value:'Untitled Document',type:'text'},footerNode,'first');
+        var edit = dojo.create('img',{src:'../lib/cowebx/dojo/RichTextEditor/images/pencil.png','class':'editIcon'},title,'after');
+        
+        //2. Connect
         dojo.connect(title, 'onclick', this, function(e){
             dojo.style(e.target, 'background', 'white');
             e.target.value = '';
@@ -1064,7 +1014,6 @@ define([
             dojo.style(e.target, 'background', '');
             this.collab.sendSync('editorTitle', {'title':e.target.value}, null);   
         });
-        var edit = dojo.create('img',{src:'../lib/cowebx/dojo/RichTextEditor/images/pencil.png','class':'editIcon'},title,'after');
         dojo.connect(title, 'onkeypress', this, function(e){
             if(e.keyCode == 8)
                 dojo.attr(e.target, 'value', '');
@@ -1072,8 +1021,6 @@ define([
                 e.target.blur();
         });
         this._title = title;
-        var line = dojo.create('span',{style:'float:left',innerHTML:'Line: '+'<span id="line">0</span>'},div,'last');
-        var col = dojo.create('span',{style:'float:right;',innerHTML:'Col: '+'<span id="col">0</span>'},div,'last');
         
         return footerNode;
     };
@@ -1150,7 +1097,7 @@ define([
                 }
                 this._hold = true;
             }
-            this.collab.sendSync('editorBold', {'string':this.value.string}, null);
+            this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
         }
         this._lastOp = 'bold';
         this.div.focus();
@@ -1185,7 +1132,7 @@ define([
                     x++;
                 }
                 this._hold = true;
-                this.collab.sendSync('editorItalic', {'string':this.value.string}, null);   
+                this.collab.sendSync('editorStyle', {'string':this.value.string}, null);   
             }else if(this._hold == true && this._lastOp == 'italic'){
                 var x=0;
                 for(var i=start; i<end; i++){
@@ -1203,7 +1150,7 @@ define([
                     x++;
                 }
                 this._hold = true;
-                this.collab.sendSync('editorItalic', {'string':this.value.string}, null);
+                this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
             }
         }
         this._lastOp = 'italic';
@@ -1239,7 +1186,7 @@ define([
                     x++;
                 }
                 this._hold = true;
-                this.collab.sendSync('editorUnderline', {'string':this.value.string}, null);   
+                this.collab.sendSync('editorStyle', {'string':this.value.string}, null);   
             }else if(this._hold == true && this._lastOp == 'underline'){
                 var x=0;
                 for(var i=start; i<end; i++){
@@ -1257,7 +1204,7 @@ define([
                     x++;
                 }
                 this._hold = true;
-                this.collab.sendSync('editorUnderline', {'string':this.value.string}, null);
+                this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
             }
         }
         this._lastOp = 'underline';
@@ -1293,7 +1240,7 @@ define([
                     x++;
                 }
                 this._hold = true;
-                this.collab.sendSync('editorStrikethrough', {'string':this.value.string}, null);   
+                this.collab.sendSync('editorStyle', {'string':this.value.string}, null);   
             }else if(this._hold == true && this._lastOp == 'strikethrough'){
                 var x=0;
                 for(var i=start; i<end; i++){
@@ -1311,7 +1258,7 @@ define([
                     x++;
                 }
                 this._hold = true;
-                this.collab.sendSync('editorStrikethrough', {'string':this.value.string}, null);
+                this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
             }
         }
         this._lastOp = 'strikethrough';
@@ -1360,7 +1307,7 @@ define([
                 dojo.attr(tmp,'style',curr+'color:'+color+';');
                 x++;
             }
-            this.collab.sendSync('editorForeColor', {'string':this.value.string}, null);
+            this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
         }
 
         this._pastForeColors.push(color);
@@ -1413,7 +1360,7 @@ define([
                 dojo.attr(tmp,'style',curr+'background:'+color+';');
                 x++;
             }
-            this.collab.sendSync('editorHiliteColor', {'string':this.value.string}, null);
+            this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
         }
         
         this._pastHiliteColors.push(color);
@@ -1473,10 +1420,8 @@ define([
         this._title.value = this.title;
     };
     
-    proto._resize = function(initial) {
+    proto._resize = function() {
         //Style on resize as a late hook, fix eventually
-        dojo.attr('thisDiv','style','background:white;cursor:text;z-index:1000;height:100%;min-height:100%;');
-        dojo.attr('lineNumbers','style','width:auto;height:100%;background:grey;min-width:30px;');
         dojo.style(this._div, 'height', (window.innerHeight-70)+'px');
     };
 
