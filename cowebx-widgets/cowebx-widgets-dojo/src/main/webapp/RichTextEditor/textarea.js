@@ -63,34 +63,45 @@ define([
     
     // Determines key-specific action
     proto._onKeyPress = function(e) {
-        if(e.charCode == 35){                              // end
-            this._moveCaretToEnd();
-        }else if(e.charCode == 36){                        // home
-            this._moveCaretToStart();
-        }else if(e.keyCode == 37){                          // left
-            this.moveCaretLeft(e.shiftKey);                   
-        }else if(e.keyCode == 39){                          // right
-            this.moveCaretRight(e.shiftKey);
-        }else if(e.keyCode == 13){                          // newLine
-            if(this.value.string[this.value.start-1] && this.value.string[this.value.start-1]['char'] == this.newSpace)
-                this._delete(1);
-            setTimeout(dojo.hitch(this, function(){this.insert(this.newLine);}), 100);
-        }else if(e.keyCode == 9){                           // tab
-            this.insert(this.tab);
-        }else if(e.charCode == 32){                         // newSpace   
-            this.insert(this.newSpace); 
-        }else if(e.keyCode == 38){                          // up
-            this.moveCaretUp(e.shiftKey);
-        }else if(e.keyCode == 40){                          // down
-            this.moveCaretDown(e.shiftKey);
-        }else if(e.keyCode == 8){                           // delete
-            this._delete(1);
-        }else if(this.cancelKeys[e.which] != undefined){    // cancelKeys
-            
-        }else{                                              // otherwise, insert
-            this.insert(String.fromCharCode(e.which));      
-        }
+        console.log(e);
         e.preventDefault();
+        if(e.charCode == 0){
+            switch(e.keyCode){
+                case 9: //TAB
+                    this.insert(this.tab);
+                    break;
+                case 8: //BACKSPACE
+                    this._delete(1);
+                    break;
+                case 13: //NEWLINE
+                    if(this.value.string[this.value.start-1] && this.value.string[this.value.start-1]['char'] == this.newSpace)
+                        this._delete(1);
+                    setTimeout(dojo.hitch(this, function(){this.insert(this.newLine);}), 100);
+                    break;
+                case 35: //END
+                    this._moveCaretToEnd();
+                    break;
+                case 36: //HOME
+                    this._moveCaretToStart();
+                    break;
+                case 37: //LEFT
+                    this.moveCaretLeft(e.shiftKey);
+                    break;
+                case 38: //UP
+                    this.moveCaretUp(e.shiftKey);
+                    break;
+                case 39: //RIGHT
+                    this.moveCaretRight(e.shiftKey);
+                    break;
+                case 40: //DOWN
+                    this.moveCaretDown(e.shiftKey);
+                    break;
+            }
+        }else{
+            if(this.cancelKeys[e.keyCode] != undefined){ }else{
+                this.insert(String.fromCharCode(e.which));
+            }
+        }
     };
 
     // Rips through all of this.value and blasts proper html equiv into dom
