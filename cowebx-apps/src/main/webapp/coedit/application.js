@@ -28,7 +28,7 @@ define(
 			    //2. Generate session or enter session
  			    if(this.aquireUrlParams('session') == null){
  			        dojo.style('splash','display','block');
-       			    dojo.connect(dojo.byId('newDoc'),'onClick',this,function(){
+       			    dojo.connect(dojo.byId('newDoc'),'onclick',this,function(){
        			        window.location = document.URL+'?'+'session='+Math.floor(Math.random()*10000001);
        			    });
 			    }else{

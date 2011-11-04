@@ -1,7 +1,9 @@
 define([
+    'dojo',
+    'dijit/registry',
     'coweb/main',
 	'coweb/ext/attendance'
-], function(coweb, attendance) {
+], function(dojo, dijit, coweb, attendance) {
     var AttendeeList = function(args) {
 		//Params
 		this.site = null;
@@ -54,6 +56,8 @@ define([
     };
 
 	proto.onUserClick = function(e){
+	    console.log('click');
+	    console.log(this.mods);
 	    if(this.mods.indexOf(this.local) != -1 || this.override == true){
     		if(dojo.byId(e.target.id) != null){
     			dijit.byId(e.target.id).select();

@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define(["dojo","dijit","dojox","dojox/html/format"],function(_1,_2,_3){_1.getObject("dojox.html.tests.performance.format",1);_3.html.tests.performance.docText=null;doh.register("format.prettyprint.performance",[{name:"smallDoc",testType:"perf",trialDuration:100,trialDelay:50,trialIterations:50,setUp:function(){var _4=_1.xhrGet({preventCache:true,url:_1.moduleUrl("dojox","html/tests/performance/smalldoc.txt").toString(),handleAs:"text",sync:true});_4.addCallback(function(_5){_3.html.tests.performance.docText=_5;});_4.addErrback(function(e){});},tearDown:function(){_3.html.tests.performance.docText=null;},runTest:function(){var s=_3.html.format.prettyPrint(_3.html.tests.performance.docText);}},{name:"largeDoc",testType:"perf",trialDuration:100,trialDelay:50,trialIterations:50,setUp:function(){var _6=_1.xhrGet({preventCache:true,url:_1.moduleUrl("dojox","html/tests/performance/largedoc.txt").toString(),handleAs:"text",sync:true});_6.addCallback(function(_7){_3.html.tests.performance.docText=_7;});_6.addErrback(function(e){});},tearDown:function(){_3.html.tests.performance.docText=null;},runTest:function(){var s=_3.html.format.prettyPrint(_3.html.tests.performance.docText);}}]);});require(["dojox/html/tests/performance/format"]);

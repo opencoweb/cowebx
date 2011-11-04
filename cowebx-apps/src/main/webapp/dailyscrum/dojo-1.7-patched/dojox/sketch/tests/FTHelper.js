@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define(["dojo","dijit","dojox"],function(_1,_2,_3){_1.getObject("dojox.sketch.tests.FTHelper",1);_1.declare("dojox.sketch.tests.FTHelper",null,{controlCss:"#dojox_sketch_Toolbar_0 .dijitButtonContents",canvas:"canvas",defaultDelay:100,constructor:function(_4){this.controls=["lead","single","double","underline","preexisting"];if(_4){_1.mixin(this,_4);}},selectShape:function(_5,_6){_6=_6||this.defaultDelay;var i=_1.indexOf(this.controls,_5);if(i<0){throw Error("shape \""+_5+"\" is not recognized");}var _7=_1.query(this.controlCss);if(_7.length<=i){throw Error("Can not find button for shape \""+_5+"\" on the toolbar");}var _8=_7[i];doh.robot.mouseMoveAt(_8,_6);doh.robot.mouseClick({left:true},_6);},drawShape:function(_9,_a,_b){_b=_b||this.defaultDelay;if(!this.coords){this.coords=_1.coords(this.canvas);}_a=_a||_9;doh.robot.mouseMove(this.coords.x+_9.x,this.coords.y+_9.y,_b,1);doh.robot.mousePress({left:1},_b);doh.robot.mouseMove(this.coords.x+_a.x,this.coords.y+_a.y,_b,1);doh.robot.mouseRelease({left:1},_b);},click:function(_c,_d){_d=_d||this.defaultDelay;doh.robot.mouseMove(this.coords.x+_c.x,this.coords.y+_c.y,_d,1);doh.robot.mouseClick(_c,_d);}});});require(["dojox/sketch/tests/FTHelper"]);

@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define(["dojo","dijit","dojox","dojo/io/script","dojox/rpc/Service"],function(_1,_2,_3){_1.getObject("dojox.rpc.tests.Wikipedia",1);_3.rpc.tests.wikipediaService=new _3.rpc.Service(_1.moduleUrl("dojox.rpc.SMDLibrary","wikipedia.smd"));_3.rpc.tests.wikipediaService.TEST_METHOD_TIMEOUT=8000;_3.rpc.tests.wikipediaService._query=function(q){return function(m){var d=new doh.Deferred();if(q.parameters&&q.parameters.action&&q.expectedResult){var wp=_3.rpc.tests.wikipediaService.query(q.parameters);wp.addCallback(this,function(_4){if(_4[q.expectedResult]){d.callback(true);}else{d.errback(new Error("Unexpected Return Value: ",_4));}});}return d;};};doh.register("dojox.rpc.tests.wikipedia",[{name:"#1, Wikipedia::parse",timeout:_3.rpc.tests.wikipediaService.TEST_METHOD_TIMEOUT,runTest:_3.rpc.tests.wikipediaService._query({parameters:{action:"parse",page:"Dojo Toolkit"},expectedResult:"parse"})},{name:"#2, Wikipedia::search",timeout:_3.rpc.tests.wikipediaService.TEST_METHOD_TIMEOUT,runTest:_3.rpc.tests.wikipediaService._query({parameters:{action:"query",list:"search",srwhat:"text",srsearch:"Dojo Toolkit"},expectedResult:"query"})}]);});require(["dojox/rpc/tests/Wikipedia"]);

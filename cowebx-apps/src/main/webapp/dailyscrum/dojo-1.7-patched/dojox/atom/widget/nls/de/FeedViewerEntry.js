@@ -1,3 +1,0 @@
-define(({
-	deleteButton: "[L?schen]"
-}));

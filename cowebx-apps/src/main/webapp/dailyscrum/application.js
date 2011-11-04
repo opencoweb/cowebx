@@ -9,6 +9,7 @@ define(
 	//App-specific dependencies
 	[
 	    'dojo',
+	    'dijit/registry',
 		'coweb/main',
 		'dojox/mobile/parser',
 		'Clock',
@@ -22,6 +23,7 @@ define(
 
 	function(
 	    dojo,
+	    dijit,
 		coweb,
 		parser,
 		Clock,
@@ -78,23 +80,9 @@ define(
 			},
 			
 			buildToolbar: function(){
-			    //Help button
-			    this.help = dojo.create('img',{'src':'images/help.png',style:'cursor:hand;cursor:pointer;'},'speaker','last');
-			    dojo.attr(this.help, 'title', 'Help');
-			    dojo.style(this.help, 'float', 'right');
-			    dojo.style(this.help, 'width', '35px');
-			    dojo.style(this.help, 'height', '35px');
-			    dojo.style(this.help, 'margin', '4px');
-			    //Logout button
-			    this.logout = dojo.create('img',{'src':'images/logout.png',style:'cursor:hand;cursor:pointer;'},'speaker','last');
-			    dojo.attr(this.logout, 'title', 'Logout');
-			    dojo.style(this.logout, 'float', 'right');
-			    dojo.style(this.logout, 'width', '35px');
-			    dojo.style(this.logout, 'height', '35px');
-			    dojo.style(this.logout, 'margin', '4px');
-			    dojo.connect(this.logout, 'onclick', this, function(){
-                    this.sess.logout();
-                });
+			    dojo.attr('speaker','innerHTML','Current Speaker: None');
+			    this.renderToolbarButtons();
+                
 			    //Help pane
                 this.helpPane = dojo.create('iframe',{style:'width:300px;height:420px;border:1px solid black;z-index:100000;'},'speaker','after');
                 dojo.style(this.helpPane,'float','right');
@@ -102,15 +90,6 @@ define(
                 dojo.style(this.helpPane, 'opacity', '0');
                 dojo.style(this.helpPane, 'background', 'white');
                 dojo.attr(this.helpPane, 'src', 'help.html');
-                dojo.connect(this.help, 'onclick', this, function(){
-                    if(this.helpShowing == false){
-                        this.helpShowing = true;
-                        dojo.fadeIn({node:this.helpPane}).play();
-                    }else if(this.helpShowing == true){
-                        this.helpShowing = false;
-                        dojo.fadeOut({node:this.helpPane}).play();
-                    }
-                });
 			},
 			
 			buildEditor: function(){
@@ -281,25 +260,7 @@ define(
 					this.t.stop();
 					this.userClock.seconds = this.getUserTimeRemaining(selected);
 					dojo.attr('speaker','innerHTML','Current Speaker: '+selected);
-					
-					//Logout button
-    			    this.logout = dojo.create('img',{'src':'images/logout.png',style:'cursor:hand;cursor:pointer;'},'speaker','first');
-    			    dojo.attr(this.logout, 'title', 'Logout');
-    			    dojo.style(this.logout, 'float', 'right');
-    			    dojo.style(this.logout, 'width', '35px');
-    			    dojo.style(this.logout, 'height', '35px');
-    			    dojo.style(this.logout, 'margin', '4px');
-    			    dojo.connect(this.logout, 'onclick', this, function(){
-                        this.sess.logout();
-                    });
-					//Help button
-    			    this.help = dojo.create('img',{'src':'images/help.png',style:'cursor:hand;cursor:pointer;'},'speaker','first');
-    			    dojo.attr(this.help, 'title', 'Help');
-    			    dojo.style(this.help, 'float', 'right');
-    			    dojo.style(this.help, 'width', '35px');
-    			    dojo.style(this.help, 'height', '35px');
-    			    dojo.style(this.help, 'margin', '4px');
-
+					this.renderToolbarButtons();
 
 					if(this.userClock.seconds < 0){
 						this.userClock.test = 'neg';
@@ -468,8 +429,6 @@ define(
 			},
 			
 			stopMeeting: function(){
-			    console.log(this.mods.indexOf(this.attendeeList.local));
-			    console.log(this.override);
 			    if(this.mods.indexOf(this.attendeeList.local) != -1 || this.override == true){
 			        this.totalClock.stop();
     			    this.userClock.stop();
@@ -488,6 +447,36 @@ define(
                 dojo.style('start','display','none');
                 this.collab.sendSync('meetingStop', { }, null);
 			},
+			
+			renderToolbarButtons: function(){
+			    //Logout button
+			    this.logout = dojo.create('img',{'src':'images/logout.png',style:'cursor:hand;cursor:pointer;'},'speaker','first');
+			    dojo.attr(this.logout, 'title', 'Logout');
+			    dojo.style(this.logout, 'float', 'right');
+			    dojo.style(this.logout, 'width', '35px');
+			    dojo.style(this.logout, 'height', '35px');
+			    dojo.style(this.logout, 'margin', '4px');
+			    dojo.connect(this.logout, 'onclick', this, function(){
+                    this.sess.logout();
+                });
+                
+				//Help button
+			    this.help = dojo.create('img',{'src':'images/help.png',style:'cursor:hand;cursor:pointer;'},'speaker','first');
+			    dojo.attr(this.help, 'title', 'Help');
+			    dojo.style(this.help, 'float', 'right');
+			    dojo.style(this.help, 'width', '35px');
+			    dojo.style(this.help, 'height', '35px');
+			    dojo.style(this.help, 'margin', '4px');
+                dojo.connect(this.help, 'onclick', this, function(e){
+                    if(this.helpShowing == false){
+                        this.helpShowing = true;
+                        dojo.fadeIn({node:this.helpPane}).play();
+                    }else if(this.helpShowing == true){
+                        this.helpShowing = false;
+                        dojo.fadeOut({node:this.helpPane}).play();
+                    }
+                });
+			}
 		};
 		
 		dojo.ready(function() {

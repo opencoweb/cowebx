@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define(["dojo/_base/lang","dojo/_base/kernel","dojo/_base/html","dojox/gfx/matrix","dijit/Tooltip","dojo/NodeList-traverse"],function(_1,_2,_3,_4,_5,_6){var _7=_1.getObject("geo.charting",true,dojox);_7.showTooltip=function(_8,_9,_a){var _b=_7._normalizeArround(_9);return dijit.showTooltip(_8,_b,_a);};_7.hideTooltip=function(_c){return dijit.hideTooltip(_c);};_7._normalizeArround=function(_d){var _e=_7._getRealBBox(_d);var _f=_d._getRealMatrix()||{xx:1,xy:0,yx:0,yy:1,dx:0,dy:0};var _10=_4.multiplyPoint(_f,_e.x,_e.y);var _11=_7._getGfxContainer(_d);_d.x=_1.coords(_11,true).x+_10.x,_d.y=_1.coords(_11,true).y+_10.y,_d.width=_e.width*_f.xx,_d.height=_e.height*_f.yy;return _d;};_7._getGfxContainer=function(_12){return (new _1.NodeList(_12.rawNode)).parents("div")[0];};_7._getRealBBox=function(_13){var _14=_13.getBoundingBox();if(!_14){var _15=_13.children;_14=_1.clone(_7._getRealBBox(_15[0]));_1.forEach(_15,function(_16){var _17=_7._getRealBBox(_16);_14.x=Math.min(_14.x,_17.x);_14.y=Math.min(_14.y,_17.y);_14.endX=Math.max(_14.x+_14.width,_17.x+_17.width);_14.endY=Math.max(_14.y+_14.height,_17.y+_17.height);});_14.width=_14.endX-_14.x;_14.height=_14.endY-_14.y;}return _14;};});

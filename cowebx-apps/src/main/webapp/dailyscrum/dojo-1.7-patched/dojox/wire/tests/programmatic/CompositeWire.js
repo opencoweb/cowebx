@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define(["dojo","dijit","dojox","dojox/wire/CompositeWire"],function(_1,_2,_3){_1.getObject("dojox.wire.tests.programmatic.CompositeWire",1);tests.register("dojox.wire.tests.programmatic.CompositeWire",[function test_CompositeWire_children(t){var _4={a:"A",b:"B"};var _5={};var _6={x:{property:"a"},y:{property:"b"}};var _7=new _3.wire.CompositeWire({object:_4,children:_6}).getValue();t.assertEqual(_4.a,_7.x);t.assertEqual(_4.b,_7.y);new _3.wire.CompositeWire({object:_5,children:_6}).setValue(_7);t.assertEqual(_4.a,_5.a);t.assertEqual(_4.b,_5.b);_5={};_7=new _3.wire.CompositeWire({children:_6}).getValue(_4);t.assertEqual(_4.a,_7.x);t.assertEqual(_4.b,_7.y);new _3.wire.CompositeWire({children:_6}).setValue(_7,_5);t.assertEqual(_4.a,_5.a);t.assertEqual(_4.b,_5.b);_5={};_6=[{property:"a"},{property:"b"}];_7=new _3.wire.CompositeWire({object:_4,children:_6}).getValue();t.assertEqual(_4.a,_7[0]);t.assertEqual(_4.b,_7[1]);new _3.wire.CompositeWire({object:_5,children:_6}).setValue(_7);t.assertEqual(_4.a,_5.a);t.assertEqual(_4.b,_5.b);_5={};_7=new _3.wire.CompositeWire({children:_6}).getValue(_4);t.assertEqual(_4.a,_7[0]);t.assertEqual(_4.b,_7[1]);new _3.wire.CompositeWire({children:_6}).setValue(_7,_5);t.assertEqual(_4.a,_5.a);t.assertEqual(_4.b,_5.b);}]);});require(["dojox/wire/tests/programmatic/CompositeWire"]);

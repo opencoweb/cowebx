@@ -1,7 +1,8 @@
 define([
+    'dojo',
     'coweb/main',
 	'dojox/timing'
-], function(coweb) {
+], function(dojo, coweb) {
     var Clock = function(args) {
 		//Params
 		this.site = null;
