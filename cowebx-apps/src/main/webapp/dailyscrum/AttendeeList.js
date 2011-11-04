@@ -2,8 +2,9 @@ define([
     'dojo',
     'dijit/registry',
     'coweb/main',
+    'dojox/mobile/ListItem',
 	'coweb/ext/attendance'
-], function(dojo, dijit, coweb, attendance) {
+], function(dojo, dijit, coweb, ListItem, attendance) {
     var AttendeeList = function(args) {
 		//Params
 		this.site = null;
@@ -56,8 +57,6 @@ define([
     };
 
 	proto.onUserClick = function(e){
-	    console.log('click');
-	    console.log(this.mods);
 	    if(this.mods.indexOf(this.local) != -1 || this.override == true){
     		if(dojo.byId(e.target.id) != null){
     			dijit.byId(e.target.id).select();
@@ -206,7 +205,7 @@ define([
 	};
 	
 	proto._createInactiveUser = function(name, local){
-		var a = new dojox.mobile.ListItem({ 
+		var a = new ListItem({ 
 					innerHTML: name,
 					id: name+"_li",
 					'class':'dailyscrum_inactive'

@@ -5,9 +5,7 @@
 // 
 //
 
-define(
-	//App-specific dependencies
-	[
+define([
 	    'dojo',
 	    'dijit/registry',
 		'coweb/main',
@@ -19,9 +17,7 @@ define(
 		'dojox/mobile',
 		'dojox/mobile/FixedSplitter',
 		'dojox/mobile/ScrollableView'
-	],
-
-	function(
+], function(
 	    dojo,
 	    dijit,
 		coweb,

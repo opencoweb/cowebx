@@ -16,7 +16,7 @@ define([
     'dijit/form/Button',
     'dijit/layout/BorderContainer',
     'dijit/layout/ContentPane'
-], function(dojo, dijit, coweb, CoopGrid, CoopItemFileWriteStore) {
+], function(dojo, dijit, coweb, CoopGrid, CoopItemFileWriteStore, DataGrid, ItemFileWriteStore) {
 
     var app = {
         init: function(){
@@ -25,7 +25,7 @@ define([
 
             // configure the grid datastore, starting it empty
             var emptyData = {identifier : 'id', label : 'name', items: []};
-            this.dataStore = new dojo.data.ItemFileWriteStore({data : emptyData});
+            this.dataStore = new ItemFileWriteStore({data : emptyData});
             this.grid = dijit.byId('grid');
             this.grid.setStore(this.dataStore);
 

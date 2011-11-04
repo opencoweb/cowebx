@@ -2,7 +2,7 @@ define([
     'dojo',
     'coweb/main',
 	'dojox/timing'
-], function(dojo, coweb) {
+], function(dojo, coweb, timing) {
     var Clock = function(args) {
 		//Params
 		this.site = null;
@@ -20,7 +20,7 @@ define([
 		this.mods = [];
 		
 		//Timer initialization
-		this.t = new dojox.timing.Timer(1000);
+		this.t = new timing.Timer(1000);
 		dojo.connect(this.t, 'onTick', this, '_onTick');
 		this._renderTime();
     };
