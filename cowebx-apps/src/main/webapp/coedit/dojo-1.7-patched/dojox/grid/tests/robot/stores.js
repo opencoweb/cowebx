@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define(["dojo","dijit","dojox","dojo/data/ItemFileWriteStore"],function(_1,_2,_3){_1.getObject("dojox.grid.tests.robot.stores",1);(function(){structure1_store1_data=[];structure1_store2_data=[];structure1_store3_data=[];structure1_store4_data=[];for(var i=0;i<100;i++){var _4={id:i,col1:"normal",col2:false,col3:"new",col4:"Now is the time for all good men to come to the aid of their party.",col5:99.99,col6:9.99,col7:false,col8:new Date()};structure1_store1_data.push(_1.mixin({},_4));structure1_store2_data.push(_1.mixin({},_4));structure1_store3_data.push(_1.mixin({},_4));structure1_store4_data.push(_1.mixin({},_4));}structure1_store1=new _1.data.ItemFileWriteStore({data:{identifier:"id",items:structure1_store1_data}});structure1_store2=new _1.data.ItemFileWriteStore({data:{identifier:"id",items:structure1_store2_data}});structure1_store3=new _1.data.ItemFileWriteStore({data:{identifier:"id",items:structure1_store3_data}});structure1_store4=new _1.data.ItemFileWriteStore({data:{identifier:"id",items:structure1_store4_data}});})();});require(["dojox/grid/tests/robot/stores"]);

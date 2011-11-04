@@ -4,8 +4,37 @@
     	<meta charset="utf-8" />
     	<title>CoEditor</title>
     	<link rel="stylesheet" href="application.css" type="text/css" />
-		<link rel="stylesheet" href="./dojo-1.7-patched/dijit/themes/claro/claro.css" type="text/css" />
-    	<script data-main="main" src="../lib/require.js"></script>
+		<script type="text/javascript">
+			var cowebConfig = { adminUrl: '../admin', cacheState : true };
+			var dojoConfig = {
+	            baseUrl: './',
+	            async:true,
+	            paths : {
+	               coweb : '../lib/coweb',
+	               cowebx: '../lib/cowebx',
+	               org : '../lib/org'
+	            },
+	            packages:[{
+	                name: 'dojo',
+	                location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojo',
+	                main:'main'
+	            },
+	            {
+	                name: 'dijit',
+	                location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit',
+	                main:'main'
+	            },
+	            {
+	                name: 'dojox',
+	                location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojox',
+	                main:'main'
+	            }]
+	        };
+		</script>
+    	<script type="text/javascript" src="http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojo/dojo.js"></script>
+		<script type="text/javascript">
+			require(["application"]);
+		</script>
   	</head>
   	<body class="claro">
 		<div id='splash' class='splash'>

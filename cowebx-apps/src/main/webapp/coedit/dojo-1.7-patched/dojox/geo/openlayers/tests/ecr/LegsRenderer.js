@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define(["dojo/_base/kernel","dojo/_base/declare","dojo/_base/array","dojox/geo/openlayers/tests/ecr/EcrRenderer","dojox/geo/openlayers/GeometryFeature","dojox/geo/openlayers/LineString","dojox/geo/openlayers/GreatCircle"],function(_1,_2){return _1.declare("dojox.geo.openlayers.tests.ecr.LegsRenderer",[dojox.geo.openlayers.tests.ecr.EcrRenderer],{constructor:function(_3,_4){this._geodetic=false;this._greatCircle=null;},setGeodetic:function(_5){this._geodetic=_5;},getGeodetic:function(){return this._geodetic;},_renderItem:function(o,_6){var gf=null;if(o.type=="polyline"){var _7=this.getContextValue("store");var _8=_7.getValues(_6,"stops");var _9=[];var _a=null;_1.forEach(_8,function(it,_b,_c){if(_7.isItem(it)){var _d=this.getValue(it,"port");var _e=this.getCoordinates(_d);if(this.getGeodetic()){if(_a!=null){var _f={x:_e[0],y:_e[1]};var _10=dojox.geo.openlayers.GreatCircle.toPointArray(_a,_f,5);_9=_9.concat(_10);}}else{var p=new dojox.geo.openlayers.Point({x:_e[0],y:_e[1]});_9.push(p);}_a={x:_e[0],y:_e[1]};}},this);var g=new dojox.geo.openlayers.LineString(_9);gf=new dojox.geo.openlayers.GeometryFeature(g);}return gf;}});});

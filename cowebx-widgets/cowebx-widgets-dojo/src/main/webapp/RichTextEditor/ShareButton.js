@@ -1,4 +1,4 @@
-define([], function() {
+define(['dojo'], function(dojo) {
     var ShareButton = function(args){
         if(!args.domNode || !args.id || !args.listenTo)
             throw new Error('ShareButton: missing argument');

@@ -1,4 +1,9 @@
-define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) {
+define([
+    'dojo',
+    'dijit/registry',
+    'coweb/main',
+    'dijit/form/HorizontalSlider'
+], function(dojo, dijit, coweb, Slider) {
     var TimeSlider = function(args){
         if(!args.domNode || !args.textarea || !args.id || !args.parent)
             throw new Error('Slider: missing argument');
@@ -25,7 +30,7 @@ define(['coweb/main','dijit/form/Slider','dijit/form/TextBox'], function(coweb) 
         this._sliderCell = dojo.create('td',{'class':'sliderCell'},row,'first');
         var h = dojo.create('div',{style:'width:100%;height:100%'},this._sliderCell);
         this._buttonCell = dojo.create('td',{'class':'buttonCell'},row,'last');
-        this.slider = new dijit.form.HorizontalSlider({
+        this.slider = new Slider({
             name: "slider",
             value: 1,
             minimum: 0,

@@ -1,3 +1,0 @@
-define(({
-	syncBundle:"syncBundle-ab"
-}));

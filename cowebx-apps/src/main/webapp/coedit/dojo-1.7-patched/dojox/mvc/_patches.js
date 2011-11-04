@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define(["dijit/_WidgetBase","./_DataBindingMixin","dijit/form/ValidationTextBox","dijit/form/NumberTextBox"],function(wb,_1,_2,_3){dojo.getObject("mvc",true,dojox);(function(){dojo.extend(dijit._WidgetBase,new dojox.mvc._DataBindingMixin());var _4=dijit._WidgetBase.prototype.startup;dijit._WidgetBase.prototype.startup=function(){this._dbstartup();_4.apply(this);};var _5=dijit._WidgetBase.prototype.destroy;dijit._WidgetBase.prototype.destroy=function(_6){if(this._modelWatchHandles){dojo.forEach(this._modelWatchHandles,function(h){h.unwatch();});}if(this._viewWatchHandles){dojo.forEach(this._viewWatchHandles,function(h){h.unwatch();});}_5.apply(this,[_6]);};var _7=dijit.form.ValidationTextBox.prototype.isValid;dijit.form.ValidationTextBox.prototype.isValid=function(_8){return (this.inherited("isValid",arguments)!==false&&_7.apply(this,[_8]));};var _9=dijit.form.NumberTextBox.prototype.isValid;dijit.form.NumberTextBox.prototype.isValid=function(_a){return (this.inherited("isValid",arguments)!==false&&_9.apply(this,[_a]));};})();return dojox.mvc._patches;});

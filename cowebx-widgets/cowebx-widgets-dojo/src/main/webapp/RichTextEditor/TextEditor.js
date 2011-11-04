@@ -1,10 +1,11 @@
 define([
+    'dojo',
     'coweb/main',
     './ld', 
     './textarea', 
     './TimeSlider', 
     './ShareButton'
-], function(coweb,ld,textarea,Slider,ShareButton) {
+], function(dojo,coweb,ld,textarea,Slider,ShareButton) {
     var TextEditor = function(args){
         if(!args.id)
             throw new Error('missing id argument');

@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define(["dojo","dijit","dojox","dojox/collections/Stack"],function(_1,_2,_3){_1.getObject("dojox.collections.tests.Stack",1);tests.register("dojox.collections.tests.Stack",[function testCtor(t){var s=new _3.collections.Stack(["foo","bar","test","bull"]);t.assertEqual(4,s.count);},function testClear(t){var s=new _3.collections.Stack(["foo","bar","test","bull"]);s.clear();t.assertEqual(0,s.count);},function testClone(t){var s=new _3.collections.Stack(["foo","bar","test","bull"]);var _4=s.clone();t.assertEqual(s.count,_4.count);t.assertEqual(s.toArray().join(),_4.toArray().join());},function testContains(t){var s=new _3.collections.Stack(["foo","bar","test","bull"]);t.assertTrue(s.contains("bar"));t.assertFalse(s.contains("faz"));},function testGetIterator(t){var s=new _3.collections.Stack(["foo","bar","test","bull"]);var _5=s.getIterator();while(!_5.atEnd()){_5.get();}t.assertEqual("bull",_5.element);},function testPeek(t){var s=new _3.collections.Stack(["foo","bar","test","bull"]);t.assertEqual("bull",s.peek());},function testPop(t){var s=new _3.collections.Stack(["foo","bar","test","bull"]);t.assertEqual("bull",s.pop());t.assertEqual("test",s.pop());},function testPush(t){var s=new _3.collections.Stack(["foo","bar","test","bull"]);s.push("bug");t.assertEqual("bug",s.peek());}]);});require(["dojox/collections/tests/Stack"]);

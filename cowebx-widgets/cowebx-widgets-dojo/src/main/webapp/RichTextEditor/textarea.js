@@ -1,11 +1,13 @@
 define([
+    'dojo',
+    'dijit/registry',
     'coweb/main',
     'dijit/Toolbar',
     'dijit/form/ToggleButton',
     'dijit/ToolbarSeparator',
     'dijit/Dialog',
     'dijit/ColorPalette'
-], function(coweb, Toolbar, ToggleButton, Separator, Dialog, ColorPalette) {
+], function(dojo, dijit, coweb, Toolbar, ToggleButton, Separator, Dialog, ColorPalette) {
     var textarea = function(args){
         if(!args.domNode || !args.id)
             throw new Error("Textarea: missing arg");
@@ -601,7 +603,7 @@ define([
         dojo.place(dojo.byId('selection'),first,'before');
     };
     
-    proto._onClick = function(e){
+    proto._onclick = function(e){
         var sel = window.getSelection();
         
         //If dragging to select
@@ -716,7 +718,7 @@ define([
     proto._connect = function(){
         dojo.connect(window, 'resize', this, '_resize');
         dojo.connect(this.div, 'onmousedown', this, '_onMouseDown');
-        dojo.connect(this.div, 'onmouseup', this, '_onClick');
+        dojo.connect(this.div, 'onmouseup', this, '_onclick');
         dojo.connect(this.div, 'onfocus', this, '_onFocus');
         dojo.connect(this.div, 'onblur', this, '_onBlur');
         dojo.connect(this.div, 'onkeypress', this, '_onKeyPress');
@@ -915,7 +917,7 @@ define([
         });
         toolbar.addChild(home);
         this.homeButton = home;
-        dojo.connect(home, 'onclick', this, '_onHomeClick');
+        dojo.connect(home, 'onClick', this, '_onHomeClick');
         dojo.attr(home.domNode, 'style', 'border-bottom:3px solid black');
         dojo.style('homeButton_label', 'padding', '0px');
         
@@ -928,7 +930,7 @@ define([
             });
             this[label] = button;
             toolbar.addChild(button);
-            dojo.connect(button, 'onclick', this, '_on'+label+'Click');
+            dojo.connect(button, 'onClick', this, '_on'+label+'Click');
             dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
         }));
         var sep = new Separator({});
@@ -943,7 +945,7 @@ define([
             });
             this[label] = button;
             toolbar.addChild(button);
-            dojo.connect(button, 'onclick', this, '_on'+label+'Click');
+            dojo.connect(button, 'onClick', this, '_on'+label+'Click');
             dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
         }));
         var sep = new Separator({});
@@ -958,7 +960,7 @@ define([
             });
             this[label] = button;
             toolbar.addChild(button);
-            dojo.connect(button, 'onclick', this, '_on'+label+'Click');
+            dojo.connect(button, 'onClick', this, '_on'+label+'Click');
             dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
         }));
         var sep = new Separator({});
@@ -973,7 +975,7 @@ define([
             });
             toolbar.addChild(button);
             this.sliderButton = button;
-            dojo.connect(button, 'onclick', this, '_onSliderClick');
+            dojo.connect(button, 'onClick', this, '_onSliderClick');
             dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
             dojo.style(button.domNode, 'float', 'right');
         }
@@ -1378,12 +1380,12 @@ define([
     proto._onNewPageClick = function() {
         this.dialog.set('content', "You may lose data if you are the only user in the current session. Do you really want to start a new Document?");
         this.dialog.show();
-        var one = dojo.connect(dojo.byId('yesButton'),'onclick',this, function(){
+        var one = dojo.connect(dijit.byId('yesButton'),'onClick',this, function(){
             window.location = window.location.pathname+'?'+'session='+Math.floor(Math.random()*10000001);
             dojo.disconnect(one);
             dojo.disconnect(two);
         });
-        var two = dojo.connect(dojo.byId('noButton'),'onclick',this, function(){
+        var two = dojo.connect(dijit.byId('noButton'),'onClick',this, function(){
             this.dialog.hide();
             dojo.disconnect(one);
             dojo.disconnect(two);
@@ -1402,10 +1404,10 @@ define([
     proto._onHomeClick = function() {
         this.dialog.set('content', "You may lose data if you are the only user in the current session. Do you really want to go to Home?");
         this.dialog.show();
-        var one = dojo.connect(dojo.byId('yesButton'),'onclick',this, function(){
+        var one = dojo.connect(dijit.byId('yesButton'),'onClick',this, function(){
             window.location = window.location.pathname;
         });
-        var two = dojo.connect(dojo.byId('noButton'),'onclick',this, function(){
+        var two = dojo.connect(dijit.byId('noButton'),'onClick',this, function(){
             this.dialog.hide();
             dojo.disconnect(one);
             dojo.disconnect(two);

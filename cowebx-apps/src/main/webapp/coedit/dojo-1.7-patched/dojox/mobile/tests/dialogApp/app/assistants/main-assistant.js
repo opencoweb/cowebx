@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define(["dojo","dijit","dojox","dojox/mobile/app/SceneAssistant"],function(_1,_2,_3){_1.getObject("dojox.mobile.tests.dialogApp.app.assistants.main-assistant",1);_1.declare("MainAssistant",_3.mobile.app.SceneAssistant,{setup:function(){this.controller.parse();var _4=this.controller.query(".appInfoArea")[0];_4.innerHTML="This app has the following info: \n"+_1.toJson(_3.mobile.app.info,true);function _5(_6){_4.innerHTML="Value selected: "+_6;};var _7=this.controller;_1.connect(_2.byId("btn1"),"onClick",function(){_7.showAlertDialog({title:"First Dialog",text:"This is a simple text message",onChoose:_5,buttons:[{label:"Tap Me!",value:"tapped","class":"mblBlueButton"}]});});_1.connect(_2.byId("btn2"),"onClick",function(){_7.showAlertDialog({title:"Second Dialog",text:"These two buttons return different values, 'value one' and 'value two'",onChoose:_5,buttons:[{label:"Im Am Button 1",value:"value one","class":"mblBlueButton"},{label:"Im Am Button 2",value:"value two","class":"mblBlueButton"}]});});},activate:function(){}});});require(["dojox/mobile/tests/dialogApp/app/assistants/main-assistant"]);

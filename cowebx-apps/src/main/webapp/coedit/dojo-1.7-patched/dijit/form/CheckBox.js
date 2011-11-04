@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define("*text/dijit/form/templates/CheckBox.html","<div class=\"dijit dijitReset dijitInline\" role=\"presentation\"\n\t><input\n\t \t${!nameAttrSetting} type=\"${type}\" ${checkedAttrSetting}\n\t\tclass=\"dijitReset dijitCheckBoxInput\"\n\t\tdojoAttachPoint=\"focusNode\"\n\t \tdojoAttachEvent=\"onclick:_onClick\"\n/></div>\n");define(["dojo/_base/kernel","..","dojo/text!./templates/CheckBox.html","./ToggleButton","./_CheckBoxMixin","dojo/_base/NodeList","dojo/_base/declare","dojo/_base/html","dojo/query"],function(_1,_2,_3){_1.declare("dijit.form.CheckBox",[_2.form.ToggleButton,_2.form._CheckBoxMixin],{templateString:_3,baseClass:"dijitCheckBox",_setValueAttr:function(_4,_5){if(typeof _4=="string"){this._set("value",_4);_1.attr(this.focusNode,"value",_4);_4=true;}if(this._created){this.set("checked",_4,_5);}},_getValueAttr:function(){return (this.checked?this.value:false);},_setIconClassAttr:null,postMixInProperties:function(){this.inherited(arguments);this.checkedAttrSetting=this.checked?"checked":"";},_fillContent:function(_6){},_onFocus:function(){if(this.id){_1.query("label[for='"+this.id+"']").addClass("dijitFocusedLabel");}this.inherited(arguments);},_onBlur:function(){if(this.id){_1.query("label[for='"+this.id+"']").removeClass("dijitFocusedLabel");}this.inherited(arguments);}});return _2.form.CheckBox;});

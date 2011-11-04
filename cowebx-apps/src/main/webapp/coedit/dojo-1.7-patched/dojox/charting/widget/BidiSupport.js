@@ -1,7 +1,0 @@
-/*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
-	Available via Academic Free License >= 2.1 OR the modified BSD license.
-	see: http://dojotoolkit.org/license for details
-*/
-
-define(["dojo/_base/lang","dojo/_base/html","dojo/_base/array","dojo/_base/connect","dojo/query","dijit/_BidiSupport","../BidiSupport"],function(_1,_2,_3,_4,_5,_6,_7){if(dojox.charting.widget.Legend){_1.extend(dojox.charting.widget.Legend,{postMixInProperties:function(){if(!this.chart){if(!this.chartRef){return;}var _8=dijit.byId(this.chartRef);if(!_8){var _9=_1.byId(this.chartRef);if(_9){_8=dijit.byNode(_9);}else{return;}}this.textDir=_8.chart.textDir;_1.connect(_8.chart,"setTextDir",this,"_setTextDirAttr");}else{this.textDir=this.chart.textDir;_1.connect(this.chart,"setTextDir",this,"_setTextDirAttr");}},_setTextDirAttr:function(_a){if(_b(_a)!=null){if(this.textDir!=_a){this._set("textDir",_a);var _c=_1.query(".dojoxLegendText",this._tr);_1.forEach(_c,function(_d){_d.dir=this.getTextDir(_d.innerHTML,_d.dir);},this);}}}});}if(dojox.charting.widget.Chart){_1.extend(dojox.charting.widget.Chart,{postMixInProperties:function(){this.textDir=this.params["textDir"]?this.params["textDir"]:this.params["dir"];},_setTextDirAttr:function(_e){if(_b(_e)!=null){this._set("textDir",_e);this.chart.setTextDir(_e);}}});}function _b(_f){return /^(ltr|rtl|auto)$/.test(_f)?_f:null;};});
