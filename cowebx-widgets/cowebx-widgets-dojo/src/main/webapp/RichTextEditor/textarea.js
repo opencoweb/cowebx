@@ -63,7 +63,6 @@ define([
     
     // Determines key-specific action
     proto._onKeyPress = function(e) {
-        console.log(e);
         e.preventDefault();
         if(e.charCode == 0){
             switch(e.keyCode){
@@ -98,6 +97,7 @@ define([
                     break;
             }
         }else{
+            //INSERT CHAR
             if(this.cancelKeys[e.keyCode] != undefined){ }else{
                 this.insert(String.fromCharCode(e.which));
             }
@@ -607,33 +607,34 @@ define([
         //If dragging to select
         if(sel.toString().length > 0){
             var range = sel.getRangeAt(0);
-            if((range.endContainer.id && range.startContainer.id) == 'thisFrame'){
-                var start = range.startContainer.childNodes[range.startOffset];
-                var end = range.endContainer.childNodes[range.endOffset];
-            }else if(range.endContainer.id == 'thisFrame'){
-                var start = (range.startOffset == 0) ? range.startContainer.parentNode : range.startContainer.parentNode.nextSibling;
-                var end = range.endContainer.childNodes[range.endOffset];
-            }else if(range.startContainer.id == 'thisFrame'){
-                var start = range.startContainer.childNodes[range.startOffset];
-                var end = (range.endOffset == 0) ? range.endContainer.parentNode : range.endContainer.parentNode.nextSibling;
-            }else{
-                var start = (range.startOffset == 0) ? range.startContainer.parentNode : range.startContainer.parentNode.nextSibling;
-                var end = (range.endOffset == 0) ? range.endContainer.parentNode : range.endContainer.parentNode.nextSibling;
-            }
+
+            //1. Get start and end node for for click+drag
+            var start = (range.startOffset == 0) ? range.startContainer.parentNode : range.startContainer.parentNode.nextSibling;
+            var end = (range.endOffset == 0) ? range.endContainer.parentNode : range.endContainer.parentNode.nextSibling;
+            if(start.id == 'selection')
+                start = start.nextSibling;
+            if(end && end.id == 'selection')
+                end = end.nextSibling;
+            
+            //2. Place selection before start
             dojo.place('selection',start,'before');
+            
+            //3. Query all nodes in doc, remove selection
             var nl = dojo.query("#thisDiv span,#thisDiv br");
             var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length));
+            
+            //4. Set this.value.start & this.value.end to proper values
             this.value.start = nlFixed.indexOf(start);
-            this.value.end = nlFixed.indexOf(end);
-            var tmp = nlFixed.slice(nlFixed.indexOf(start),nlFixed.indexOf(end));
+            this.value.end = (end == null) ? nlFixed.length : nlFixed.indexOf(end);
+            var tmp = nlFixed.slice(this.value.start,this.value.end);
+            
+            //5. Place selected nodes into thisselection
             tmp.forEach(function(node, index, array){
-               if(node.id != 'selection'){
-                   dojo.place(node, dojo.byId('selection'), 'last');
-                   dojo.addClass(node,'trans');
-               }
+                dojo.place(node, dojo.byId('selection'), 'last');
+                dojo.addClass(node,'trans');
             });
             window.getSelection().removeAllRanges();
-
+            
         //If clicking
         }else{
             var endNode = e.target;
@@ -858,13 +859,7 @@ define([
     };
     
     proto._scrollWith = function(){
-        if(dojo.byId('selection')){
-            if(dojo.byId('selection').offsetTop+50 >= (dojo.byId('divHolder').scrollTop+dojo.style('divHolder','height'))){
-                dojo.byId('divHolder').scrollTop = dojo.byId('divHolder').scrollTop+50;
-            }else if(dojo.byId('selection').offsetTop-50 <= (dojo.byId('divHolder').scrollTop)){
-                dojo.byId('divHolder').scrollTop = dojo.byId('selection').offsetTop-50;
-            }
-        }   
+        //TODO
     };
     
     proto._renderLineNumbers = function(){
