@@ -9,7 +9,6 @@ dojo.provide('comap.GMap');
 dojo.require('dijit._Widget');
 dojo.require('dojo.i18n');
 dojo.require('dojox.uuid.generateRandomUuid');
-dojo.requireLocalization('comap', 'GMap');
 
 dojo.declare('comap.GMap', dijit._Widget, {
     // application controller
@@ -23,8 +22,6 @@ dojo.declare('comap.GMap', dijit._Widget, {
         this._geocoder = new google.maps.Geocoder();
         // reuse a single pop
         this._infopop = new google.maps.InfoWindow();
-        // i18n bundle
-        this._labels = dojo.i18n.getLocalization('comap','GMap');
         // user dragging map?
         this._dragging = false;
     },
@@ -140,7 +137,7 @@ dojo.declare('comap.GMap', dijit._Widget, {
             position: latLng, 
             map: this._map,
             draggable : true,
-            title: dojo.replace(this._labels.creator, [creator]),
+            title: dojo.replace('Added by {0}', [creator]),
             animation: google.maps.Animation.DROP
         });
         // store creator on marker
@@ -148,7 +145,7 @@ dojo.declare('comap.GMap', dijit._Widget, {
         // store unique id on marker
         marker._uuid = uuid;
         // start formatted address as pending
-        marker._formattedAddress = this._labels.pending;
+        marker._formattedAddress = 'Pending geocode ...';
         // listen to marker events
         google.maps.event.addListener(marker, 'click',
             dojo.hitch(this, '_onMarkerClick', marker));
@@ -168,7 +165,7 @@ dojo.declare('comap.GMap', dijit._Widget, {
         // set the new position
         marker.setPosition(latLng);
         // reset computed address
-        marker._formattedAddress = this._labels.pending;
+        marker._formattedAddress = 'Pending geocode ...';
         // check if info window needs to go back to pending state
         if(this._infopop._anchor == marker) {
             this._infopop.setContent(this._getMarkerHTML(marker));

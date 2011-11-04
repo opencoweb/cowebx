@@ -11,7 +11,6 @@ dojo.require('dijit._Templated');
 dojo.require('dijit._Contained');
 dojo.require('dojo.date.locale');
 dojo.require('dojo.date.stamp');
-dojo.requireLocalization('comap', 'ChatBox');
 
 dojo.declare('comap.ChatBox', [dijit._Widget, dijit._Templated, dijit._Contained], {
     // application controller
@@ -21,7 +20,6 @@ dojo.declare('comap.ChatBox', [dijit._Widget, dijit._Templated, dijit._Contained
     // widget template
     templatePath: dojo.moduleUrl('comap.templates', 'ChatBox.html'),
     postMixInProperties: function() {
-        this._labels = dojo.i18n.getLocalization('comap', 'ChatBox');
         // regex for links
         this._linkRex = /\s(https?:\/\/\S+)|^(https?:\/\/\S+)/g;
     },

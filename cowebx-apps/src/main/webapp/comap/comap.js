@@ -12,7 +12,6 @@ define([
 ], function(coweb, attendance) {
     dojo.require('comap.GMap');
     dojo.require('comap.ChatBox');
-    dojo.require('cowebx.BusyDialog');
     dojo.require('dijit.layout.BorderContainer');
     dojo.require('dijit.layout.AccordionContainer');
     dojo.require('dijit.layout.AccordionPane');
@@ -20,14 +19,23 @@ define([
     dojo.require('dijit.form.Button');
     dojo.require('dijit.form.CheckBox');
     dojo.require('dojo.hash');
-    dojo.requireLocalization('comap', 'comap');
 
     // define controller singleton for the app
     var app = {
         init: function() {
             // quick and dirty i18n
             var body = dojo.body();
-            this.labels = dojo.i18n.getLocalization('comap', 'comap');
+            this.labels = {
+                map_source : 'Map',
+                add_notice : 'Added a marker at <a href="#{0}">{0}</a>',
+                move_notice : 'Moved a marker to <a href="#{0}">{0}</a>',
+                anim_notice : 'Bounced a marker at <a href="#{0}">{0}</a>',
+                sync_button_label : 'Sync map',
+                chat_pane_title : 'Chat',
+                log_pane_title : 'Map Log',
+                help_pane_title : 'Help',
+                continuous_sync_button_label : 'Sync always'
+            };
             var html = dojo.replace(body.innerHTML, this.labels);
             body.innerHTML = html;
 
@@ -36,14 +44,14 @@ define([
             dojo.parser.parse();
     
             // grab widgets
-            this.map = dijit.byId('map');
+            //this.map = dijit.byId('map');
             this.chat = dijit.byId('chat');
             this.log = dijit.byId('log');
     
-            this.map.attr('markerTemplate', dojo.cache('comap.nls', 'marker.html'));
+            //this.map.attr('markerTemplate', '<p>{_formattedAddress}</p><p>Visits today: {_visitCount}</p>');
 
             // hand widgets refs to this controller
-            this.map.attr('app', this);
+            //this.map.attr('app', this);
             this.chat.attr('app', this);
     
             // deal with initial hash
@@ -79,8 +87,7 @@ define([
 
             // get a session instance
             this.session = coweb.initSession();
-            // use a dojo busy dialog to show progress joining/updating
-            cowebx.createBusy(this.session);
+
             // do the prep using defaults
             this.session.prepare();
         },
