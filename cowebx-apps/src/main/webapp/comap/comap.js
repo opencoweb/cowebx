@@ -6,19 +6,20 @@
 //
 /*global define dojo dijit cowebx*/
 define([
+    'dojo',
+    'dijit/registry',
     'coweb/main',
     'coweb/ext/attendance',
-    'http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js'
-], function(coweb, attendance) {
-    dojo.require('comap.GMap');
-    dojo.require('comap.ChatBox');
-    dojo.require('dijit.layout.BorderContainer');
-    dojo.require('dijit.layout.AccordionContainer');
-    dojo.require('dijit.layout.AccordionPane');
-    dojo.require('dijit.Toolbar');
-    dojo.require('dijit.form.Button');
-    dojo.require('dijit.form.CheckBox');
-    dojo.require('dojo.hash');
+    'dijit/layout/BorderContainer',
+    'dijit/layout/AccordionContainer',
+    'dijit/layout/AccordionPane',
+    'dijit/Toolbar',
+    'dijit/form/Button',
+    'dijit/form/CheckBox',
+    'dojo/hash'
+], function(dojo, dijit, coweb, attendance) {
+    // dojo.require('comap.GMap');
+    // dojo.require('comap.ChatBox');
 
     // define controller singleton for the app
     var app = {
@@ -45,14 +46,14 @@ define([
     
             // grab widgets
             //this.map = dijit.byId('map');
-            this.chat = dijit.byId('chat');
+            //this.chat = dijit.byId('chat');
             this.log = dijit.byId('log');
     
             //this.map.attr('markerTemplate', '<p>{_formattedAddress}</p><p>Visits today: {_visitCount}</p>');
 
             // hand widgets refs to this controller
             //this.map.attr('app', this);
-            this.chat.attr('app', this);
+            //this.chat.attr('app', this);
     
             // deal with initial hash
             var hash = dojo.hash();
