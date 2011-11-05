@@ -11,6 +11,7 @@ define([
     'coweb/main',
     'coweb/ext/attendance',
     'ChatBox',
+    'GMap',
     'dijit/layout/BorderContainer',
     'dijit/layout/AccordionContainer',
     'dijit/layout/AccordionPane',
@@ -18,7 +19,7 @@ define([
     'dijit/form/Button',
     'dijit/form/CheckBox',
     'dojo/hash'
-], function(dojo, dijit, coweb, attendance, ChatBox) {
+], function(dojo, dijit, coweb, attendance, ChatBox, GMap) {
     // dojo.require('comap.GMap');
     // dojo.require('comap.ChatBox');
 
@@ -48,7 +49,7 @@ define([
             // grab widgets
             this.chat = new ChatBox({domNode: 'chat', app:this, allowEntry:true});
             this.log = new ChatBox({domNode:'log', app:this});
-            //this.map = dijit.byId('map');
+            this.map = new GMap({app:this});
             //this.chat = dijit.byId('chat');
             //this.log = dijit.byId('log');
     

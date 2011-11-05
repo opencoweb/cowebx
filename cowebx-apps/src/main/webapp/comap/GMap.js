@@ -5,17 +5,33 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 /*global dojo dijit google dojox*/
-dojo.provide('comap.GMap');
-dojo.require('dijit._Widget');
-dojo.require('dojo.i18n');
-dojo.require('dojox.uuid.generateRandomUuid');
+// dojo.provide('comap.GMap');
+// dojo.require('dijit._Widget');
+// dojo.require('dojo.i18n');
+// dojo.require('dojox.uuid.generateRandomUuid');
+// 
+// dojo.declare('comap.GMap', dijit._Widget, {
+//     
+// 
+// 
+// });
 
-dojo.declare('comap.GMap', dijit._Widget, {
-    // application controller
-    app : null,
-    // template to use for marker bubbles
-    markerTemplate : '',
-    postMixInProperties: function() {
+define([
+    'dojox/uuid/generateRandomUuid'
+], function() {
+    var GMap = function(args) {
+        if(!args.app)
+		    throw new Error('GMap: missing app argument');
+        // application controller
+        this.app = args.app;
+        // template to use for marker bubbles
+        this.markerTemplate = '';
+        this.postCreate();
+    };
+    var proto = GMap.prototype;
+    
+    proto.postCreate = function() {
+        console.log('create');
         // unordered collection of markers
         this._markers = {};
         // reuse a geocoder
@@ -24,9 +40,7 @@ dojo.declare('comap.GMap', dijit._Widget, {
         this._infopop = new google.maps.InfoWindow();
         // user dragging map?
         this._dragging = false;
-    },
-
-    postCreate: function() {
+        
         // initialize a map widget
         var latlng = new google.maps.LatLng(35.904, -78.873);
         var mapOpts = {
@@ -52,39 +66,41 @@ dojo.declare('comap.GMap', dijit._Widget, {
             dojo.hitch(this, '_onZoomChange'));
         google.maps.event.addListener(this._map, 'maptypeid_changed', 
             dojo.hitch(this, '_onTypeChange'));
-    },
+        dojo.connect(window,'resize',this,'resize');
+        this.resize();
+    };
     
-    resize: function(size) {
-        dojo.marginBox(this.domNode, size);
+    proto.resize = function(size) {
+        dojo.marginBox(dojo.byId('mapContainer'), size);
         // force map to resize
         google.maps.event.trigger(this._map, 'resize');
-    },
+    };
     
-    getZoom: function() {
+    proto.getZoom = function() {
         return this._map.getZoom();
-    },
+    };
     
-    setZoom: function(level) {
+    proto.setZoom = function(level) {
         this._map.setZoom(level);
-    },
+    };
     
-    getCenter: function() {
+    proto.getCenter = function() {
         return this._map.getCenter();
-    },
+    };
     
-    setCenter: function(latLng) {
+    proto.setCenter = function(latLng) {
         this._map.setCenter(latLng);
-    },
+    };
     
-    getMapType: function() {
+    proto.getMapType = function() {
         return this._map.getMapTypeId();
-    },
+    };
     
-    setMapType: function(type) {
+    proto.setMapType = function(type) {
         this._map.setMapTypeId(type);
-    },
+    };
     
-    getAllMarkers: function() {
+    proto.getAllMarkers = function() {
         var arr = [];
         for(var uuid in this._markers) {
             var m = this._markers[uuid];
@@ -95,20 +111,20 @@ dojo.declare('comap.GMap', dijit._Widget, {
             });
         }
         return arr;
-    },
+    };
 
-    setAllMarkers: function(arr) {
+    proto.setAllMarkers = function(arr) {
         dojo.forEach(arr, function(item) {
             var latLng = this.latLngFromString(item.latLng);
             this.addMarker(item.uuid, item.creator, latLng);
         }, this);
-    },
+    };
     
-    getMarkerById: function(uuid) {
+    proto.getMarkerById = function(uuid) {
         return this._markers[uuid];
-    },
+    };
     
-    refreshInfoPop: function(marker) {
+    proto.refreshInfoPop = function(marker) {
         var anchor = this._infopop._anchor;
         if(marker) {
             if(marker == anchor) {
@@ -119,9 +135,9 @@ dojo.declare('comap.GMap', dijit._Widget, {
             // refresh the anchor because no marker given
             this._infopop.setContent(this._getMarkerHTML(anchor));
         }
-    },
+    };
     
-    latLngFromString: function(str) {
+    proto.latLngFromString = function(str) {
         var ll = str.split(',');
         var lat = parseFloat(ll[0]);
         var lng = parseFloat(ll[1]);
@@ -129,9 +145,9 @@ dojo.declare('comap.GMap', dijit._Widget, {
             throw new Error('invalid "lat,lng" string');
         }
         return new google.maps.LatLng(lat, lng);
-    },
+    };
     
-    addMarker: function(uuid, creator, latLng) {
+    proto.addMarker = function(uuid, creator, latLng) {
         // add a new marker
         var marker = new google.maps.Marker({
             position: latLng, 
@@ -159,9 +175,9 @@ dojo.declare('comap.GMap', dijit._Widget, {
         // store marker
         this._markers[uuid] = marker;
         return marker;
-    },
+    };
     
-    moveMarker: function(marker, latLng) {
+    proto.moveMarker = function(marker, latLng) {
         // set the new position
         marker.setPosition(latLng);
         // reset computed address
@@ -173,57 +189,57 @@ dojo.declare('comap.GMap', dijit._Widget, {
         // reverse geocode again
         this._geocoder.geocode({latLng : latLng}, 
             dojo.hitch(this, '_onGeocodeResult', marker));
-    },
+    };
     
-    animateMarker: function(marker) {
+    proto.animateMarker = function(marker) {
         clearTimeout(marker._animTok);
         marker.setAnimation(google.maps.Animation.BOUNCE);
         marker._animTok = setTimeout(function() {
             marker.setAnimation(null);
         }, 2000);
-    },
+    };
 
-    onMarkerAdded: function(marker) {
+    proto.onMarkerAdded = function(marker) {
         // extension point
-    },
+    };
     
-    onMarkerMoved: function(marker) {
+    proto.onMarkerMoved = function(marker) {
         // extension point
-    },
+    };
     
-    onMarkerAnimated: function(marker) {
+    proto.onMarkerAnimated = function(marker) {
         // extension point
-    },
+    };
 
-    onMapCenter: function(event, intermediate) {
+    proto.onMapCenter = function(event, intermediate) {
         // extension point
-    },
+    };
     
-    onMapZoom: function(event) {
+    proto.onMapZoom = function(event) {
         // extension point
-    },
+    };
     
-    onMapType: function(event) {
+    proto.onMapType = function(event) {
         // extension point
-    },
+    };
 
-    _getMarkerHTML: function(marker) {
+    proto._getMarkerHTML = function(marker) {
         if(this.markerTemplate) {
             return dojo.replace(this.markerTemplate, marker);
         } else {
             return marker._formattedAddress;
         }
-    },
+    };
 
-    _onMapDblClick: function(event) {
+    proto._onMapDblClick = function(event) {
         // add a new marker
         var uuid = dojox.uuid.generateRandomUuid();
         var marker = this.addMarker(uuid, this.app.username, event.latLng);
         // indicate marker added
         this.onMarkerAdded(marker);
-    },
+    };
 
-    _onGeocodeResult: function(marker, results, status) {
+    proto._onGeocodeResult = function(marker, results, status) {
         if(status == google.maps.GeocoderStatus.OK && results[0]) {
             marker._formattedAddress = results[0].formatted_address;
         } else {
@@ -234,47 +250,49 @@ dojo.declare('comap.GMap', dijit._Widget, {
         if(this._infopop._anchor == marker) {
             this._infopop.setContent(this._getMarkerHTML(marker));
         }
-    },
+    };
     
-    _onMarkerClick: function(marker, event) {
+    proto._onMarkerClick = function(marker, event) {
         this._infopop.setContent(this._getMarkerHTML(marker));
         this._infopop._anchor = marker;
         this._infopop.open(this._map, marker);
-    },
+    };
     
-    _onMarkerDblClick: function(marker, event) {
+    proto._onMarkerDblClick = function(marker, event) {
         this.animateMarker(marker);
         this.onMarkerAnimated(marker);
-    },
+    };
 
-    _onMarkerDragEnd: function(marker, event) {
+    proto._onMarkerDragEnd = function(marker, event) {
         this.moveMarker(marker, event.latLng);
         this.onMarkerMoved(marker);
-    },
+    };
     
-    _onDragStart: function(event) {
+    proto._onDragStart = function(event) {
         this._dragging = true;
         this.onMapCenter(event, true);
-    },
+    };
     
-    _onDragEnd: function(event) {
+    proto._onDragEnd = function(event) {
         this._dragging = false;
         this.onMapCenter(event, false);
-    },
+    };
     
-    _onDrag: function(event) {
+    proto._onDrag = function(event) {
         this.onMapCenter(event, true);
-    },
+    };
     
-    _onZoomChange: function(event) {
+    proto._onZoomChange = function(event) {
         this.onMapZoom(event);
-    },
+    };
     
-    _onCenterChange: function(event) {
+    proto._onCenterChange = function(event) {
         this.onMapCenter(event, this._dragging)
-    },
+    };
     
-    _onTypeChange: function(event) {
+    proto._onTypeChange = function(event) {
         this.onMapType(event);
-    }
+    };
+    
+    return GMap;
 });

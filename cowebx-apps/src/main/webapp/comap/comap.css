@@ -111,3 +111,14 @@ html, body {
     background-image: url("images/refresh.png");
     background-repeat: no-repeat;
 }
+
+.map {
+    width:100%;
+    height:100%;
+}
+
+.mapContainer {
+    width:100%;
+    height:100%;
+    padding:0px !important;
+}
