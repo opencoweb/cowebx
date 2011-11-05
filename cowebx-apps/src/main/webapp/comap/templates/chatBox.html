@@ -1,7 +1,11 @@
 <div class="wChatBox">
-  <div class="wChatBoxHistory" 
-       id="chatHistoryNode"></div>
-  <div class="wChatBoxEntry" id="chatEntryContainerNode">
-    <input type="text" id="chatEntryNode" placeholder="Enter a chat message" title="Enter a chat message"/>
+  <div class="wChatBoxHistory"
+       dojoAttachPoint="historyNode"></div>
+  <div class="wChatBoxEntry" dojoAttachPoint="entryContainerNode">
+    <input type="text"
+           dojoAttachEvent="onkeydown:_onKeyDown"
+           dojoAttachPoint="entryNode"
+           placeholder="Enter a chat message"
+           title="Enter a chat message"/>
   </div>
 </div>

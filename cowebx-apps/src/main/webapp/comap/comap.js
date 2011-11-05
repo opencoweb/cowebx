@@ -10,8 +10,8 @@ define([
     'dijit/registry',
     'coweb/main',
     'coweb/ext/attendance',
-    'ChatBox',
     'GMap',
+    'ChatBox',
     'dijit/layout/BorderContainer',
     'dijit/layout/AccordionContainer',
     'dijit/layout/AccordionPane',
@@ -19,7 +19,7 @@ define([
     'dijit/form/Button',
     'dijit/form/CheckBox',
     'dojo/hash'
-], function(dojo, dijit, coweb, attendance, ChatBox, GMap) {
+], function(dojo, dijit, coweb, attendance, GMap, ChatBox) {
     // dojo.require('comap.GMap');
     // dojo.require('comap.ChatBox');
 
@@ -47,17 +47,17 @@ define([
             dojo.parser.parse();
     
             // grab widgets
-            this.chat = new ChatBox({domNode: 'chat', app:this, allowEntry:true});
-            this.log = new ChatBox({domNode:'log', app:this});
+            //this.chat = new ChatBox({domNode: 'chat', app:this, allowEntry:true});
+            //this.log = new ChatBox({domNode:'log', app:this});
             this.map = new GMap({app:this});
-            //this.chat = dijit.byId('chat');
-            //this.log = dijit.byId('log');
-    
-            //this.map.attr('markerTemplate', '<p>{_formattedAddress}</p><p>Visits today: {_visitCount}</p>');
+            this.chat = dijit.byId('chat');
+            this.log = dijit.byId('log');
+            
+            this.map.markerTemplate = '<p>{_formattedAddress}</p><p>Visits today: {_visitCount}</p>';
 
             // hand widgets refs to this controller
             //this.map.attr('app', this);
-            //this.chat.attr('app', this);
+            this.chat.attr('app', this);
     
             // deal with initial hash
             var hash = dojo.hash();

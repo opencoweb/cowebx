@@ -44,10 +44,10 @@
 	  </div>
       <div id="sidebar" dojoType="dijit.layout.AccordionContainer" region="right" splitter="true">
         <div dojoType="dijit.layout.AccordionPane" title="{chat_pane_title}">
-          <div id="chat"></div>
+          <div id="chat" dojoType="ChatBox"></div>
         </div>
         <div dojoType="dijit.layout.AccordionPane" title="{log_pane_title}">
-          <div id="log" allowEntry="false"></div>
+          <div id="log" allowEntry="false" dojoType="ChatBox"></div>
         </div>
         <div id="help" href="templates/help.html" dojoType="dijit.layout.AccordionPane" selected title="{help_pane_title}"></div>
       </div>
