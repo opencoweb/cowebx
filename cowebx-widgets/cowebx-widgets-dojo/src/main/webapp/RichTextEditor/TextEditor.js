@@ -8,7 +8,7 @@ define([
 ], function(dojo,coweb,ld,textarea,Slider,ShareButton) {
     var TextEditor = function(args){
         if(!args.id)
-            throw new Error('missing id argument');
+            throw new Error('TextEditor: missing id argument');
             
         //1. Process args
         this.id = args.id;                      //Id for collab

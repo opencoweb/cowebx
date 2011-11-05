@@ -1,62 +1,72 @@
-//
-// Chat widget.
-//
-// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
-// Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
-//
-/*global dojo dijit*/
-dojo.provide('comap.ChatBox');
-dojo.require('dijit._Widget');
-dojo.require('dijit._Templated');
-dojo.require('dijit._Contained');
-dojo.require('dojo.date.locale');
-dojo.require('dojo.date.stamp');
+define([
+    'dojo/date/locale',
+    'dojo/date/stamp'
+], function() {
+    var ChatBox = function(args) {
+        if(!args.domNode || !args.app)
+		    throw new Error('ChatBox: missing domNode or app argument');
+        // application controller
+        this.app = args.app;
+        // allow user entry?
+        this.allowEntry = (!args.allowEntry) ? false : args.allowEntry;
+        // figure out if we are map log or chat
+        this.func = args.domNode;
+        // widget template
+        this.template = '';
+        dojo.xhrGet({
+			url: 'templates/'+this.func+'Box.html',
+			handleAs: 'text',
+			load: dojo.hitch(this, function(data){ 
+                this.template = data;
+                dojo.byId(args.domNode).innerHTML = this.template;
+                this.postCreate();
+			}),
+			error: function(error) { console.log(error); }
+		});
+    };
+    var proto = ChatBox.prototype;
 
-dojo.declare('comap.ChatBox', [dijit._Widget, dijit._Templated, dijit._Contained], {
-    // application controller
-    app: null,
-    // allow user entry?
-    allowEntry: true,
-    // widget template
-    templatePath: dojo.moduleUrl('comap.templates', 'ChatBox.html'),
-    postMixInProperties: function() {
+    proto.postCreate = function() {
         // regex for links
         this._linkRex = /\s(https?:\/\/\S+)|^(https?:\/\/\S+)/g;
-    },
-
-    postCreate: function() {
+        //Hide or show entry node
         if(!this.allowEntry) {
-            dojo.style(this.entryContainerNode, 'display', 'none');
-            dojo.style(this.historyNode, 'bottom', '0px');
+            dojo.style(dojo.byId(this.func+'EntryContainerNode'), 'display', 'none');
+            dojo.style(dojo.byId(this.func+'HistoryNode'), 'bottom', '0px');
         }
         // watch for first focus on chat to hide the prompt message
-        var tok = dojo.connect(this.entryNode, 'onfocus', function(event) {
-            event.target.style.color = '';
-            event.target.value = '';
-            dojo.disconnect(tok);
+        var tok = dojo.connect(dojo.byId(this.func+'EntryNode'), 'onfocus', function(e) {
+            if(e.target.style){
+                e.target.style.color = '';
+                e.target.value = '';
+                dojo.disconnect(tok);
+            }
         });
-    },
+        
+        //Connect to events
+        dojo.connect(dojo.byId('entrNode'),'onkeydown',this,'_onKeyDown');
+    };
     
-    sanitizeText: function(text) {
+    proto.sanitizeText = function(text) {
         return text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
         .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
         .replace(/'/g, '&#x27;');
-    },
+    };
     
-    parseLinks: function(text) {
+    proto.parseLinks = function(text) {
         return text.replace(this._linkRex, ' <a href="$1$2" target="_blank">$1$2</a>');
-    },
+    };
     
-    onMessage: function(text, position, isoDT) {
+    proto.onMessage = function(text, position, isoDT) {
         // extension point
-    },
+    };
 
-    _onKeyDown: function(event) {
+    proto._onKeyDown = function(event) {
         if(event.keyCode === dojo.keys.ENTER) {
             // don't send blanks
-            if(!this.entryNode.value) {return;}
+            if(!dojo.byId(this.func+'EntryNode').value) {return;}
             // sanitize the entered text
-            var text = this.sanitizeText(this.entryNode.value);
+            var text = this.sanitizeText(dojo.byId(this.func+'EntryNode').value);
             // find and make http links
             text = this.parseLinks(text);
             // build iso datetime string
@@ -65,18 +75,18 @@ dojo.declare('comap.ChatBox', [dijit._Widget, dijit._Templated, dijit._Contained
             // insert the message in the history
             var position = this.insertMessage(this.app.username, text, isoDT);
             // invoke extension point
-            this.onMessage(this.entryNode.value, position, isoDT);
+            this.onMessage(dojo.byId(this.func+'EntryNode').value, position, isoDT);
             // clear the entry box
-            this.entryNode.value = '';
+            dojo.byId(this.func+'EntryNode').value = '';
         }
-    },
+    };
 
-    insertMessage: function(username, text, isoDT, position) {
+    proto.insertMessage = function(username, text, isoDT, position) {
         if(position === undefined) {
-            position = dojo.query('div.wChatBoxMessage', this.historyNode).length;
+            position = dojo.query('div.wChatBoxMessage', dojo.byId(this.func+'HistoryNode')).length;
         }
         var msg = dojo.create('div', {className : 'wChatBoxMessage'}, 
-            this.historyNode, position);
+            dojo.byId(this.func+'HistoryNode'), position);
         var meta = dojo.create('div', {className : 'wChatBoxMessageMeta'}, msg);
         // include username
         if(username) {
@@ -111,25 +121,27 @@ dojo.declare('comap.ChatBox', [dijit._Widget, dijit._Templated, dijit._Contained
         msg.scrollIntoView(false);
 
         return {position : position, isoDT : isoDT};
-    },
+    };
     
-    setHtml: function(html) {
+    proto.setHtml = function(html) {
         // @todo: replace to accept raw chat log for processing to avoid
         //   poisoned state attacks
-        this.historyNode.innerHTML = html;
+        dojo.byId(this.func+'HistoryNode').innerHTML = html;
         // adjust timestamps for new locale
-        dojo.query('.wChatBoxMessageTime', this.historyNode)
+        dojo.query('.wChatBoxMessageTime', dojo.byId(this.func+'HistoryNode'))
         .forEach(function(item) {
             var date = dojo.date.stamp.fromISOString(item.title);
             var localTime = dojo.date.locale.format(date,
                 {timePattern: 'HH:mm', selector: 'time'});
             item.innerHTML = '@123'+localTime;
         });
-    },
+    };
     
-    getHtml: function() {
+    proto.getHtml = function() {
         // @todo: replace to return raw chat log for processing to avoid
         //   poisoned state attacks
-        return this.historyNode.innerHTML;
-    }
+        return dojo.byId(this.func+'HistoryNode').innerHTML;
+    };
+    
+    return ChatBox;
 });
