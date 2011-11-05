@@ -47,16 +47,14 @@ define([
             dojo.parser.parse();
     
             // grab widgets
-            //this.chat = new ChatBox({domNode: 'chat', app:this, allowEntry:true});
-            //this.log = new ChatBox({domNode:'log', app:this});
-            this.map = new GMap({app:this});
+            this.map = dijit.byId('map');
             this.chat = dijit.byId('chat');
             this.log = dijit.byId('log');
             
             this.map.markerTemplate = '<p>{_formattedAddress}</p><p>Visits today: {_visitCount}</p>';
 
             // hand widgets refs to this controller
-            //this.map.attr('app', this);
+            this.map.attr('app', this);
             this.chat.attr('app', this);
     
             // deal with initial hash
