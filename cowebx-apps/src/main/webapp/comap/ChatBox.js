@@ -1,7 +1,8 @@
 define([
+    'dojo',
     'dojo/date/locale',
     'dojo/date/stamp'
-], function() {
+], function(dojo) {
     var ChatBox = function(args) {
         if(!args.domNode || !args.app)
 		    throw new Error('ChatBox: missing domNode or app argument');

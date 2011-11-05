@@ -7,8 +7,9 @@
 //
 /*global define dojo*/
 define([
+    'dojo',
     'coweb/main'
-], function(coweb) {
+], function(dojo,coweb) {
     var CoopGrid = function(args) {
         this.grid = args.grid;
         this.id = args.id;

@@ -17,8 +17,9 @@
 // });
 
 define([
+    'dojo',
     'dojox/uuid/generateRandomUuid'
-], function() {
+], function(dojo) {
     var GMap = function(args) {
         if(!args.app)
 		    throw new Error('GMap: missing app argument');

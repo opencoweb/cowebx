@@ -8,8 +8,9 @@
 //
 /*global define dojo*/
 define([
+    'dojo',
     'coweb/main'
-], function(coweb) {
+], function(dojo,coweb) {
     // reference to a regular dojo.data.ItemFileWriteStore instance
     var CoopItemFileWriteStore = function(args) {
         this.dataStore = args.dataStore;
