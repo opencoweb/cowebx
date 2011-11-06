@@ -2,25 +2,23 @@ define([
     'dojo',
     'coweb/main',
     './ld', 
-    './textarea', 
-    './TimeSlider', 
-    './ShareButton'
-], function(dojo,coweb,ld,textarea,Slider,ShareButton) {
+    './textarea',
+], function(dojo,coweb,ld,textarea) {
     var TextEditor = function(args){
         if(!args.id)
-            throw new Error('TextEditor: missing id argument');
-            
+            throw new Error('TextEditor: missing id argument'); 
         //1. Process args
         this.id = args.id;                      //Id for collab
         this.go = (!args.go) ? true : args.go;  //Start iteration cycle automatically
+                
+        //2. Connect things
+        this._connectSyncs();
         
-        //2. Instance vars
+        //3. properties
         this._por           =   {start : 0, end: 0};
         this._container     =   dojo.create('div',{'class':'container'},args.domNode);
-        this._textarea      =   new textarea({domNode:this._container,'id':'_textarea'});
+        this._textarea      =   new textarea({domNode:this._container,'id':'_textarea',parent:this});
         this._util          =   new ld({});
-        this.slider         =   this._buildSlider();
-        this.shareButton    =   this._buildShareButton();
         this.oldSnapshot    =   this.snapshot();
         this.newSnapshot    =   '';
         this.interval       =   100;           //Broadcast interval in ms
@@ -30,9 +28,6 @@ define([
         this.max            =   0;              //Max caret pos in iteration loop
         this.on             =   true;           //Turn on/off outgoing syncs
         this.value          =   '';
-        
-        //3. Connect things
-        this._connectSyncs();
         
         if(this.go == true)
             this.listenInit();
@@ -278,7 +273,7 @@ define([
         var state = {
             value: this._textarea.value,
             oldSnapshot: this.oldSnapshot,
-            history : this.slider.history,
+            history : this._textarea.slider.history,
             title: this._textarea.title
         };
         this.collab.sendStateResponse(state,token);
@@ -292,7 +287,7 @@ define([
         this._textarea.value.start = 0;
         this._textarea.value.end = 0;
         this._textarea.render();
-        this.slider.history = obj.history;
+        this._textarea.slider.history = obj.history;
     };
     
     proto._moveCaretToPOR = function() {
@@ -345,22 +340,5 @@ define([
         return string;
     };
     
-    proto._buildSlider = function() {
-        var node = dojo.create('div',{'class':'slider',id:'sliderHolder'},dijit.byId('tToolbar').domNode,'after');
-        var holder = dojo.create('div',{'style':'width:100%;height:100%'},node);
-        var slider = new Slider({'domNode':holder,textarea:this._textarea,'id':'slider','parent':this});
-        return slider;
-    };
-    
-    proto._buildShareButton = function(){
-        var button = new ShareButton({
-            'domNode':dijit.byId('tToolbar').domNode,
-            'listenTo':this,
-            'id':'shareButton',
-            'displayButton':false});
-        return button;
-    };
-    
-
     return TextEditor;
 });

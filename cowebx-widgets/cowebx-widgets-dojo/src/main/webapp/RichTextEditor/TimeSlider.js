@@ -77,7 +77,7 @@ define([
     proto._reRenderSlider = function(){
         this.slider.destroy();
         var h = dojo.create('div',{style:'width:100%;height:100%'},this._sliderCell);
-        this.slider = new dijit.form.HorizontalSlider({
+        this.slider = new Slider({
             name: "slider",
             value: 1,
             minimum: 0,

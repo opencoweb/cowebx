@@ -6,16 +6,19 @@ define([
     'dijit/form/ToggleButton',
     'dijit/ToolbarSeparator',
     'dijit/Dialog',
-    'dijit/ColorPalette'
-], function(dojo, dijit, coweb, Toolbar, ToggleButton, Separator, Dialog, ColorPalette) {
+    'dijit/ColorPalette',
+    './TimeSlider', 
+    './ShareButton'
+], function(dojo, dijit, coweb, Toolbar, ToggleButton, Separator, Dialog, ColorPalette, Slider, ShareButton) {
     var textarea = function(args){
-        if(!args.domNode || !args.id)
-            throw new Error("Textarea: missing domNode or id arg");
+        if(!args.domNode || !args.id || !args.parent)
+            throw new Error("Textarea: missing arg");
         //1. Process args
         this.noSlider       =   (!args.noSlider) ? false : args.noSlider;
         this.domNode        =   args.domNode;
         this.id             =   args.id;
-
+        this.parent         =   args.parent;
+        
         //2. Build stuff
         this._buildTemplates();
         
@@ -24,7 +27,7 @@ define([
         this._connect();
         this._onResize();
         
-        // properties
+        //4. properties
         this.value              =   {start:0,end:0,string:[]};
         this.displayCaret       =   false;
         this.title              =   'Untitled Document';
@@ -1284,7 +1287,7 @@ define([
             dojo.style(dojo.byId('ipadFloat'), 'display', 'none'); 
             dojo.byId('thisDiv').focus();
         });
-        document.onkeydown = function(){
+        document.onkeydown = function(e){
             if (e.which == 8)
     			return false;
         };
@@ -1311,6 +1314,15 @@ define([
         this._buildToolbar();
         this._buildFooter();
         this._buildConfirmDialog();
+        //3. Slider & ShareButton
+        var node = dojo.create('div',{'class':'slider',id:'sliderHolder'},dijit.byId('tToolbar').domNode,'after');
+        var holder = dojo.create('div',{'style':'width:100%;height:100%'},node);
+        this.slider = new Slider({'domNode':holder,textarea:this,'id':'slider','parent':this.parent});
+        var button = new ShareButton({
+            'domNode':dijit.byId('tToolbar').domNode,
+            'listenTo':this.parent,
+            'id':'shareButton',
+            'displayButton':false});
         //3. Caret
         dojo.create('span',{id:'selection','class':'selection'},dojo.byId('thisFrame'),'last');
         //4. iPad keyboard trigger
