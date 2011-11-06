@@ -161,28 +161,28 @@ define([
         //2. custom render
         if(pos<t.value.start){
             if(c == t.newSpace){
-                var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},t.frame.childNodes[pos],'before');
+                var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos],'before');
             }else if(c == t.newLine){
-                dojo.create('br',{style:f,},t.frame.childNodes[pos],'before');
+                dojo.create('br',{style:f,},dojo.byId('thisFrame').childNodes[pos],'before');
             }else{
-                var node = dojo.create('span',{style:f.join(""),innerHTML:c},t.frame.childNodes[pos],'before');
+                var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos],'before');
             }
         }else{
             if(pos==t.value.start && sel>0){
                 if(c == t.newSpace){
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},t.frame.childNodes[pos],'before');
+                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos],'before');
                 }else if(c == t.newLine){
-                    dojo.create('br',{style:f},t.frame.childNodes[pos],'before');
+                    dojo.create('br',{style:f},dojo.byId('thisFrame').childNodes[pos],'before');
                 }else{
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},t.frame.childNodes[pos],'before');
+                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos],'before');
                 }                
             }else{
                 if(c == t.newSpace){
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},t.frame.childNodes[pos-sel],'after');
+                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos-sel],'after');
                 }else if(c == t.newLine){
-                    dojo.create('br',{style:f},t.frame.childNodes[pos-sel],'after');
+                    dojo.create('br',{style:f},dojo.byId('thisFrame').childNodes[pos-sel],'after');
                 }else{
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},t.frame.childNodes[pos-sel],'after');
+                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos-sel],'after');
                 }
             }
         }
@@ -212,11 +212,11 @@ define([
         t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
         //2. custom render
         if(pos<t.value.start){
-            if(t.frame.childNodes[pos])
-                dojo.destroy(t.frame.childNodes[pos]);
+            if(dojo.byId('thisFrame').childNodes[pos])
+                dojo.destroy(dojo.byId('thisFrame').childNodes[pos]);
         }else{
-            if(t.frame.childNodes[pos+1-sel])
-                dojo.destroy(t.frame.childNodes[pos+1-sel]);   
+            if(dojo.byId('thisFrame').childNodes[pos+1-sel])
+                dojo.destroy(dojo.byId('thisFrame').childNodes[pos+1-sel]);   
         }
         this._textarea._scrollWith();
         
@@ -237,11 +237,11 @@ define([
         var f = (filter == null || undefined) ? [] : filter;
         t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f.join("")}]).concat(t.value.string.slice(pos+1));
         if(pos<t.value.start){
-            t.frame.childNodes[pos].innerHTML = c;
-            dojo.attr(t.frame.childNodes[pos], 'style', dojo.attr(t.frame.childNodes[pos],'style')+filter.join(""));
+            dojo.byId('thisFrame').childNodes[pos].innerHTML = c;
+            dojo.attr(dojo.byId('thisFrame').childNodes[pos], 'style', dojo.attr(dojo.byId('thisFrame').childNodes[pos],'style')+filter.join(""));
         }else{
-            t.frame.childNodes[pos+1-sel].innerHTML = c;
-            dojo.attr(t.frame.childNodes[pos], 'style', dojo.attr(t.frame.childNodes[pos+1-sel],'style')+filter.join(""));
+            dojo.byId('thisFrame').childNodes[pos+1-sel].innerHTML = c;
+            dojo.attr(dojo.byId('thisFrame').childNodes[pos], 'style', dojo.attr(dojo.byId('thisFrame').childNodes[pos+1-sel],'style')+filter.join(""));
         }
     };
 
@@ -323,8 +323,8 @@ define([
         this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
         this.collab.subscribeStateRequest(this, 'onStateRequest');
     	this.collab.subscribeStateResponse(this, 'onStateResponse');
-    	dojo.connect(this._textarea.div, 'onkeypress', this, '_updatePOR');
-    	dojo.connect(this._textarea.div, 'onmouseup', this, '_forcePOR');
+    	dojo.connect(dojo.byId('thisDiv'), 'onkeypress', this, '_updatePOR');
+    	dojo.connect(dojo.byId('thiDiv'), 'onmouseup', this, '_forcePOR');
     };
 
     proto._getValueAttr = function() {
@@ -346,7 +346,7 @@ define([
     };
     
     proto._buildSlider = function() {
-        var node = dojo.create('div',{'class':'slider',id:'sliderHolder'},this._textarea.toolbar.domNode,'after');
+        var node = dojo.create('div',{'class':'slider',id:'sliderHolder'},dijit.byId('tToolbar').domNode,'after');
         var holder = dojo.create('div',{'style':'width:100%;height:100%'},node);
         var slider = new Slider({'domNode':holder,textarea:this._textarea,'id':'slider','parent':this});
         return slider;
@@ -354,7 +354,7 @@ define([
     
     proto._buildShareButton = function(){
         var button = new ShareButton({
-            'domNode':this._textarea.toolbar.domNode,
+            'domNode':dijit.byId('tToolbar').domNode,
             'listenTo':this,
             'id':'shareButton',
             'displayButton':false});
