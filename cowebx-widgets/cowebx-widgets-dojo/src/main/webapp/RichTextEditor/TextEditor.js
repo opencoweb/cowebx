@@ -28,13 +28,17 @@ define([
         this.max            =   0;              //Max caret pos in iteration loop
         this.on             =   true;           //Turn on/off outgoing syncs
         this.value          =   '';
+        this._prevPor       =   {start : 0, end: 0};
+        this._site          =   null;
+        this._sites         =   {};
         
         if(this.go == true)
             this.listenInit();
     };
     var proto = TextEditor.prototype;
     
-    proto.onCollabReady = function(){
+    proto.onCollabReady = function(obj){
+        this._site = obj.site;
         this.collab.pauseSync();
     };
 
@@ -99,6 +103,14 @@ define([
                     }
                 }
             }
+            
+            //Remote Carets
+            if(this._por.start != this._prevPor.start){
+                this.collab.sendSync('editorCaret', {'start':this._por.start,'end':this._por.end,'site':this._site}, null);
+                this._prevPor.start = this._por.start;
+                this._prevPor.end = this._por.end;
+                console.log('same');
+            }
         }
     };
     
@@ -136,6 +148,18 @@ define([
     
     proto.onRemoteChange = function(obj){
         this.q.push(obj);
+    };
+    
+    proto.onRemoteCaretMove = function(obj){
+        
+    };
+    
+    proto.onRemoteSiteJoin = function(obj){
+        this._sites[obj.site] = '#'+Math.floor(Math.random()*16777215).toString(16);
+    };
+    
+    proto.onRemoteSiteLeave = function(obj){
+        delete this._sites[obj.site];
     };
         
     proto.insertChar = function(c, pos, filter) {
@@ -316,6 +340,9 @@ define([
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
         this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
+        this.collab.subscribeSync('editorCaret', this, 'onRemoteCaretMove');
+        this.collab.subscribeSiteJoin(this,'onRemoteSiteJoin');
+        this.collab.subscribeSiteLeave(this,'onRemoteSiteLeave');
         this.collab.subscribeStateRequest(this, 'onStateRequest');
     	this.collab.subscribeStateResponse(this, 'onStateResponse');
     	dojo.connect(dojo.byId('thisDiv'), 'onkeypress', this, '_updatePOR');
