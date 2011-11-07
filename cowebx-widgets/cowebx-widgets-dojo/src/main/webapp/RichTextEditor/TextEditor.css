@@ -3,6 +3,12 @@
     border-left:1px solid black;
 }
 
+.remoteSelection{
+    background:#99CCFF;
+    border-left:1px solid black;
+    display: inline;
+}
+
 ::selection {
     background: #99CCFF;
 }
@@ -12,7 +18,10 @@
 }
 
 #lineNumbers{
-   width:100%;height:100%;background:grey;min-width:30px;
+   width:100%;
+   height:100%;
+   background:grey;
+   min-width:30px;
 }
 
 #thisDiv{

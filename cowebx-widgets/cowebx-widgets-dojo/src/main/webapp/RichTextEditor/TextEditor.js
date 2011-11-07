@@ -3,7 +3,8 @@ define([
     'coweb/main',
     './ld', 
     './textarea',
-], function(dojo,coweb,ld,textarea) {
+    'coweb/ext/attendance'
+], function(dojo,coweb,ld,textarea,attendance) {
     var TextEditor = function(args){
         if(!args.id)
             throw new Error('TextEditor: missing id argument'); 
@@ -30,7 +31,7 @@ define([
         this.value          =   '';
         this._prevPor       =   {start : 0, end: 0};
         this._site          =   null;
-        this._sites         =   {};
+        this.sites         =   {};
         
         if(this.go == true)
             this.listenInit();
@@ -151,15 +152,23 @@ define([
     };
     
     proto.onRemoteCaretMove = function(obj){
+        console.log(obj.value);
+        //1. Query all nodes in doc, remove selection
+        var nl = dojo.query("#thisDiv span,#thisDiv br");
+        var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length));
         
     };
     
-    proto.onRemoteSiteJoin = function(obj){
-        this._sites[obj.site] = '#'+Math.floor(Math.random()*16777215).toString(16);
+    proto.onUserJoin = function(users){
+        console.log("JOIN");
+        //this.sites[obj.site] = '#'+Math.floor(Math.random()*16777215).toString(16);
+        //this.sites[obj.site] = obj.username;
+        console.log(this.sites);
+        //dojo.create('div',{id:obj.site,'class':'remoteSelection'},dojo.byId('thisFrame'),'first');
     };
     
-    proto.onRemoteSiteLeave = function(obj){
-        delete this._sites[obj.site];
+    proto.onUserLeave = function(users){
+        //delete this.sites[obj.site];
     };
         
     proto.insertChar = function(c, pos, filter) {
@@ -341,8 +350,15 @@ define([
         this.collab.subscribeReady(this,'onCollabReady');
         this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
         this.collab.subscribeSync('editorCaret', this, 'onRemoteCaretMove');
-        this.collab.subscribeSiteJoin(this,'onRemoteSiteJoin');
-        this.collab.subscribeSiteLeave(this,'onRemoteSiteLeave');
+        attendance.subscribeChange(this, function(params){
+            if(!params.users[0])
+    			return;
+    		if(params.type == "join"){
+    			this.onUserJoin(params.users);
+    		}else if(params.type == "leave"){
+    			this.onUserLeave(params.users);
+    		}
+        });
         this.collab.subscribeStateRequest(this, 'onStateRequest');
     	this.collab.subscribeStateResponse(this, 'onStateResponse');
     	dojo.connect(dojo.byId('thisDiv'), 'onkeypress', this, '_updatePOR');
