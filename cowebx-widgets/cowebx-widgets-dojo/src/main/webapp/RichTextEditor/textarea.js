@@ -1300,8 +1300,13 @@ define([
 //Build functions
     
     proto._buildTemplates = function(){
-        dojo.create('div',{'style':'height:100%;min-width:800px;',id:'tContainer'},this.domNode);
-        //1. Table
+        //1. Outer table
+        var outerTable = dojo.create('table',{'class':'outerTable'},this.domNode);
+        var outerRow = dojo.create('tr',{'style':'width:100%;height:100%;'},outerTable);
+        var cell1 = dojo.create('td',{'style':'height:100%;'},outerRow,'first');
+        var cell2 = dojo.create('td',{'style':'width:200px;height:100%;',id:'attendeeListContainer','class':'attendeeListContainer'},outerRow,'last');
+        dojo.create('div',{'style':'height:100%;min-width:800px;',id:'tContainer'},cell1);
+        //2. Table
         this._div = dojo.create('div', {'style':'width:100%;height:100%;overflow-y:auto;',id:'divHolder'}, dojo.byId('tContainer'));
         var table = dojo.create('table',{'class':'divTable'},this._div);
         var tr = dojo.create('tr',{'style':'width:100%;height:100%;'},table);
@@ -1310,11 +1315,11 @@ define([
         var d = dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, td2);
         var l = dojo.create('div', {id:'lineNumbers','class':'lineNumbers'}, td1);
         dojo.create('div',{id:'thisFrame'},dojo.byId('thisDiv'),'first');
-        //2. Toolbar, footer, & confirm dialog
+        //3. Toolbar, footer, & confirm dialog
         this._buildToolbar();
         this._buildFooter();
         this._buildConfirmDialog();
-        //3. Slider & ShareButton
+        //4. Slider & ShareButton
         var node = dojo.create('div',{'class':'slider',id:'sliderHolder'},dijit.byId('tToolbar').domNode,'after');
         var holder = dojo.create('div',{'style':'width:100%;height:100%'},node);
         this.slider = new Slider({'domNode':holder,textarea:this,'id':'slider','parent':this.parent});
@@ -1323,9 +1328,9 @@ define([
             'listenTo':this.parent,
             'id':'shareButton',
             'displayButton':false});
-        //3. Caret
+        //5. Caret
         dojo.create('span',{id:'selection','class':'selection'},dojo.byId('thisFrame'),'last');
-        //4. iPad keyboard trigger
+        //6. iPad keyboard trigger
         dojo.create('textarea',{id:'ipadFloat','class':'ipadFloat'},dojo.byId('thisDiv'),'first');
     };
     

@@ -233,3 +233,34 @@
     opacity:0;
     position:absolute;
 }
+
+.outerTable{
+    width:100%;
+    border-spacing:0px;
+    border-collapse:true;
+}
+
+.attendeeListContainer{
+    background:white;
+    overflow-y:auto;
+    vertical-align:top;
+}
+
+.attendee{
+    font: 18px arial;
+    padding:5px;
+    width:95%;
+    margin-left:auto;
+    margin-right:auto;
+    border-bottom:1px solid grey;
+}
+
+.attendeeColor{
+    width:20px;
+    height:20px;
+    border:1px solid black;
+    display:inline-block;
+    position:relative;
+    top:5px;
+    margin-right:5px;
+}

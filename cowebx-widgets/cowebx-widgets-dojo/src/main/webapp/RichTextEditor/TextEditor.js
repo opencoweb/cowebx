@@ -3,8 +3,9 @@ define([
     'coweb/main',
     './ld', 
     './textarea',
+    './AttendeeList',
     'coweb/ext/attendance'
-], function(dojo,coweb,ld,textarea,attendance) {
+], function(dojo,coweb,ld,textarea,AttendeeList,attendance) {
     var TextEditor = function(args){
         if(!args.id)
             throw new Error('TextEditor: missing id argument'); 
@@ -19,6 +20,7 @@ define([
         this._por           =   {start : 0, end: 0};
         this._container     =   dojo.create('div',{'class':'container'},args.domNode);
         this._textarea      =   new textarea({domNode:this._container,'id':'_textarea',parent:this,noSlider:true});
+        this._attendeeList  =   new AttendeeList({domNode:dojo.byId('attendeeListContainer'), id:'_attendeeList'});
         this._util          =   new ld({});
         this.oldSnapshot    =   this.snapshot();
         this.newSnapshot    =   '';
@@ -138,6 +140,19 @@ define([
     
     proto.onRemoteChange = function(obj){
         this.q.push(obj);
+    };
+    
+    proto.onUserChange = function(params) {
+        //Break if empty object
+		if(!params.users[0])
+			return;
+		if(params.type == "join"){
+			//Locally create a new listItem for the user
+			this._attendeeList.onLocalUserJoin(params.users);
+		}else if(params.type == "leave"){
+			//Locally delete listItem for the user
+			this._attendeeList.onUserLeave(params.users);
+		}
     };
         
     proto.insertChar = function(c, pos, filter) {
@@ -276,7 +291,8 @@ define([
             value: this._textarea.value,
             oldSnapshot: this.oldSnapshot,
             history : this._textarea.slider.history,
-            title: this._textarea.title
+            title: this._textarea.title,
+            attendees: this._attendeeList.attendees
         };
         this.collab.sendStateResponse(state,token);
     };
@@ -290,6 +306,9 @@ define([
         this._textarea.value.end = 0;
         this._textarea.render();
         this._textarea.slider.history = obj.history;
+        this._attendeeList.attendees = obj.attendees;
+        for(var i in obj.attendees)
+            this._attendeeList.createUserEntry(obj.attendees[i]['name'], i);
     };
     
     proto._moveCaretToPOR = function() {
@@ -322,6 +341,8 @@ define([
     	this.collab.subscribeStateResponse(this, 'onStateResponse');
     	dojo.connect(dojo.byId('thisDiv'), 'onkeypress', this, '_updatePOR');
     	dojo.connect(dojo.byId('thiDiv'), 'onmouseup', this, '_forcePOR');
+    	//AttendeeList connects
+    	attendance.subscribeChange(this, 'onUserChange');
     };
 
     proto._getValueAttr = function() {
