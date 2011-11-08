@@ -18,7 +18,7 @@ define([
         //3. properties
         this._por           =   {start : 0, end: 0};
         this._container     =   dojo.create('div',{'class':'container'},args.domNode);
-        this._textarea      =   new textarea({domNode:this._container,'id':'_textarea',parent:this});
+        this._textarea      =   new textarea({domNode:this._container,'id':'_textarea',parent:this,noSlider:true});
         this._util          =   new ld({});
         this.oldSnapshot    =   this.snapshot();
         this.newSnapshot    =   '';
