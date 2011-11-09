@@ -29,6 +29,7 @@ define([
         
         //4. properties
         this.value              =   {start:0,end:0,string:[]};
+        this.attendees          =   {};
         this.displayCaret       =   false;
         this.title              =   'Untitled Document';
         this.newLine            =   '^';
@@ -51,7 +52,6 @@ define([
 
     // Rips through all of this.value and blasts proper html equiv into dom
     proto.render = function(slider) {
-        console.log('full render');
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var a = [];
@@ -95,9 +95,15 @@ define([
         dojo.byId('thisFrame').innerHTML = tempA;
         dojo.create('span',{id:'selection',innerHTML:tempB,'class':'selection'},dojo.byId('thisFrame'),'last');
         dojo.byId('thisFrame').innerHTML = dojo.byId('thisFrame').innerHTML + tempC;
+        
+        //dojo.create('div',{id:'caret'+obj.value.site,'class':'remoteSelection'},dojo.byId('thisFrame'),'first');
+        for(var x in this.attendees){
+            console.log(this.attendees[x]['start']);
+        }
 
-        //Get char object
+        //Render other stuff
         this._renderLineNumbers();
+        this._scrollWith();
 
         if(!slider || slider==false)
            dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
@@ -110,12 +116,8 @@ define([
         var v = this.value;
         if(paste)
             this._paste = true;
-        
-        //1. clear selection if there is one
         if(start != end)
             this.destroySelection();
-        
-        //2. change string in memory
         for(var i=c.length-1; i>=0; i--){
             var f = this.filters.slice();
             if(!paste || paste==undefined){
@@ -127,21 +129,7 @@ define([
             v.end = v.start;
         }
         dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
-        this._scrollWith();
-        
-        //3. custom partial render of dom
-        // for(var i=0; i<c.length; i++){
-        //             var filters = v.string[v.start-i-1]['filters'].join("");
-        //             if(c[i] == this.newSpace){
-        //                 var node = dojo.create('span',{innerHTML:'&nbsp; ', 'style':filters},dojo.byId('selection'),'before');
-        //             }else if(c[i] == this.newLine){
-        //                 dojo.create('br',{},dojo.byId('selection'),'before');
-        //             }else{
-        //                 var node = dojo.create('span',{innerHTML:c[i],'style':filters},dojo.byId('selection'),'before');
-        //             }
-        //         }
         this.render();
-        
         this._lock = false;  
     };
     
@@ -153,7 +141,6 @@ define([
             var v = this.value;
             if(!n)
                 var n = 1;
-            
             if(start != end){
                 this.destroySelection();
             }else if(this.value.start>0){
@@ -164,21 +151,11 @@ define([
                     v.start = v.start - n;
                     v.end = v.start;
                 }
-                
-                // if(dojo.byId('selection').previousSibling){
-                //                     for(var i=0; i<n; i++){
-                //                         dojo.destroy(dojo.byId('selection').previousSibling);
-                //                     }
-                //                 }else{
-                //                     dojo.byId('thisFrame').innerHTML = '';
-                //                     dojo.create('span',{id:'selection',innerHTML:'','class':'selection'},dojo.byId('thisFrame'),'last');
-                //                 }
                 this.render();
             }
             dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
             this._lock = false; 
         }
-        this._scrollWith();
     };
 
     // Clears current selection, sends caret to DIR ('left' or 'right') & custom render
@@ -190,21 +167,9 @@ define([
              if(!dir || dir == 'left'){
                 v.start = start;
                 v.end = start;
-                // dojo.query('#selection > *').forEach(function(node, index, arr){
-                //     dojo.removeClass(node,'trans');
-                // });
-                // var tmp = dojo.byId('selection').innerHTML+'';
-                // dojo.byId('selection').innerHTML = '';
-                // dojo.place(tmp,'selection','after');
             }else if(dir && dir == 'right'){
                 v.start = end;
                 v.end = end;
-                // dojo.query('#selection > *').forEach(function(node, index, arr){
-                //                     dojo.removeClass(node,'trans');
-                //                 });
-                //                 var tmp = dojo.byId('selection').innerHTML+'';
-                //                 dojo.byId('selection').innerHTML = '';
-                //                 dojo.place(tmp,'selection','before');
             }
             this.render();
         }
@@ -218,10 +183,6 @@ define([
         this.value.end = start;
         v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
         this.render();
-        // var selection = dojo.create('span',{innerHTML:'','class':'selection'},'selection','after');
-        //  dojo.destroy('selection');
-        //  dojo.attr(selection, 'id', 'selection');
-        //  dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     // Select all text & full render
@@ -233,11 +194,6 @@ define([
             v.end=v.string.length;
             v.start=0;
             this.render();
-            // dojo.destroy('selection');
-            //             var tmp = dojo.byId('thisFrame').innerHTML+'';
-            //             dojo.byId('thisFrame').innerHTML = '';
-            //             dojo.create('span',{id:'selection',innerHTML:tmp,'class':'selection'},dojo.byId('thisFrame'),'last');
-
         }
     };
     
@@ -297,62 +253,35 @@ define([
             if(count >= this._lineIndex){
                 if(lineAbove[this._lineIndex]){
                     if(select){
-                        //console.log('1');
-                        // var a = dojo.query('#selection span, #selection br');
-                        // var newSel = nl.slice( nl.indexOf(lineAbove[this._lineIndex].node) , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                        // newSel.forEach(function(node, index, arr){
-                        //     dojo.addClass(node,'trans');
-                        // });
                         this.value.start = lineAbove[this._lineIndex].index; 
                         this.render();
                     }else{
                         this.value.start = lineAbove[this._lineIndex].index;
                         this.value.end = lineAbove[this._lineIndex].index;
                         this.render();
-                        //dojo.place('selection', lineAbove[this._lineIndex].node, 'before');
                     }
                 }else{
                     if(select){
-                        //console.log('2');
-                        // var a = dojo.query('#selection span, #selection br');
-                        //                         var newSel = nl.slice( nl.indexOf(lineAbove[this._lineIndex-1].node)+1 , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                        //                         newSel.forEach(function(node, index, arr){
-                        //                             dojo.addClass(node,'trans');
-                        //                         });
                         this.value.start = lineAbove[this._lineIndex-1].index+1;
                         this.render();
                     }else{
                         this.value.start = lineAbove[this._lineIndex-1].index+1;
                         this.value.end = lineAbove[this._lineIndex-1].index+1;
                         this.render();
-                        //dojo.place('selection', lineAbove[this._lineIndex-1].node, 'after');
                     }
                 }
             }else if(count < this._lineIndex){
                 if(select){
-                    //console.log('3');
-                    // var a = dojo.query('#selection span, #selection br');
-                    //                     var newSel = nl.slice( nl.indexOf(lineAbove[count-1].node)+1, nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                    //                     newSel.forEach(function(node, index, arr){
-                    //                         dojo.addClass(node,'trans');
-                    //                     });
                     this.value.start = lineAbove[0].index+count;
                     this.render();
                 }else{
                     this.value.start = lineAbove[0].index+count;
                     this.value.end = lineAbove[0].index+count;
                     this.render();
-                    //dojo.place('selection', lineAbove[count-1].node, 'after');
                 }
             }
         }else{
             if(select){
-                //console.log('4');
-                // var a = dojo.query('#selection span, #selection br');
-                //                 var newSel = nl.slice( nl.indexOf(line[0].node), nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                //                 newSel.forEach(function(node, index, arr){
-                //                     dojo.addClass(node,'trans');
-                //                 });
                 this.value.start = line[0].index;
                 this.render();
                 this.moveCaretLeft(true);
@@ -361,11 +290,10 @@ define([
                     this.value.start = line[0].index-1;
                     this.value.end = line[0].index-1;
                     this.render();
-                    //dojo.place('selection', line[0].node.previousSibling, 'before');   
                 }
             }
         }
-        this._scrollWith();
+        
     };
     
     // Move caret down one line & custom render
@@ -404,49 +332,31 @@ define([
             if(count >= this._lineIndex){
                 if(lineBelow[this._lineIndex]){
                     if(select){
-                        //console.log('1');
-                        // var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[this._lineIndex].node)).place(dojo.byId('selection'));
-                        //                         newSel.forEach(function(node, index, arr){
-                        //                             dojo.addClass(node,'trans');
-                        //                         });
                         this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
                         this.render();
                     }else{
                         this.value.start = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
                         this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
                         this.render();
-                        //dojo.place('selection', lineBelow[this._lineIndex].node, 'before');
                     }
                 }else{
                     if(select){
-                        //console.log('2');
-                        // var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[this._lineIndex-1].node)+1).place(dojo.byId('selection'));
-                        //                         newSel.forEach(function(node, index, arr){
-                        //                             dojo.addClass(node,'trans');
-                        //                         });
                         this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
                         this.render();
                     }else{
                         this.value.start = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
                         this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
                         this.render();
-                        //dojo.place('selection', lineBelow[this._lineIndex-1].node, 'after');
                     }
                 }
             }else if(count < this._lineIndex){
                 if(select){
-                    //console.log('3');
-                    // var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[count-1].node)+1).place(dojo.byId('selection'));
-                    //                     newSel.forEach(function(node, index, arr){
-                    //                         dojo.addClass(node,'trans');
-                    //                     });
                     this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
                     this.render();
                 }else{
                     this.value.start = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
                     this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
                     this.render();
-                    //dojo.place('selection', lineBelow[count-1].node, 'after');
                 }
             }
         }else{
@@ -465,10 +375,6 @@ define([
                         }
                         i++;
                     }));
-                    // var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(line[this._count(line)-1].node)+1).place(dojo.byId('selection'));
-                    //                     newSel.forEach(function(node, index, arr){
-                    //                         dojo.addClass(node,'trans');
-                    //                     });
                     this.value.end = line[this._count(line)-1].index;
                     this.render();
                 }else{
@@ -479,42 +385,26 @@ define([
                     this.value.start = line[this._count(line)-1].index+1;
                     this.value.end = line[this._count(line)-1].index+1;
                     this.render();
-                    //dojo.place('selection', line[this._count(line)-1].node.nextSibling, 'after');   
                 }
             }
         }
-        this._scrollWith();
     };
     
     // Move caret left one char & custom render
     proto.moveCaretLeft = function(select) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
-        var end = (this.value.end>this.value.start) ? this.value.end : this.value.start; 
+        var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
         if(!select){
-            if(dojo.byId('selection').childNodes.length > 0){
-                this.clearSelection('left');
-            }else{
-                if(start>0){
-                    start--;
-                    end = start;
-                    this.value.start = start;
-                    this.value.end = end;
-                    this.render();
-                    //var tmp = dojo.byId('selection').previousSibling;
-                    //dojo.place(tmp, dojo.byId('selection'), 'after');
-                }   
-            }
-        }else{
-            if(start>0){
+            if(start>0)
                 start--;
-                this.value.start = start;
-                this.render();
-                //var tmp = dojo.byId('selection').previousSibling;
-                //dojo.place(tmp, dojo.byId('selection'), 'first');
-                //dojo.addClass(tmp, 'trans');
-            }
+            end = start;
+        }else{
+            if(start>0)
+                start--;
         }
-        this._scrollWith();
+        this.value.start = start;
+        this.value.end = end;
+        this.render();
         this._lock = false;  
     };
     
@@ -523,30 +413,16 @@ define([
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
         if(!select){
-            if(dojo.byId('selection').childNodes.length > 0){
-                this.clearSelection('right');
-            }else{
-                if(end<this.value.string.length){
-                    end++;
-                    start = end;
-                    this.value.start = start;
-                    this.value.end = end;
-                    this.render();
-                    //var tmp = dojo.byId('selection').nextSibling;
-                    //dojo.place(tmp, dojo.byId('selection'), 'before');
-                }
-            }
-        }else{
-            if(end<this.value.string.length){
+            if(end<this.value.string.length)
                 end++;
-                this.value.end = end;
-                this.render();
-                //var tmp = dojo.byId('selection').nextSibling;
-                //dojo.place(tmp, dojo.byId('selection'), 'last');
-                //dojo.addClass(tmp, 'trans');
-            }
+            start = end;
+        }else{
+            if(end<this.value.string.length)
+                end++;
         }
-        this._scrollWith();
+        this.value.start = start;
+        this.value.end = end;
+        this.render();
         this._lock = false;  
     };
     
@@ -555,12 +431,6 @@ define([
         this.value.start = this.value.string.length;
         this.value.end = this.value.string.length;
         this.render();
-        // var last = null;
-        //         var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-        //             last = node;
-        //         }));
-        //         if(last)
-        //             dojo.place(dojo.byId('selection'),last,'after');
     };
     
     // Move caret to beginning of text
@@ -568,12 +438,6 @@ define([
         this.value.start = 0;
         this.value.end = 0;
         this.render();
-        // var first = null;
-        //         var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-        //             if(!first)
-        //                 first = node;
-        //         }));
-        //         dojo.place(dojo.byId('selection'),first,'before');
     };
     
 // Utility functions
@@ -1253,13 +1117,6 @@ define([
             this.value.start = nlFixed.indexOf(start);
             this.value.end = (end == null) ? nlFixed.length : nlFixed.indexOf(end);
             this.render();
-            // var tmp = nlFixed.slice(this.value.start,this.value.end);
-            //             
-            //             //5. Place selected nodes into thisselection
-            //             tmp.forEach(function(node, index, array){
-            //                 dojo.place(node, dojo.byId('selection'), 'last');
-            //                 dojo.addClass(node,'trans');
-            //             });
             window.getSelection().removeAllRanges();
             
         //If clicking
@@ -1282,7 +1139,6 @@ define([
                 this.value.start = end;
                 this.value.end = end;
                 this.render();
-                //dojo.place('selection',endNode,'after');
             }
         }
     };
