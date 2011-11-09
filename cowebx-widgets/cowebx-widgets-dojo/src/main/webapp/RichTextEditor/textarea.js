@@ -76,7 +76,7 @@ define([
                }else if(i>=end){
                    c.push('<span style='+filter+'>&nbsp; </span>');
                }else{
-                   b.push('<span style='+filter+'>&nbsp; </span>')
+                   b.push('<span style='+filter+'>&nbsp; </span>');
                }
            }else{
                if(i<start){
@@ -130,16 +130,17 @@ define([
         this._scrollWith();
         
         //3. custom partial render of dom
-        for(var i=0; i<c.length; i++){
-            var filters = v.string[v.start-i-1]['filters'].join("");
-            if(c[i] == this.newSpace){
-                var node = dojo.create('span',{innerHTML:'&nbsp; ', 'style':filters},dojo.byId('selection'),'before');
-            }else if(c[i] == this.newLine){
-                dojo.create('br',{},dojo.byId('selection'),'before');
-            }else{
-                var node = dojo.create('span',{innerHTML:c[i],'style':filters},dojo.byId('selection'),'before');
-            }
-        }
+        // for(var i=0; i<c.length; i++){
+        //             var filters = v.string[v.start-i-1]['filters'].join("");
+        //             if(c[i] == this.newSpace){
+        //                 var node = dojo.create('span',{innerHTML:'&nbsp; ', 'style':filters},dojo.byId('selection'),'before');
+        //             }else if(c[i] == this.newLine){
+        //                 dojo.create('br',{},dojo.byId('selection'),'before');
+        //             }else{
+        //                 var node = dojo.create('span',{innerHTML:c[i],'style':filters},dojo.byId('selection'),'before');
+        //             }
+        //         }
+        this.render();
         
         this._lock = false;  
     };
@@ -163,15 +164,16 @@ define([
                     v.start = v.start - n;
                     v.end = v.start;
                 }
-
-                if(dojo.byId('selection').previousSibling){
-                    for(var i=0; i<n; i++){
-                        dojo.destroy(dojo.byId('selection').previousSibling);
-                    }
-                }else{
-                    dojo.byId('thisFrame').innerHTML = '';
-                    dojo.create('span',{id:'selection',innerHTML:'','class':'selection'},dojo.byId('thisFrame'),'last');
-                }
+                
+                // if(dojo.byId('selection').previousSibling){
+                //                     for(var i=0; i<n; i++){
+                //                         dojo.destroy(dojo.byId('selection').previousSibling);
+                //                     }
+                //                 }else{
+                //                     dojo.byId('thisFrame').innerHTML = '';
+                //                     dojo.create('span',{id:'selection',innerHTML:'','class':'selection'},dojo.byId('thisFrame'),'last');
+                //                 }
+                this.render();
             }
             dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
             this._lock = false; 
@@ -188,22 +190,23 @@ define([
              if(!dir || dir == 'left'){
                 v.start = start;
                 v.end = start;
-                dojo.query('#selection > *').forEach(function(node, index, arr){
-                    dojo.removeClass(node,'trans');
-                });
-                var tmp = dojo.byId('selection').innerHTML+'';
-                dojo.byId('selection').innerHTML = '';
-                dojo.place(tmp,'selection','after');
+                // dojo.query('#selection > *').forEach(function(node, index, arr){
+                //     dojo.removeClass(node,'trans');
+                // });
+                // var tmp = dojo.byId('selection').innerHTML+'';
+                // dojo.byId('selection').innerHTML = '';
+                // dojo.place(tmp,'selection','after');
             }else if(dir && dir == 'right'){
                 v.start = end;
                 v.end = end;
-                dojo.query('#selection > *').forEach(function(node, index, arr){
-                    dojo.removeClass(node,'trans');
-                });
-                var tmp = dojo.byId('selection').innerHTML+'';
-                dojo.byId('selection').innerHTML = '';
-                dojo.place(tmp,'selection','before');
+                // dojo.query('#selection > *').forEach(function(node, index, arr){
+                //                     dojo.removeClass(node,'trans');
+                //                 });
+                //                 var tmp = dojo.byId('selection').innerHTML+'';
+                //                 dojo.byId('selection').innerHTML = '';
+                //                 dojo.place(tmp,'selection','before');
             }
+            this.render();
         }
     };
     
@@ -212,12 +215,13 @@ define([
         var v = this.value;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
-        var selection = dojo.create('span',{innerHTML:'','class':'selection'},'selection','after');
-        dojo.destroy('selection');
-        dojo.attr(selection, 'id', 'selection');
-        v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
         this.value.end = start;
-        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
+        v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
+        this.render();
+        // var selection = dojo.create('span',{innerHTML:'','class':'selection'},'selection','after');
+        //  dojo.destroy('selection');
+        //  dojo.attr(selection, 'id', 'selection');
+        //  dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     // Select all text & full render
@@ -226,12 +230,14 @@ define([
         if(!(v.end == 0 && v.start == v.string.length)){
             if(v.start != v.end)
                 this.clearSelection('right');
-            dojo.destroy('selection');
-            var tmp = dojo.byId('thisFrame').innerHTML+'';
-            dojo.byId('thisFrame').innerHTML = '';
-            dojo.create('span',{id:'selection',innerHTML:tmp,'class':'selection'},dojo.byId('thisFrame'),'last');
             v.end=v.string.length;
             v.start=0;
+            this.render();
+            // dojo.destroy('selection');
+            //             var tmp = dojo.byId('thisFrame').innerHTML+'';
+            //             dojo.byId('thisFrame').innerHTML = '';
+            //             dojo.create('span',{id:'selection',innerHTML:tmp,'class':'selection'},dojo.byId('thisFrame'),'last');
+
         }
     };
     
@@ -292,62 +298,70 @@ define([
                 if(lineAbove[this._lineIndex]){
                     if(select){
                         //console.log('1');
-                        var a = dojo.query('#selection span, #selection br');
-                        var newSel = nl.slice( nl.indexOf(lineAbove[this._lineIndex].node) , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                        newSel.forEach(function(node, index, arr){
-                            dojo.addClass(node,'trans');
-                        });
+                        // var a = dojo.query('#selection span, #selection br');
+                        // var newSel = nl.slice( nl.indexOf(lineAbove[this._lineIndex].node) , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
+                        // newSel.forEach(function(node, index, arr){
+                        //     dojo.addClass(node,'trans');
+                        // });
                         this.value.start = lineAbove[this._lineIndex].index; 
+                        this.render();
                     }else{
                         this.value.start = lineAbove[this._lineIndex].index;
                         this.value.end = lineAbove[this._lineIndex].index;
-                        dojo.place('selection', lineAbove[this._lineIndex].node, 'before');
+                        this.render();
+                        //dojo.place('selection', lineAbove[this._lineIndex].node, 'before');
                     }
                 }else{
                     if(select){
                         //console.log('2');
-                        var a = dojo.query('#selection span, #selection br');
-                        var newSel = nl.slice( nl.indexOf(lineAbove[this._lineIndex-1].node)+1 , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                        newSel.forEach(function(node, index, arr){
-                            dojo.addClass(node,'trans');
-                        });
+                        // var a = dojo.query('#selection span, #selection br');
+                        //                         var newSel = nl.slice( nl.indexOf(lineAbove[this._lineIndex-1].node)+1 , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
+                        //                         newSel.forEach(function(node, index, arr){
+                        //                             dojo.addClass(node,'trans');
+                        //                         });
                         this.value.start = lineAbove[this._lineIndex-1].index+1;
+                        this.render();
                     }else{
                         this.value.start = lineAbove[this._lineIndex-1].index+1;
                         this.value.end = lineAbove[this._lineIndex-1].index+1;
-                        dojo.place('selection', lineAbove[this._lineIndex-1].node, 'after');
+                        this.render();
+                        //dojo.place('selection', lineAbove[this._lineIndex-1].node, 'after');
                     }
                 }
             }else if(count < this._lineIndex){
                 if(select){
                     //console.log('3');
-                    var a = dojo.query('#selection span, #selection br');
-                    var newSel = nl.slice( nl.indexOf(lineAbove[count-1].node)+1, nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                    newSel.forEach(function(node, index, arr){
-                        dojo.addClass(node,'trans');
-                    });
+                    // var a = dojo.query('#selection span, #selection br');
+                    //                     var newSel = nl.slice( nl.indexOf(lineAbove[count-1].node)+1, nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
+                    //                     newSel.forEach(function(node, index, arr){
+                    //                         dojo.addClass(node,'trans');
+                    //                     });
                     this.value.start = lineAbove[0].index+count;
+                    this.render();
                 }else{
                     this.value.start = lineAbove[0].index+count;
                     this.value.end = lineAbove[0].index+count;
-                    dojo.place('selection', lineAbove[count-1].node, 'after');
+                    this.render();
+                    //dojo.place('selection', lineAbove[count-1].node, 'after');
                 }
             }
         }else{
             if(select){
                 //console.log('4');
-                var a = dojo.query('#selection span, #selection br');
-                var newSel = nl.slice( nl.indexOf(line[0].node), nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                newSel.forEach(function(node, index, arr){
-                    dojo.addClass(node,'trans');
-                });
+                // var a = dojo.query('#selection span, #selection br');
+                //                 var newSel = nl.slice( nl.indexOf(line[0].node), nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
+                //                 newSel.forEach(function(node, index, arr){
+                //                     dojo.addClass(node,'trans');
+                //                 });
                 this.value.start = line[0].index;
+                this.render();
                 this.moveCaretLeft(true);
             }else{
                 if(line[0].node.previousSibling){
                     this.value.start = line[0].index-1;
                     this.value.end = line[0].index-1;
-                    dojo.place('selection', line[0].node.previousSibling, 'before');   
+                    this.render();
+                    //dojo.place('selection', line[0].node.previousSibling, 'before');   
                 }
             }
         }
@@ -391,42 +405,48 @@ define([
                 if(lineBelow[this._lineIndex]){
                     if(select){
                         //console.log('1');
-                        var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[this._lineIndex].node)).place(dojo.byId('selection'));
-                        newSel.forEach(function(node, index, arr){
-                            dojo.addClass(node,'trans');
-                        });
+                        // var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[this._lineIndex].node)).place(dojo.byId('selection'));
+                        //                         newSel.forEach(function(node, index, arr){
+                        //                             dojo.addClass(node,'trans');
+                        //                         });
                         this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
+                        this.render();
                     }else{
                         this.value.start = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
                         this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
-                        dojo.place('selection', lineBelow[this._lineIndex].node, 'before');
+                        this.render();
+                        //dojo.place('selection', lineBelow[this._lineIndex].node, 'before');
                     }
                 }else{
                     if(select){
                         //console.log('2');
-                        var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[this._lineIndex-1].node)+1).place(dojo.byId('selection'));
-                        newSel.forEach(function(node, index, arr){
-                            dojo.addClass(node,'trans');
-                        });
+                        // var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[this._lineIndex-1].node)+1).place(dojo.byId('selection'));
+                        //                         newSel.forEach(function(node, index, arr){
+                        //                             dojo.addClass(node,'trans');
+                        //                         });
                         this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
+                        this.render();
                     }else{
                         this.value.start = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
                         this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
-                        dojo.place('selection', lineBelow[this._lineIndex-1].node, 'after');
+                        this.render();
+                        //dojo.place('selection', lineBelow[this._lineIndex-1].node, 'after');
                     }
                 }
             }else if(count < this._lineIndex){
                 if(select){
                     //console.log('3');
-                    var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[count-1].node)+1).place(dojo.byId('selection'));
-                    newSel.forEach(function(node, index, arr){
-                        dojo.addClass(node,'trans');
-                    });
+                    // var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[count-1].node)+1).place(dojo.byId('selection'));
+                    //                     newSel.forEach(function(node, index, arr){
+                    //                         dojo.addClass(node,'trans');
+                    //                     });
                     this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
+                    this.render();
                 }else{
                     this.value.start = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
                     this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
-                    dojo.place('selection', lineBelow[count-1].node, 'after');
+                    this.render();
+                    //dojo.place('selection', lineBelow[count-1].node, 'after');
                 }
             }
         }else{
@@ -445,11 +465,12 @@ define([
                         }
                         i++;
                     }));
-                    var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(line[this._count(line)-1].node)+1).place(dojo.byId('selection'));
-                    newSel.forEach(function(node, index, arr){
-                        dojo.addClass(node,'trans');
-                    });
+                    // var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(line[this._count(line)-1].node)+1).place(dojo.byId('selection'));
+                    //                     newSel.forEach(function(node, index, arr){
+                    //                         dojo.addClass(node,'trans');
+                    //                     });
                     this.value.end = line[this._count(line)-1].index;
+                    this.render();
                 }else{
                     this.moveCaretRight(true);
                 }
@@ -457,7 +478,8 @@ define([
                 if(line[this._count(line)-1].node.nextSibling){
                     this.value.start = line[this._count(line)-1].index+1;
                     this.value.end = line[this._count(line)-1].index+1;
-                    dojo.place('selection', line[this._count(line)-1].node.nextSibling, 'after');   
+                    this.render();
+                    //dojo.place('selection', line[this._count(line)-1].node.nextSibling, 'after');   
                 }
             }
         }
@@ -477,17 +499,19 @@ define([
                     end = start;
                     this.value.start = start;
                     this.value.end = end;
-                    var tmp = dojo.byId('selection').previousSibling;
-                    dojo.place(tmp, dojo.byId('selection'), 'after');
+                    this.render();
+                    //var tmp = dojo.byId('selection').previousSibling;
+                    //dojo.place(tmp, dojo.byId('selection'), 'after');
                 }   
             }
         }else{
             if(start>0){
                 start--;
                 this.value.start = start;
-                var tmp = dojo.byId('selection').previousSibling;
-                dojo.place(tmp, dojo.byId('selection'), 'first');
-                dojo.addClass(tmp, 'trans');
+                this.render();
+                //var tmp = dojo.byId('selection').previousSibling;
+                //dojo.place(tmp, dojo.byId('selection'), 'first');
+                //dojo.addClass(tmp, 'trans');
             }
         }
         this._scrollWith();
@@ -507,17 +531,19 @@ define([
                     start = end;
                     this.value.start = start;
                     this.value.end = end;
-                    var tmp = dojo.byId('selection').nextSibling;
-                    dojo.place(tmp, dojo.byId('selection'), 'before');
+                    this.render();
+                    //var tmp = dojo.byId('selection').nextSibling;
+                    //dojo.place(tmp, dojo.byId('selection'), 'before');
                 }
             }
         }else{
             if(end<this.value.string.length){
                 end++;
                 this.value.end = end;
-                var tmp = dojo.byId('selection').nextSibling;
-                dojo.place(tmp, dojo.byId('selection'), 'last');
-                dojo.addClass(tmp, 'trans');
+                this.render();
+                //var tmp = dojo.byId('selection').nextSibling;
+                //dojo.place(tmp, dojo.byId('selection'), 'last');
+                //dojo.addClass(tmp, 'trans');
             }
         }
         this._scrollWith();
@@ -528,24 +554,26 @@ define([
     proto.moveCaretToEnd = function(){
         this.value.start = this.value.string.length;
         this.value.end = this.value.string.length;
-        var last = null;
-        var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-            last = node;
-        }));
-        if(last)
-            dojo.place(dojo.byId('selection'),last,'after');
+        this.render();
+        // var last = null;
+        //         var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
+        //             last = node;
+        //         }));
+        //         if(last)
+        //             dojo.place(dojo.byId('selection'),last,'after');
     };
     
     // Move caret to beginning of text
     proto.moveCaretToStart = function(){
         this.value.start = 0;
         this.value.end = 0;
-        var first = null;
-        var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-            if(!first)
-                first = node;
-        }));
-        dojo.place(dojo.byId('selection'),first,'before');
+        this.render();
+        // var first = null;
+        //         var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
+        //             if(!first)
+        //                 first = node;
+        //         }));
+        //         dojo.place(dojo.byId('selection'),first,'before');
     };
     
 // Utility functions
@@ -1224,13 +1252,14 @@ define([
             //4. Set this.value.start & this.value.end to proper values
             this.value.start = nlFixed.indexOf(start);
             this.value.end = (end == null) ? nlFixed.length : nlFixed.indexOf(end);
-            var tmp = nlFixed.slice(this.value.start,this.value.end);
-            
-            //5. Place selected nodes into thisselection
-            tmp.forEach(function(node, index, array){
-                dojo.place(node, dojo.byId('selection'), 'last');
-                dojo.addClass(node,'trans');
-            });
+            this.render();
+            // var tmp = nlFixed.slice(this.value.start,this.value.end);
+            //             
+            //             //5. Place selected nodes into thisselection
+            //             tmp.forEach(function(node, index, array){
+            //                 dojo.place(node, dojo.byId('selection'), 'last');
+            //                 dojo.addClass(node,'trans');
+            //             });
             window.getSelection().removeAllRanges();
             
         //If clicking
@@ -1252,7 +1281,8 @@ define([
             }else{
                 this.value.start = end;
                 this.value.end = end;
-                dojo.place('selection',endNode,'after');
+                this.render();
+                //dojo.place('selection',endNode,'after');
             }
         }
     };

@@ -24,13 +24,15 @@ define([
         this._util          =   new ld({});
         this.oldSnapshot    =   this.snapshot();
         this.newSnapshot    =   '';
-        this.interval       =   100;           //Broadcast interval in ms
+        this.interval       =   100;            //Broadcast interval in ms
         this.t              =   null;           //Handle for timeouts
         this.q              =   [];             //Queue for incoming ops when paused
         this.min            =   0;              //Min caret pos in iteration loop
         this.max            =   0;              //Max caret pos in iteration loop
         this.on             =   true;           //Turn on/off outgoing syncs
         this.value          =   '';
+        this._prevPor = {start : 0, end: 0};
+        
         
         if(this.go == true)
             this.listenInit();
@@ -103,6 +105,13 @@ define([
                     }
                 }
             }
+            
+            //Remote Carets
+            if(this._por.start != this._prevPor.start){
+                this.collab.sendSync('editorCaret', {'start':this._por.start,'end':this._por.end,'site':this._site}, null);
+                this._prevPor.start = this._por.start;
+                this._prevPor.end = this._por.end;
+            }
         }
     };
     
@@ -154,6 +163,13 @@ define([
 			this._attendeeList.onUserLeave(params.users);
 		}
     };
+    
+    proto.onRemoteCaretMove = function(obj){
+        console.log(obj.value);
+        //1. Query all nodes in doc, remove selection
+        var nl = dojo.query("#thisDiv span,#thisDiv br");
+        var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length)); 
+    };
         
     proto.insertChar = function(c, pos, filter) {
         //1. Adjust string in memory  
@@ -169,35 +185,36 @@ define([
         var f = (filter == null || undefined) ? [] : filter;
         
         t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f}]).concat(t.value.string.slice(pos));
-        
+
         //2. custom render
-        if(pos<t.value.start){
-            if(c == t.newSpace){
-                var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos],'before');
-            }else if(c == t.newLine){
-                dojo.create('br',{style:f,},dojo.byId('thisFrame').childNodes[pos],'before');
-            }else{
-                var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos],'before');
-            }
-        }else{
-            if(pos==t.value.start && sel>0){
-                if(c == t.newSpace){
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos],'before');
-                }else if(c == t.newLine){
-                    dojo.create('br',{style:f},dojo.byId('thisFrame').childNodes[pos],'before');
-                }else{
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos],'before');
-                }                
-            }else{
-                if(c == t.newSpace){
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos-sel],'after');
-                }else if(c == t.newLine){
-                    dojo.create('br',{style:f},dojo.byId('thisFrame').childNodes[pos-sel],'after');
-                }else{
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos-sel],'after');
-                }
-            }
-        }
+        t.render();
+        // if(pos<t.value.start){
+        //            if(c == t.newSpace){
+        //                var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos],'before');
+        //            }else if(c == t.newLine){
+        //                dojo.create('br',{style:f,},dojo.byId('thisFrame').childNodes[pos],'before');
+        //            }else{
+        //                var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos],'before');
+        //            }
+        //        }else{
+        //            if(pos==t.value.start && sel>0){
+        //                if(c == t.newSpace){
+        //                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos],'before');
+        //                }else if(c == t.newLine){
+        //                    dojo.create('br',{style:f},dojo.byId('thisFrame').childNodes[pos],'before');
+        //                }else{
+        //                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos],'before');
+        //                }                
+        //            }else{
+        //                if(c == t.newSpace){
+        //                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos-sel],'after');
+        //                }else if(c == t.newLine){
+        //                    dojo.create('br',{style:f},dojo.byId('thisFrame').childNodes[pos-sel],'after');
+        //                }else{
+        //                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos-sel],'after');
+        //                }
+        //            }
+        //        }
         this._textarea._scrollWith();
         
         //3. Adjust caret in memory
@@ -223,13 +240,14 @@ define([
 
         t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
         //2. custom render
-        if(pos<t.value.start){
-            if(dojo.byId('thisFrame').childNodes[pos])
-                dojo.destroy(dojo.byId('thisFrame').childNodes[pos]);
-        }else{
-            if(dojo.byId('thisFrame').childNodes[pos+1-sel])
-                dojo.destroy(dojo.byId('thisFrame').childNodes[pos+1-sel]);   
-        }
+        t.render();
+        // if(pos<t.value.start){
+        //             if(dojo.byId('thisFrame').childNodes[pos])
+        //                 dojo.destroy(dojo.byId('thisFrame').childNodes[pos]);
+        //         }else{
+        //             if(dojo.byId('thisFrame').childNodes[pos+1-sel])
+        //                 dojo.destroy(dojo.byId('thisFrame').childNodes[pos+1-sel]);   
+        //         }
         this._textarea._scrollWith();
         
         //3. Adjust caret in memory
@@ -248,13 +266,14 @@ define([
         var sel = Math.abs(this._por.start-this._por.end);
         var f = (filter == null || undefined) ? [] : filter;
         t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f.join("")}]).concat(t.value.string.slice(pos+1));
-        if(pos<t.value.start){
-            dojo.byId('thisFrame').childNodes[pos].innerHTML = c;
-            dojo.attr(dojo.byId('thisFrame').childNodes[pos], 'style', dojo.attr(dojo.byId('thisFrame').childNodes[pos],'style')+filter.join(""));
-        }else{
-            dojo.byId('thisFrame').childNodes[pos+1-sel].innerHTML = c;
-            dojo.attr(dojo.byId('thisFrame').childNodes[pos], 'style', dojo.attr(dojo.byId('thisFrame').childNodes[pos+1-sel],'style')+filter.join(""));
-        }
+        t.render();
+        // if(pos<t.value.start){
+        //     dojo.byId('thisFrame').childNodes[pos].innerHTML = c;
+        //     dojo.attr(dojo.byId('thisFrame').childNodes[pos], 'style', dojo.attr(dojo.byId('thisFrame').childNodes[pos],'style')+filter.join(""));
+        // }else{
+        //     dojo.byId('thisFrame').childNodes[pos+1-sel].innerHTML = c;
+        //     dojo.attr(dojo.byId('thisFrame').childNodes[pos], 'style', dojo.attr(dojo.byId('thisFrame').childNodes[pos+1-sel],'style')+filter.join(""));
+        // }
     };
 
     proto.insertString = function(string, pos) {
@@ -306,9 +325,17 @@ define([
         this._textarea.value.end = 0;
         this._textarea.render();
         this._textarea.slider.history = obj.history;
-        this._attendeeList.attendees = obj.attendees;
-        for(var i in obj.attendees)
-            this._attendeeList.createUserEntry(obj.attendees[i]['name'], i);
+        //this._attendeeList.attendees = obj.attendees;
+        for(var i in obj.attendees){
+            var o = {
+                value: {
+                    'site':i,
+                    'name':obj.attendees[i]['name'],
+                    'color':obj.attendees[i]['color']
+                }
+            };
+            this._attendeeList.onRemoteUserJoin(o);
+        }
     };
     
     proto._moveCaretToPOR = function() {
@@ -337,6 +364,7 @@ define([
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
         this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
+        this.collab.subscribeSync('editorCaret', this, 'onRemoteCaretMove');
         this.collab.subscribeStateRequest(this, 'onStateRequest');
     	this.collab.subscribeStateResponse(this, 'onStateResponse');
     	dojo.connect(dojo.byId('thisDiv'), 'onkeypress', this, '_updatePOR');

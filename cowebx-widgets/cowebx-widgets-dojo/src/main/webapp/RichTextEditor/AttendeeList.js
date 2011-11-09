@@ -38,7 +38,7 @@ define([
             name    :   obj.value.name
         };
         this.createUserEntry(obj.value.name,obj.value.site);
-        console.log(this.attendees);
+        dojo.create('div',{id:'caret'+obj.value.site,'class':'remoteSelection'},dojo.byId('thisFrame'),'first');
     };
     
     proto.onUserLeave = function(users){
@@ -54,6 +54,7 @@ define([
     
     proto.destroyUserEntry = function(site){
         dojo.destroy('user'+site);
+        dojo.destroy('caret'+site);
         delete this.attendees[site];
     };
     
