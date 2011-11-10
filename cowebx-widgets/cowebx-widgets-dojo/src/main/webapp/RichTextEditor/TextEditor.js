@@ -20,17 +20,19 @@ define([
         this._por           =   {start : 0, end: 0};
         this._container     =   dojo.create('div',{'class':'container'},args.domNode);
         this._textarea      =   new textarea({domNode:this._container,'id':'_textarea',parent:this,noSlider:true});
-        this._attendeeList  =   new AttendeeList({domNode:dojo.byId('attendeeListContainer'), id:'_attendeeList'});
+        this._attendeeList  =   new AttendeeList({domNode:dojo.byId('attendeeListContainer'), id:'_attendeeList', _textarea:this._textarea});
         this._util          =   new ld({});
         this.oldSnapshot    =   this.snapshot();
         this.newSnapshot    =   '';
-        this.interval       =   100;           //Broadcast interval in ms
+        this.interval       =   100;            //Broadcast interval in ms
         this.t              =   null;           //Handle for timeouts
         this.q              =   [];             //Queue for incoming ops when paused
         this.min            =   0;              //Min caret pos in iteration loop
         this.max            =   0;              //Max caret pos in iteration loop
         this.on             =   true;           //Turn on/off outgoing syncs
         this.value          =   '';
+        this._prevPor = {start : 0, end: 0};
+        
         
         if(this.go == true)
             this.listenInit();
@@ -57,7 +59,7 @@ define([
             this.newSnapshot = this.snapshot();
             var oldLength = this.oldSnapshot.length;
             var newLength = this.newSnapshot.length;
-
+            var syncs = null;
             if(oldLength < newLength){
                 var mx = this.max+(newLength - oldLength);
                 //Paste optimization
@@ -66,7 +68,7 @@ define([
                     for(var i=0; i<text.length; i++)
                         this.collab.sendSync('editorUpdate', {'char':text[i],'filter':[]}, 'insert', i+this.min);
                 }else{
-                    var syncs = this._util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
+                    syncs = this._util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
                     if(syncs){
                         for(var i=0; i<syncs.length; i++){
                             if(this._textarea._paste){
@@ -80,7 +82,7 @@ define([
             }else if(newLength < oldLength){
                 var mx = this.max+(oldLength-newLength);
                 var mn = (this.min-1 > -1) ? this.min-1 : 0;
-                var syncs = this._util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
+                syncs = this._util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         if(this._textarea._paste){
@@ -92,7 +94,7 @@ define([
                 }
             }else if(newLength == oldLength){
                 if(this.oldSnapshot != this.newSnapshot)
-                    var syncs = this._util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, this.max));
+                    syncs = this._util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, this.max));
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         if(this._textarea._paste){
@@ -102,6 +104,13 @@ define([
                         }
                     }
                 }
+            }
+            
+            //Remote Carets
+            if(this._por.start != this._prevPor.start){
+                this.collab.sendSync('editorCaret', {'start':this._por.start,'end':this._por.end,'site':this._site}, null);
+                this._prevPor.start = this._por.start;
+                this._prevPor.end = this._por.end;
             }
         }
     };
@@ -154,9 +163,17 @@ define([
 			this._attendeeList.onUserLeave(params.users);
 		}
     };
+    
+    proto.onRemoteCaretMove = function(obj){
+        this._textarea.attendees[obj.value.site] = {
+            start: obj.value.start,
+            end: obj.value.end,
+            color: this._attendeeList.attendees[obj.value.site]['color']
+        };
+        this._textarea.render();
+    };
         
     proto.insertChar = function(c, pos, filter) {
-        //1. Adjust string in memory  
         var t = this._textarea;
         if(pos>t.value.start && pos<t.value.end){
             t.clearSelection();
@@ -167,40 +184,7 @@ define([
         start = por.start,
         end = por.end;
         var f = (filter == null || undefined) ? [] : filter;
-        
         t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f}]).concat(t.value.string.slice(pos));
-        
-        //2. custom render
-        if(pos<t.value.start){
-            if(c == t.newSpace){
-                var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos],'before');
-            }else if(c == t.newLine){
-                dojo.create('br',{style:f,},dojo.byId('thisFrame').childNodes[pos],'before');
-            }else{
-                var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos],'before');
-            }
-        }else{
-            if(pos==t.value.start && sel>0){
-                if(c == t.newSpace){
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos],'before');
-                }else if(c == t.newLine){
-                    dojo.create('br',{style:f},dojo.byId('thisFrame').childNodes[pos],'before');
-                }else{
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos],'before');
-                }                
-            }else{
-                if(c == t.newSpace){
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:'&nbsp; '},dojo.byId('thisFrame').childNodes[pos-sel],'after');
-                }else if(c == t.newLine){
-                    dojo.create('br',{style:f},dojo.byId('thisFrame').childNodes[pos-sel],'after');
-                }else{
-                    var node = dojo.create('span',{style:f.join(""),innerHTML:c},dojo.byId('thisFrame').childNodes[pos-sel],'after');
-                }
-            }
-        }
-        this._textarea._scrollWith();
-        
-        //3. Adjust caret in memory
         if(pos < por.end) {
             if(pos >= por.start && por.end != por.start)
                 ++start;
@@ -213,26 +197,13 @@ define([
     };
   
     proto.deleteChar = function(pos) {
-        //1. Adjust string in memory
         var t = this._textarea;
         if(pos>=t.value.start && pos<=t.value.end){
             t.clearSelection();
             this._updatePOR();
         }
         var sel = Math.abs(this._por.start-this._por.end);
-
         t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
-        //2. custom render
-        if(pos<t.value.start){
-            if(dojo.byId('thisFrame').childNodes[pos])
-                dojo.destroy(dojo.byId('thisFrame').childNodes[pos]);
-        }else{
-            if(dojo.byId('thisFrame').childNodes[pos+1-sel])
-                dojo.destroy(dojo.byId('thisFrame').childNodes[pos+1-sel]);   
-        }
-        this._textarea._scrollWith();
-        
-        //3. Adjust caret in memory
         if(pos < this._por.start)
             --this._por.start;
         if(pos < this._por.end)
@@ -247,14 +218,7 @@ define([
         }
         var sel = Math.abs(this._por.start-this._por.end);
         var f = (filter == null || undefined) ? [] : filter;
-        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f.join("")}]).concat(t.value.string.slice(pos+1));
-        if(pos<t.value.start){
-            dojo.byId('thisFrame').childNodes[pos].innerHTML = c;
-            dojo.attr(dojo.byId('thisFrame').childNodes[pos], 'style', dojo.attr(dojo.byId('thisFrame').childNodes[pos],'style')+filter.join(""));
-        }else{
-            dojo.byId('thisFrame').childNodes[pos+1-sel].innerHTML = c;
-            dojo.attr(dojo.byId('thisFrame').childNodes[pos], 'style', dojo.attr(dojo.byId('thisFrame').childNodes[pos+1-sel],'style')+filter.join(""));
-        }
+        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f}]).concat(t.value.string.slice(pos+1));
     };
 
     proto.insertString = function(string, pos) {
@@ -306,14 +270,23 @@ define([
         this._textarea.value.end = 0;
         this._textarea.render();
         this._textarea.slider.history = obj.history;
-        this._attendeeList.attendees = obj.attendees;
-        for(var i in obj.attendees)
-            this._attendeeList.createUserEntry(obj.attendees[i]['name'], i);
+        //this._attendeeList.attendees = obj.attendees;
+        for(var i in obj.attendees){
+            var o = {
+                value: {
+                    'site':i,
+                    'name':obj.attendees[i]['name'],
+                    'color':obj.attendees[i]['color']
+                }
+            };
+            this._attendeeList.onRemoteUserJoin(o);
+        }
     };
     
     proto._moveCaretToPOR = function() {
         this._textarea.value.start = this._por.start;
         this._textarea.value.end = this._por.end;
+        this._textarea.render();
     };
 
     proto._updatePOR = function() {
@@ -337,6 +310,7 @@ define([
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
         this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
+        this.collab.subscribeSync('editorCaret', this, 'onRemoteCaretMove');
         this.collab.subscribeStateRequest(this, 'onStateRequest');
     	this.collab.subscribeStateResponse(this, 'onStateResponse');
     	dojo.connect(dojo.byId('thisDiv'), 'onkeypress', this, '_updatePOR');
