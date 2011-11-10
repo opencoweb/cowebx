@@ -6,10 +6,6 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 		if (args.diagonal) {
 			this.ppi = (Math.sqrt((screen.width * screen.width) + (screen.height * screen.height))) / args.diagonal;
 			this.ppi = Math.round((this.ppi) * 100) / 100;
-		} else {
-			var ppiNode = dojo.create("div", { style: { position: "absolute", visibility: "hidden", width: "1in", padding: "0px" } }, dojo.body());
-			this.ppi = ppiNode.offsetWidth;		
-			dojo.destroy(ppiNode);
 		}
         this.id = args.id;
         this.collab = coweb.initCollab({id : this.id});  
@@ -51,7 +47,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 	
 	WhiteBoard.prototype = {
 		attach: function(distribute) {
-    		distribute = distribute || true;
+			if (distribute === undefined) { distribute = true; }
 			if (!this.attached) {
 		    	this.attached = true;
 				dojo.style(this.attachee.parentNode, "position", "relative");
@@ -73,7 +69,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 			}
 		},
 		detach: function(distribute) {
-    		distribute = distribute || true;
+			if (distribute === undefined) { distribute = true; }
 			if (this.attached) {
 		    	this.attached = false;
 				dojo.style(this.attachee.parentNode, "position", "static");
@@ -84,7 +80,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 				}
 			}
 		},
-		_render: function(points, distribute) {
+		_render: function(points, distribute, ppi) {
 			if (this.last !== undefined) {
 				this.group.remove(this.last);
 			}
@@ -100,10 +96,10 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 			} else if (this.currentType === "arrow") {
 				shape = this._renderArrow(points);
 			} else if (this.currentType === "measure") {
-				shape =this._renderMeasure(points);
+				shape = this._renderMeasure(points, ppi);
 			}
 			if (distribute) {
-				this.collab.sendSync('whiteboardUpdate', {points: points, lastPoint: this.lastPoint, currentType: this.currentType, color: this.color, lineSize: this.lineSize}, "insert");
+				this.collab.sendSync('whiteboardUpdate', {points: points, lastPoint: this.lastPoint, currentType: this.currentType, color: this.color, lineSize: this.lineSize, srcppi: this.ppi}, "insert");
 			}
 			return shape;
 		},
@@ -209,7 +205,8 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 		    arrow.setFill(this.color).setStroke({color: this.color, width: 1});
 		    return group;
 		},
-		_renderMeasure: function(points) {
+		_renderMeasure: function(points, ppi) {
+			var srcppi = ppi || this.ppi;
 			var x1, y1, x2, y2;
 			if (isArray(points)) {
 				x1 = points[0].x;
@@ -217,10 +214,25 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 				x2 = this.lastPoint.x;
 				y2 = this.lastPoint.y;
 			} else {
+				srcppi = points.srcppi;
 				x1 = points.x1;
 				y1 = points.y1;
 				x2 = points.x2;
 				y2 = points.y2;
+			}
+			if (srcppi !== this.ppi) {
+				var pixelwidth = x2 - x1;
+				var pixelheight = y2 - y1;
+				var widthInMM = (pixelwidth / this.ppi) * 25.4;
+				var heightInMM = (pixelheight / this.ppi) * 25.4;
+				var srcWidthInMM = (pixelwidth / srcppi) * 25.4;
+				var srcHeightInMM = (pixelheight / srcppi) * 25.4;
+				var widthDiff = srcWidthInMM - widthInMM;
+				var heightDiff = srcHeightInMM - heightInMM;
+				var widthDiffInPixels = (widthDiff / 25.4) * this.ppi;
+				var heightDiffInPixels = (heightDiff / 25.4) * this.ppi;
+				x2 = x2 + widthDiffInPixels;
+				y2 = y2 + heightDiffInPixels;
 			}
 			var group = this.group.createGroup();
 			group.createLine({ x1: x1, y1: y1, x2: x2, y2: y2 }).setStroke({color: this.color, width: this.lineSize});
@@ -315,8 +327,12 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 	    			case "arrow": 
 	    				data = {x1: this.last.children[0].shape.x1, y1: this.last.children[0].shape.y1, x2: this.last.children[0].shape.x2, y2: this.last.children[0].shape.y2};
 	    				break;
-	    			case "measure": 
-	    				data = {x1: this.last.children[0].shape.x1, y1: this.last.children[0].shape.y1, x2: this.last.children[0].shape.x2, y2: this.last.children[0].shape.y2};
+	    			case "measure":
+						var x1 = this.last.children[0].shape.x1;
+						var y1 = this.last.children[0].shape.y1;
+						var x2 = this.last.children[0].shape.x2;
+						var y2 = this.last.children[0].shape.y2;
+	    				data = {x1: x1, y1: y1, x2: x2, y2: y2, srcppi: this.ppi};
 	    				break;
 	    		}
 	    		var shapeId = this.currentId++;
@@ -361,19 +377,19 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
     		this.lastPoint = undefined;
 			this.last = undefined;
 			this.currentId = 0;
-    		distribute = distribute || true;
+			if (distribute === undefined) { distribute = true; }
     		if (distribute) {
     			this.collab.sendSync('whiteboardClear', {}, "delete");
     		}
 		},
 		setRenderType: function(type) {
-			this.currentType = type;
+			this.currentType = (type === "measure" && !this.ppi) ? this.currentType : type;
 		},
 		getMode: function() {
 			return this.mode;
 		},
 		setDrawMode: function(distribute) {
-    		distribute = distribute || true;
+			if (distribute === undefined) { distribute = true; }
 			this.mode = "draw";
 			if (this.selectedId !== -1) {
 				var selected = this.shapes[this.selectedId];
@@ -387,7 +403,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
     		}
 		},
 		setMoveMode: function(distribute) {
-    		distribute = distribute || true;
+			if (distribute === undefined) { distribute = true; }
 			this.mode = "move";
     		if (distribute) {
     			this.collab.sendSync('whiteboardModeChange', {mode: this.mode}, "update");
@@ -443,8 +459,12 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 	    			case "arrow": 
 	    				data = {x1: shape.children[0].shape.x1, y1: shape.children[0].shape.y1, x2: shape.children[0].shape.x2, y2: shape.children[0].shape.y2, transform: transform};
 	    				break;
-	    			case "measure": 
-	    				data = {x1: shape.children[0].shape.x1, y1: shape.children[0].shape.y1, x2: shape.children[0].shape.x2, y2: shape.children[0].shape.y2, transform: transform};
+	    			case "measure":
+						var x1 = shape.children[0].shape.x1;
+						var y1 = shape.children[0].shape.y1;
+						var x2 = shape.children[0].shape.x2;
+						var y2 = shape.children[0].shape.y2;
+	    				data = {x1: x1, y1: y1, x2: x2, y2: y2, srcppi: this.ppi};
 	    				break;
 				}
 				this.history[obj.value.id].data = data;
@@ -503,7 +523,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 	        	console.warn("state response does not contain history data !!!");
 	        }
 			if (obj.mode === "draw") {
-				this.setDrawMode(false);
+				this.setDrawMode();
 			} else {
 				this.setMoveMode(false);
 				if (obj.selectedId !== -1) {
@@ -521,7 +541,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 	        		this.currentType = this.q[i].value.currentType;
 	        		this.color = this.q[i].value.color;
 	        		this.lineSize = this.q[i].value.lineSize;
-	        		this.last = this._render(this.points, false);
+	        		this.last = this._render(this.points, false, this.q[i].value.srcppi);
 	        	}
 	        }
 	        this.q = [];
@@ -549,7 +569,6 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 			return moveable;
 		},
 		_shapeSelected: function(id, type, scope, container) {
-			console.log("current selection:"+scope.selectedId);
 			if (scope.selectedId !== -1) {
 				var selected = scope.shapes[scope.selectedId];
 				selected.shape.remove(selected.shape.children[selected.shape.children.length-1]);
