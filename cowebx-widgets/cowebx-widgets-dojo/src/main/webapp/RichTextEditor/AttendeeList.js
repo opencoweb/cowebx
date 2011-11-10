@@ -4,10 +4,11 @@ define([
     'coweb/main'
 ], function(dojo, dijit, coweb) {
     var AttendeeList = function(args){
-        if(!args.domNode || !args.id)
+        if(!args.domNode || !args.id || !args._textarea)
             throw new Error("AttendeeList: missing arg");
         this.domNode = args.domNode;
         this.id = args.id;
+        this._textarea = args._textarea;
         
         this.attendees = {};
         this.collab = coweb.initCollab({id : this.id});
@@ -56,6 +57,7 @@ define([
         dojo.destroy('user'+site);
         dojo.destroy('caret'+site);
         delete this.attendees[site];
+        delete this._textarea.attendees[site];
     };
     
     return AttendeeList;

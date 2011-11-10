@@ -52,6 +52,7 @@ define([
 
     // Rips through all of this.value and blasts proper html equiv into dom
     proto.render = function(slider) {
+        console.log('full render');
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var a = [];
@@ -96,9 +97,22 @@ define([
         dojo.create('span',{id:'selection',innerHTML:tempB,'class':'selection'},dojo.byId('thisFrame'),'last');
         dojo.byId('thisFrame').innerHTML = dojo.byId('thisFrame').innerHTML + tempC;
         
-        //dojo.create('div',{id:'caret'+obj.value.site,'class':'remoteSelection'},dojo.byId('thisFrame'),'first');
+        //Place remote carets in approriate positions
+        var nl = dojo.query("#thisDiv span,#thisDiv br");
+        var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length));
         for(var x in this.attendees){
-            console.log(this.attendees[x]['start']);
+            if(this.attendees[x]['start']<this.value.start){
+                dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+            }else if(this.attendees[x]['start']>this.value.end){
+                dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
+            }else if(this.attendees[x]['start']==this.value.start){
+                dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+            }else if(this.attendees[x]['start']==this.value.end){
+                dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+            }else if(this.attendees[x]['start']<this.value.end && this.attendees[x]['start']>this.value.start){
+                dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+            }
+            console.log('Site '+x+' = '+this.attendees[x]['start']);
         }
 
         //Render other stuff
