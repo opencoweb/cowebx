@@ -43,8 +43,8 @@ define([
         },
         h);
         //var play = dojo.create('a',{'class':'sliderButton',innerHTML:'Play'},this._buttonCell); 
-        var reset = dojo.create('a',{'class':'sliderButton',innerHTML:'Revert'},this._buttonCell);
         //dojo.connect(play, 'onclick', this, 'play'); 
+        var reset = dojo.create('a',{'class':'sliderButton',innerHTML:'Revert'},this._buttonCell);
         dojo.connect(reset, 'onclick', this, 'reset');
         this.history.push(dojo.clone(this._textarea.value));
     };
@@ -111,15 +111,26 @@ define([
             dojo.style(button.domNode, 'float', 'right');
             dojo.style('sliderHolder', 'display', 'block');
         }else{
-            dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
-            dojo.style(button.domNode, 'float', 'right');
-            this.sliderShowing = false;
-            dojo.style('sliderHolder', 'display', 'none');
+            this._hide();
+        }
+    };
+    
+    proto._hide = function(){
+        var button = this._textarea.sliderButton;
+        this.sliderShowing = false;
+        dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
+        dojo.style(button.domNode, 'float', 'right');
+        dojo.style('sliderHolder', 'display', 'none');
+        this.index = this.history.length-1;
+        if(this.history[this.index-1]){
+            this._textarea.value = this.history[this.index];
+            this._textarea.render();
         }
     };
     
     proto._connect = function(){
         this.collab = coweb.initCollab({id : this.id}); 
+        dojo.subscribe("hideAll", dojo.hitch(this, function(message){ this._hide(); }));
         this.collab.subscribeSync('editorReset', dojo.hitch(this, function(obj){
             this.remoteReset(obj);
         }));
