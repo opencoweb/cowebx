@@ -137,6 +137,23 @@ define([
             }else{
                 v.string = v.string.slice(0,start).concat([{'char':c[i],'filters':[]}]).concat(v.string.slice(start,v.string.length));
             }
+            
+            //Fix all remote carets
+            var pos = start;
+            for(var j in this.attendees){
+                var s = this.attendees[j].start;
+                var e = this.attendees[j].end;
+                if(pos < this.attendees[j].end) {
+                    if(pos >= this.attendees[j].start && this.attendees[j].end != this.attendees[j].start)
+                        ++s;
+                    ++e;
+                }
+                if(pos < this.attendees[j].start)
+                    ++s;
+                this.attendees[j].start = s;
+                this.attendees[j].end = e;
+            }
+            
             v.start = v.start+1;
             v.end = v.start;
         }
@@ -159,6 +176,16 @@ define([
                 var beforeLength = v.string.length+0;
                 v.string = v.string.slice(0,v.start-n).concat(v.string.slice(v.start,v.string.length));
                 var afterLength = v.string.length+0;
+                
+                //Fix all remote carets
+                var pos = start;
+                for(var j in this.attendees){
+                    if(pos < this.attendees[j].start)
+                        --this.attendees[j].start;
+                    if(pos < this.attendees[j].end)
+                        --this.attendees[j].end;
+                }
+                
                 if(beforeLength != afterLength){
                     v.start = v.start - n;
                     v.end = v.start;

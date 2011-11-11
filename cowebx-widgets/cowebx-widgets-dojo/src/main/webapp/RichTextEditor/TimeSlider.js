@@ -116,15 +116,17 @@ define([
     };
     
     proto._hide = function(){
-        var button = this._textarea.sliderButton;
-        this.sliderShowing = false;
-        dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
-        dojo.style(button.domNode, 'float', 'right');
-        dojo.style('sliderHolder', 'display', 'none');
-        this.index = this.history.length-1;
-        if(this.history[this.index-1]){
-            this._textarea.value = this.history[this.index];
-            this._textarea.render();
+        var button = this._textarea.sliderButton
+        if(button){
+            this.sliderShowing = false;
+            dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
+            dojo.style(button.domNode, 'float', 'right');
+            dojo.style('sliderHolder', 'display', 'none');
+            this.index = this.history.length-1;
+            if(this.history[this.index-1]){
+                this._textarea.value = this.history[this.index];
+                this._textarea.render();
+            }
         }
     };
     

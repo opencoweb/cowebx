@@ -60,6 +60,13 @@ define([
             var oldLength = this.oldSnapshot.length;
             var newLength = this.newSnapshot.length;
             var syncs = null;
+            var caretInfo = null;
+            if(this._por.start != this._prevPor.start){
+                caretInfo = {'start':this._por.start,'end':this._por.end,'site':this._site};
+                this._prevPor.start = this._por.start;
+                this._prevPor.end = this._por.end;
+            }
+            
             if(oldLength < newLength){
                 var mx = this.max+(newLength - oldLength);
                 //Paste optimization
@@ -72,9 +79,9 @@ define([
                     if(syncs){
                         for(var i=0; i<syncs.length; i++){
                             if(this._textarea._paste){
-                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[]}, syncs[i].ty, syncs[i].pos+this.min);
+                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
                             }else{
-                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters}, syncs[i].ty, syncs[i].pos+this.min);
+                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
                             }
                         }   
                     }
@@ -86,9 +93,9 @@ define([
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         if(this._textarea._paste){
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[]}, syncs[i].ty, syncs[i].pos+mn);
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
                         }else{
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters}, syncs[i].ty, syncs[i].pos+mn);
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
                         }
                     }
                 }
@@ -98,19 +105,17 @@ define([
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         if(this._textarea._paste){
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[]}, syncs[i].ty, syncs[i].pos+this.min);
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
                         }else{
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters}, syncs[i].ty, syncs[i].pos+this.min);
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
                         }
                     }
                 }
             }
             
             //Remote Carets
-            if(this._por.start != this._prevPor.start){
-                this.collab.sendSync('editorCaret', {'start':this._por.start,'end':this._por.end,'site':this._site}, null);
-                this._prevPor.start = this._por.start;
-                this._prevPor.end = this._por.end;
+            if(!syncs && caretInfo){
+                this.collab.sendSync('editorCaret', caretInfo, null);
             }
         }
     };
@@ -133,15 +138,38 @@ define([
     };
     
     proto.runOps = function(){
+        console.log('run ops');
         this.value = this._textarea.value;
         this._updatePOR();
         for(var i=0; i<this.q.length; i++){
-            if(this.q[i].type == 'insert')
+            if(this.q[i].type == 'insert'){
                 this.insertChar(this.q[i].value['char'], this.q[i].position, this.q[i].value['filter']);
+                if(this.q[i].value['caretInfo'] != null){
+                    this._textarea.attendees[this.q[i].value['caretInfo'].site] = {
+                        start: this.q[i].value['caretInfo'].start,
+                        end: this.q[i].value['caretInfo'].end,
+                        color: this._attendeeList.attendees[this.q[i].value['caretInfo'].site]['color']
+                    };
+                }
+            }
             if(this.q[i].type == 'delete')
                 this.deleteChar(this.q[i].position);
+                if(this.q[i].value['caretInfo'] != null){
+                    this._textarea.attendees[this.q[i].value['caretInfo'].site] = {
+                        start: this.q[i].value['caretInfo'].start,
+                        end: this.q[i].value['caretInfo'].end,
+                        color: this._attendeeList.attendees[this.q[i].value['caretInfo'].site]['color']
+                    };
+                }
             if(this.q[i].type == 'update')
                 this.updateChar(this.q[i].value['char'], this.q[i].position, this.q[i].value['filter']);
+                if(this.q[i].value['caretInfo'] != null){
+                    this._textarea.attendees[this.q[i].value['caretInfo'].site] = {
+                        start: this.q[i].value['caretInfo'].start,
+                        end: this.q[i].value['caretInfo'].end,
+                        color: this._attendeeList.attendees[this.q[i].value['caretInfo'].site]['color']
+                    };
+                }
         }
         this._textarea.value = this.value;
         this._moveCaretToPOR();
@@ -165,6 +193,7 @@ define([
     };
     
     proto.onRemoteCaretMove = function(obj){
+        console.log('move');
         this._textarea.attendees[obj.value.site] = {
             start: obj.value.start,
             end: obj.value.end,
@@ -194,6 +223,8 @@ define([
             ++start;
         por.start = start;
         por.end = end;
+        this._prevPor.start = this._por.start;
+        this._prevPor.end = this._por.end;
     };
   
     proto.deleteChar = function(pos) {
@@ -208,6 +239,8 @@ define([
             --this._por.start;
         if(pos < this._por.end)
             --this._por.end;
+        this._prevPor.start = this._por.start;
+        this._prevPor.end = this._por.end;
     };
         
     proto.updateChar = function(c, pos, filter) {
@@ -219,6 +252,8 @@ define([
         var sel = Math.abs(this._por.start-this._por.end);
         var f = (filter == null || undefined) ? [] : filter;
         t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f}]).concat(t.value.string.slice(pos+1));
+        this._prevPor.start = this._por.start;
+        this._prevPor.end = this._por.end;
     };
 
     proto.insertString = function(string, pos) {
