@@ -305,7 +305,6 @@ define([
         this._textarea.value.end = 0;
         this._textarea.render();
         this._textarea.slider.history = obj.history;
-        //this._attendeeList.attendees = obj.attendees;
         for(var i in obj.attendees){
             var o = {
                 value: {

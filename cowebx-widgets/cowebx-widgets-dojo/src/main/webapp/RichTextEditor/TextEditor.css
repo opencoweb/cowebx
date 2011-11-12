@@ -249,10 +249,20 @@
 .attendee{
     font: 18px arial;
     padding:5px;
-    width:90%;
     margin-left:auto;
     margin-right:auto;
     border-bottom:1px solid grey;
+}
+
+.attendeeText{
+    width:120px;
+    display:inline-block;
+    cursor:hand;cursor:pointer;
+    background: lightyellow;
+    font-weight:bold;
+    color: orange;
+    font: 18px arial;
+    border:0px;
 }
 
 .attendeeColor{
@@ -263,4 +273,18 @@
     position:relative;
     top:5px;
     margin-right:5px;
+}
+
+.localUser{
+    background: lightyellow;
+    font-weight:bold;
+    color: orange;
+}
+
+.userEditIcon{
+    width:18px;
+    height:23px;
+    float:right;
+    position:relative;
+    top:3px;
 }
