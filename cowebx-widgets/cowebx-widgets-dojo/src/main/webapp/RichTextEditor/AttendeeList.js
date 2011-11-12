@@ -63,9 +63,14 @@ define([
             dojo.style(color,'background',this.attendees[site]['color']);
             dojo.addClass(a, 'localUser');
             dojo.create('img',{src:'../lib/cowebx/dojo/RichTextEditor/images/pencil.png','class':'userEditIcon'},b,'after');
+            dojo.connect(b, 'onclick', this, function(e){ e.target.value = ''; });
             dojo.connect(b, 'onblur', this, function(e){
-                this.attendees[site].name = e.target.value;
-                this.collab.sendSync('attendeeListName', {'name':e.target.value,'site':site}, null);
+                if(e.target.value.length == 0){
+                    e.target.value = this.attendees[site].name;
+                }else{
+                    this.attendees[site].name = e.target.value;
+                    this.collab.sendSync('attendeeListName', {'name':e.target.value,'site':site}, null);
+                }
             });
             dojo.connect(b, 'onkeypress', this, function(e){
                 if(e.keyCode == 8)

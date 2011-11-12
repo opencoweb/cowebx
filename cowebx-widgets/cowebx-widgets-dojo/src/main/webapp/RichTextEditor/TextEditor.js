@@ -61,7 +61,7 @@ define([
             var newLength = this.newSnapshot.length;
             var syncs = null;
             var caretInfo = null;
-            if(this._por.start != this._prevPor.start){
+            if((this._por.start != this._prevPor.start) || (this._por.end != this._prevPor.end)){
                 caretInfo = {'start':this._por.start,'end':this._por.end,'site':this._site};
                 this._prevPor.start = this._por.start;
                 this._prevPor.end = this._por.end;
