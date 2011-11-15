@@ -24,11 +24,6 @@ The structure of this directory is extremely straight forward. The following fil
 * ```application.css``` : serves as the main CSS of the application
 * ```main.js``` : serves as the bootstrap file for the application (holds dependency list)
 
-##Important Development Notes
-
-* In the bootstrap file, ```main.js``` , the global dependency 'org/cometd' should be uncommented only if you are using a [Developer's Setup](https://github.com/opencoweb/coweb/wiki/Developer-Setup).
-* The Maven project build tool that can be used to deploy other Coweb applications currently will NOT work with this application. This is because Coedit currently uses unstable Dojo 1.7, rather than a stable, baked copy of Dojo.
-
 ##License
 
 Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
