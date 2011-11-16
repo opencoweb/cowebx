@@ -58,16 +58,18 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     
     proto.iterateSend = function() {
         this.newSnapshot = this.snapshot();
-        if(this.oldSnapshot != this.newSnapshot)
-            var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
-        //Send syncs
-        if(syncs){
-            ///console.log('syncs pre-fix = ',syncs);
-            syncs = this.fix(syncs);
-            console.log('syncs sent = ',syncs);
-            for(var i=0; i<syncs.length; i++){
-                if(syncs[i] != undefined){
-                   this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
+        if(this.oldSnapshot && this.newSnapshot){
+            if(this.oldSnapshot != this.newSnapshot)
+                var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
+            //Send syncs
+            if(syncs){
+                ///console.log('syncs pre-fix = ',syncs);
+                syncs = this.fix(syncs);
+                console.log('syncs sent = ',syncs);
+                for(var i=0; i<syncs.length; i++){
+                    if(syncs[i] != undefined){
+                       this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
+                    }
                 }
             }
         }
@@ -81,6 +83,13 @@ define(['coweb/main','./ld'], function(coweb,ld) {
                 delete temp[i+1];
                 delete temp[i+2];
                 delete temp[i+3];
+            }else if(arr[i].ch=='&'&&arr[i+1].ch=='n'&&arr[i+2].ch=='b'&&arr[i+3].ch=='s'&&arr[i+4].ch=='p'&&arr[i+5].ch==';'){
+                temp[i].ch = '&nbsp;';
+                delete temp[i+1];
+                delete temp[i+2];
+                delete temp[i+3];
+                delete temp[i+4];
+                delete temp[i+5];
             }
         }
         return temp;
@@ -101,7 +110,6 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     
     proto.runOps = function(){
         this.value = this._textarea.innerHTML;
-        console.log('value before = '+this.value);
         this._updatePOR();
         for(var i=0; i<this.q.length; i++){
             if(this.q[i].type == 'insert')
@@ -111,7 +119,6 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             if(this.q[i].type == 'update')
                 this.updateChar(this.q[i].value, this.q[i].position);
         }
-        console.log('value after = '+this.value);
         this._textarea.innerHTML = this.value;
         this._moveCaretToPOR();
     };
