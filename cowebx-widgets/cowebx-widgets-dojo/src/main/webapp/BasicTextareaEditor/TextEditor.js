@@ -13,7 +13,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         dojo.style(this._textarea, 'height', '400px');
         nicEditors.allTextAreas();
 		this._textarea = dojo.query('.nicEdit-main')[0];
-		//this._textarea.innerHTML = '';
+		this._toolbar = dojo.query('.nicEdit-panel')[0];
 		
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = null;
@@ -64,8 +64,8 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             //Send syncs
             if(syncs){
                 ///console.log('syncs pre-fix = ',syncs);
-                syncs = this.fix(syncs);
-                console.log('syncs sent = ',syncs);
+                this.fix(syncs);
+                //console.log('syncs sent = ',syncs);
                 for(var i=0; i<syncs.length; i++){
                     if(syncs[i] != undefined){
                        this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
@@ -77,6 +77,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     
     proto.fix = function(arr){
         var temp = dojo.clone(arr);
+        var index = 0;
         for(var i=0; i<arr.length; i++){
             if(arr[i].ch=='<'&&arr[i+1].ch=='b'&&arr[i+2].ch=='r'&&arr[i+3].ch=='>'){
                 temp[i].ch = '<br>';
@@ -90,7 +91,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
                 delete temp[i+3];
                 delete temp[i+4];
                 delete temp[i+5];
-            }
+            }    
         }
         return temp;
     };
