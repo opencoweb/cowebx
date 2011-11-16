@@ -20,6 +20,7 @@ define([
         this._por           =   {start : 0, end: 0};
         this._container     =   dojo.create('div',{'class':'container'},args.domNode);
         this._textarea      =   new textarea({domNode:this._container,'id':'_textarea',parent:this,noSlider:true});
+        this._textarea      =   new textarea({domNode:this._container,'id':'_textarea',parent:this,noSlider:true});
         this._attendeeList  =   new AttendeeList({domNode:dojo.byId('attendeeListContainer'), id:'_attendeeList', _textarea:this._textarea});
         this._util          =   new ld({});
         this.oldSnapshot    =   this.snapshot();

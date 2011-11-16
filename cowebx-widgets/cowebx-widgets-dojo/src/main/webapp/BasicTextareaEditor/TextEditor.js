@@ -8,23 +8,24 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             throw new Error('missing id argument');
     
         this._por = {start : 0, end: 0};
-        this._textarea = dojo.create('textarea', {style:'position:relative;'}, args.domNode);
-        dojo.style(this._textarea, 'width', '100%');
-		dojo.style(this._textarea, 'height', '100%');
+        this._textarea = dojo.create('textarea', {}, args.domNode);
+        dojo.style(this._textarea, 'width', '600px');
+        dojo.style(this._textarea, 'height', '400px');
+        nicEditors.allTextAreas();
+		this._textarea = dojo.query('.nicEdit-main')[0];
+		//this._textarea.innerHTML = '';
+		
         this.oldSnapshot = this.snapshot();
         this.newSnapshot = null;
         this.t = null;
         this.q = [];
-        this.min = 0; 
-        this.max = 0;
         this.value = '';
-        
+    
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
-        
         this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
         this.collab.subscribeStateRequest(this, 'onStateRequest');
-        this.collab.subscribeStateResponse(this, 'onStateResponse');
+    	this.collab.subscribeStateResponse(this, 'onStateResponse');
     
         dojo.connect(this._textarea, 'onmousedown', this, '_updatePOR');
         dojo.connect(this._textarea, 'onmouseup', this, '_updatePOR');
@@ -33,7 +34,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         dojo.connect(this._textarea, 'onkeyup', this, '_updatePOR');
         dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
         dojo.connect(this._textarea, 'onblur', this, '_onBlur');
-
+    
         this.util = new ld({});
 
         if(this.go == true)
@@ -47,7 +48,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
 
     proto.listenInit = function(){
         this.collab.pauseSync();
-        this.t = setTimeout(dojo.hitch(this, 'iterate'), 100);
+        this.t = setInterval(dojo.hitch(this, 'iterate'), 2000);
     };
     
     proto.iterate = function() { 
@@ -57,38 +58,32 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     
     proto.iterateSend = function() {
         this.newSnapshot = this.snapshot();
-        var oldLength = this.oldSnapshot.length;
-        var newLength = this.newSnapshot.length;
-        
-        if(oldLength < newLength){
-            var mx = this.max+(newLength - oldLength);
-            if(this.oldSnapshot != this.newSnapshot)
-                var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
-            //console.log('old = '+this.oldSnapshot.substring(this.min, this.max));
-            //console.log('new = '+this.newSnapshot.substring(this.min, mx));
-            
-            if(syncs){
-                //console.log(syncs);
-                for(var i=0; i<syncs.length; i++){
-                    this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
-                }
-            }
-            
-        }else if(newLength < oldLength){
-            var mx = this.max+(oldLength-newLength);
-            var mn = (this.min-1 > -1) ? this.min-1 : 0;
-            if(this.oldSnapshot != this.newSnapshot)
-                var syncs = this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
-            //console.log('old = '+this.oldSnapshot.substring(mn, mx));
-            //console.log('new = '+this.newSnapshot.substring(mn, this.max));
-            
-            if(syncs){
-                //console.log(syncs);
-                for(var i=0; i<syncs.length; i++){
-                    this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+mn);
+        if(this.oldSnapshot != this.newSnapshot)
+            var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
+        //Send syncs
+        if(syncs){
+            ///console.log('syncs pre-fix = ',syncs);
+            syncs = this.fix(syncs);
+            console.log('syncs sent = ',syncs);
+            for(var i=0; i<syncs.length; i++){
+                if(syncs[i] != undefined){
+                   this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
                 }
             }
         }
+    };
+    
+    proto.fix = function(arr){
+        var temp = dojo.clone(arr);
+        for(var i=0; i<arr.length; i++){
+            if(arr[i].ch=='<'&&arr[i+1].ch=='b'&&arr[i+2].ch=='r'&&arr[i+3].ch=='>'){
+                temp[i].ch = '<br>';
+                delete temp[i+1];
+                delete temp[i+2];
+                delete temp[i+3];
+            }
+        }
+        return temp;
     };
     
     proto.iterateRecv = function() {
@@ -98,22 +93,6 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             this.runOps();
         this.q = [];
         this.oldSnapshot = this.snapshot();
-        this.t = setTimeout(dojo.hitch(this, 'iterate'), 100);
-        this.min = this._por.start;
-        this.max = this._por.end;
-    };
-    
-    proto._updatePOR = function(e) {
-        if(this._focused) {
-            var t = e ? e.target : this._textarea;
-            this._por.start = t.selectionStart;
-            this._por.end = t.selectionEnd;
-        }
-        
-        if(this._por.start < this.min)
-            this.min = this._por.start;
-        if(this._por.end > this.max)
-            this.max = this._por.end;
     };
     
     proto.onRemoteChange = function(obj){
@@ -121,7 +100,8 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     };
     
     proto.runOps = function(){
-        this.value = this._textarea.value;
+        this.value = this._textarea.innerHTML;
+        console.log('value before = '+this.value);
         this._updatePOR();
         for(var i=0; i<this.q.length; i++){
             if(this.q[i].type == 'insert')
@@ -131,7 +111,8 @@ define(['coweb/main','./ld'], function(coweb,ld) {
             if(this.q[i].type == 'update')
                 this.updateChar(this.q[i].value, this.q[i].position);
         }
-        this._textarea.value = this.value;
+        console.log('value after = '+this.value);
+        this._textarea.innerHTML = this.value;
         this._moveCaretToPOR();
     };
         
@@ -197,26 +178,26 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     };
 
     proto._getValueAttr = function() {
-        return this._textarea.value;
-    };
-    
-    proto._getCleanValueAttr = function() {
-        return this._textarea.value;
+        return this._textarea.innerHTML;
     };
 
     proto._moveCaretToPOR = function() {
         if(this._focused) {
-            this._textarea.setSelectionRange(this._por.start, this._por.end);
+            //this._textarea.setSelectionRange(this._por.start, this._por.end);
+        }
+    };
+        
+    proto._updatePOR = function(e) {
+        if(this._focused) {
+            var t = e ? e.target : this._textarea;
+            this._por.start = t.selectionStart;
+            this._por.end = t.selectionEnd;
         }
     };
     
     proto.setPOR = function(pos){
         this._por.start = pos;
         this._por.end = pos;
-    };
-    
-    proto.getNode = function(){
-        return this._textarea;
     };
         
     proto._onFocus = function(event) {
@@ -244,10 +225,11 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     };
     
     proto.onStateResponse = function(obj){
-        this._textarea.value = obj.snapshot;
+        //this._textarea.value = obj.snapshot;
         this.newSnapshot = obj.snapshot;
         this.oldSnapshot = obj.snapshot;
     };
+    
 
     return TextEditor;
 });
