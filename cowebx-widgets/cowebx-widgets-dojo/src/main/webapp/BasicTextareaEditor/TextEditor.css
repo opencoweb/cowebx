@@ -3,6 +3,7 @@
     width:100%;
     border-spacing:0px;
     border-collapse:true;
+    background:white;
 }
 
 .editorRow{
@@ -56,4 +57,21 @@
     float:right;
     position:relative;
     top:3px;
+}
+
+.gradient {
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.33, rgb(0,0,0)),
+        color-stop(0.67, rgb(64,64,64)),
+        color-stop(0.84, rgb(102,102,102))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgb(0,0,0) 33%,
+        rgb(64,64,64) 67%,
+        rgb(102,102,102) 84%
+    );
 }

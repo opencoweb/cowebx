@@ -290,11 +290,16 @@ define([
             dojo.style(this._textarea, 'height','100%');
             dojo.style(this._textarea, 'margin','0px');
             dojo.style(this._toolbar.parentNode.parentNode,'width','100%');
-            dojo.style(this._toolbar.parentNode.parentNode,'height','36px');
-            dojo.style(this._toolbar.parentNode,'height','36px');
-            dojo.style(this._toolbar,'height','36px');
+            dojo.style(this._toolbar.parentNode.parentNode,'height','37px');
+            dojo.style(this._toolbar.parentNode,'height','37px');
+            dojo.style(this._toolbar,'height','37px');
             dojo.style(this._toolbar.parentNode,'width','100%');
             dojo.style(this._toolbar, 'width','100%');
+            dojo.style(this._toolbar, 'margin','0px');
+            dojo.addClass(this._toolbar, 'gradient');
+            for(var i=0; i<this._toolbar.childNodes.length; i++){
+                dojo.style(this._toolbar.childNodes[i],'margin','5px');
+            }
 	    }
 	});
 });
