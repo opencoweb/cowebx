@@ -38,7 +38,7 @@ define([
             this.t = null;
             this.q = [];
             this.value = '';
-            this.interval = 100;
+            this.interval = 500;
             this._por = {start : 0, end: 0};
            
             //4. connect
@@ -69,9 +69,7 @@ define([
 	                var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
 	            //Send syncs
 	            if(syncs){
-	                this.fix(syncs);
-
-	                console.log('syncs sent = ',syncs);
+	                syncs = this.fix(syncs);
 	                for(var i=0; i<syncs.length; i++){
 	                    if(syncs[i] != undefined){
 	                       this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
@@ -81,22 +79,52 @@ define([
 	        }
 	    },
 
-	    fix : function(arr){
-
-	    },
-
 	    iterateRecv : function() {
 	        this.collab.resumeSync();
 	        this.collab.pauseSync();
-	        if(this.q.length != 0)
+	        if(this.q.length != 0 && !this.hasIncompleteTags(this.q)){
 	            this.runOps();
-	        this.q = [];
+	            this.q = [];
+	        }
 	        this.oldSnapshot = this.snapshot();
 	        this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
 	    },
 
 	    onRemoteChange : function(obj){
 	        this.q.push(obj);
+	    },
+	    
+	    fix: function(arr){
+	        var temp = dojo.clone(arr);
+            for(var i=0; i<arr.length; i++){
+                if(arr[i].ch=='&'&&arr[i+1].ch=='n'&&arr[i+2].ch=='b'&&arr[i+3].ch=='s'&&arr[i+4].ch=='p'&&arr[i+5].ch==';'){
+                    temp[i].ch = '&nbsp;';
+                    delete temp[i+1];
+                    delete temp[i+2];
+                    delete temp[i+3];
+                    delete temp[i+4];
+                    delete temp[i+5];
+                }else if(arr[i].ch=='&'&&arr[i+1].ch=='n'&&arr[i+2].ch=='s'&&arr[i+3].ch=='p'&&arr[i+4].ch==';'){
+                    temp[i].ch = '&nbsp;';
+                    delete temp[i+1];
+                    delete temp[i+2];
+                    delete temp[i+3];
+                    delete temp[i+4];
+                }
+        }
+            return temp;
+	    },
+	    
+	    hasIncompleteTags : function(arr){
+            var openCount = 0;
+            var closeCount = 0;
+            for(var i=0; i<arr.length; i++){
+                if(arr[i].value == '<')
+                    openCount++;
+                if(arr[i].value == '>')
+                    closeCount++;
+            }
+            return !(openCount == closeCount);
 	    },
 
 	    onUserChange : function(params) {
@@ -113,9 +141,7 @@ define([
 	    },
 
 	    runOps : function(){
-	        console.log(this.q);
 	        this.value = this._textarea.innerHTML;
-	        console.log('before = ',this.value);
 	        this._updatePOR();
 	        for(var i=0; i<this.q.length; i++){
 	            if(this.q[i].type == 'insert')
@@ -125,8 +151,8 @@ define([
 	            if(this.q[i].type == 'update')
 	                this.updateChar(this.q[i].value, this.q[i].position);
 	        }
-	        console.log('after = ',this.value);
 	        this._textarea.innerHTML = this.value;
+	        console.log(this.value);
 	        this._moveCaretToPOR();
 	    },
 
