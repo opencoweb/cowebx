@@ -1,0 +1,59 @@
+.editorTable{
+    height:100%;
+    width:100%;
+    border-spacing:0px;
+    border-collapse:true;
+}
+
+.editorRow{
+    height:100%;
+}
+
+#listContainer{
+    width:200px;
+    height:100%;
+    vertical-align:top;
+}
+
+.attendee{
+    font: 18px arial;
+    padding:5px;
+    margin-left:auto;
+    margin-right:auto;
+    border-bottom:1px solid grey;
+}
+
+.attendeeText{
+    width:120px;
+    display:inline-block;
+    cursor:hand;cursor:pointer;
+    background: lightyellow;
+    font-weight:bold;
+    color: orange;
+    font: 18px arial;
+    border:0px;
+}
+
+.attendeeColor{
+    width:20px;
+    height:20px;
+    border:1px solid black;
+    display:inline-block;
+    position:relative;
+    top:5px;
+    margin-right:5px;
+}
+
+.localUser{
+    background: lightyellow;
+    font-weight:bold;
+    color: orange;
+}
+
+.userEditIcon{
+    width:18px;
+    height:23px;
+    float:right;
+    position:relative;
+    top:3px;
+}
