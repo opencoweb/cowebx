@@ -368,6 +368,10 @@ define([
             }
             this._lock = true;    
         }
+        if(this._lineIndex == 0){
+            this.moveCaretRight(true);
+            this._lineIndex++;
+        }
         
         var count = this._count(lineBelow);
         if(this._count(lineBelow)>0){
@@ -685,7 +689,13 @@ define([
     };
     
     proto._scrollWith = function(){
-        //TODO
+        if(dojo.byId('selection')){
+            if(dojo.byId('selection').offsetTop+50 >= (dojo.byId('divHolder').scrollTop+dojo.style('divHolder','height'))){
+                dojo.byId('divHolder').scrollTop = dojo.byId('divHolder').scrollTop+50;
+            }else if(dojo.byId('selection').offsetTop-50 <= (dojo.byId('divHolder').scrollTop)){
+                dojo.byId('divHolder').scrollTop = dojo.byId('selection').offsetTop-50;
+            }
+        }
     }; 
     
     proto._hidePalette = function(){
