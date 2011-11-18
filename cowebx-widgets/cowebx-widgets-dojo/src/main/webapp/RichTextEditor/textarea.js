@@ -739,13 +739,11 @@ define([
             }
         }else{
             if(this._hold == false){
-                var x=0;
                 for(var i=start; i<end; i++){
                     if(this.value.string[i].search("font-weight: bold;") == -1){
                         var index = this.value.string[i].search('">');
                         this.value.string[i] = this.value.string[i].substring(0,index)+'font-weight: bold;'+this.value.string[i].substring(index, this.value.string[i].length);
                     }
-                    x++;
                 }
                 this._hold = true;
             }else if(this._hold == true && this._lastOp == 'bold'){
@@ -755,7 +753,6 @@ define([
                         var index = this.value.string[i].search('font-weight: bold;');
                         this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+18, this.value.string[i].length);
                     }
-                    x++;
                 }
                 this._hold = false;
             }
@@ -785,13 +782,11 @@ define([
             }
         }else{
             if(this._hold == false){
-                var x=0;
                 for(var i=start; i<end; i++){
                     if(this.value.string[i].search("font-style: italic;") == -1){
                         var index = this.value.string[i].search('">');
                         this.value.string[i] = this.value.string[i].substring(0,index)+'font-style: italic;'+this.value.string[i].substring(index, this.value.string[i].length);
                     }
-                    x++;
                 }
                 this._hold = true;
             }else if(this._hold == true && this._lastOp == 'italic'){
@@ -801,7 +796,6 @@ define([
                         var index = this.value.string[i].search('font-style: italic;');
                         this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+19, this.value.string[i].length);
                     }
-                    x++;
                 }
                 this._hold = false;
             }
@@ -831,13 +825,11 @@ define([
             }
         }else{
             if(this._hold == false){
-                var x=0;
                 for(var i=start; i<end; i++){
                     if(this.value.string[i].search("text-decoration: underline;") == -1){
                         var index = this.value.string[i].search('">');
                         this.value.string[i] = this.value.string[i].substring(0,index)+'text-decoration: underline;'+this.value.string[i].substring(index, this.value.string[i].length);
                     }
-                    x++;
                 }
                 this._hold = true;
             }else if(this._hold == true && this._lastOp == 'underline'){
@@ -847,7 +839,6 @@ define([
                         var index = this.value.string[i].search('text-decoration: underline;');
                         this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+27, this.value.string[i].length);
                     }
-                    x++;
                 }
                 this._hold = false;
             }
@@ -886,7 +877,6 @@ define([
             this._prevForeColor = color;
             dojo.attr(this.ForeColor.domNode, 'style', 'border-bottom:3px solid '+color);
         }else{
-            var x=0;
             for(var i=start; i<end; i++){
                 for(var j=0; j<this._pastForeColors.length; j++){
                     if(this.value.string[i].search("color: "+this._pastForeColors[j]+";") != -1){
@@ -896,7 +886,6 @@ define([
                 }
                 var index = this.value.string[i].search('">');
                 this.value.string[i] = this.value.string[i].substring(0,index)+'color: '+color+';'+this.value.string[i].substring(index, this.value.string[i].length);
-                x++;
             }
             this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
         }
@@ -935,7 +924,6 @@ define([
             this._prevHiliteColor = color;
             dojo.attr(this.HiliteColor.domNode, 'style', 'border-bottom:3px solid '+color);
         }else{
-            var x=0;
             for(var i=start; i<end; i++){
                 for(var j=0; j<this._pastHiliteColors.length; j++){
                     if(this.value.string[i].search("background: "+this._pastHiliteColors[j]+";") != -1){
@@ -945,7 +933,6 @@ define([
                 }
                 var index = this.value.string[i].search('">');
                 this.value.string[i] = this.value.string[i].substring(0,index)+'background: '+color+';'+this.value.string[i].substring(index, this.value.string[i].length);
-                x++;
             }
             this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
         }
