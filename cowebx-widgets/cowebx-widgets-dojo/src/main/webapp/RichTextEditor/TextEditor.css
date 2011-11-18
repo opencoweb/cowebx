@@ -260,7 +260,7 @@
     display:inline-block;
     cursor:hand;cursor:pointer;
     background: lightyellow;
-    font-weight:bold;
+    font-weight: bold;
     color: orange;
     font: 18px arial;
     border:0px;
@@ -278,7 +278,7 @@
 
 .localUser{
     background: lightyellow;
-    font-weight:bold;
+    font-weight: bold;
     color: orange;
 }
 

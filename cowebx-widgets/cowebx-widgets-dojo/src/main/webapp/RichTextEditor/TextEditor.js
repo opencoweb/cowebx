@@ -73,15 +73,15 @@ define([
                 if(newLength-oldLength>50){
                     var text = this.newSnapshot.slice(this.min, mx);
                     for(var i=0; i<text.length; i++)
-                        this.collab.sendSync('editorUpdate', {'char':text[i],'filter':[]}, 'insert', i+this.min);
+                        this.collab.sendSync('editorUpdate', {'char':text[i]}, 'insert', i+this.min);
                 }else{
                     syncs = this._util.ld(this.oldSnapshot.slice(this.min, this.max), this.newSnapshot.slice(this.min, mx));
                     if(syncs){
                         for(var i=0; i<syncs.length; i++){
                             if(this._textarea._paste){
-                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
+                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
                             }else{
-                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
+                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
                             }
                         }   
                     }
@@ -93,9 +93,9 @@ define([
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         if(this._textarea._paste){
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
                         }else{
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
                         }
                     }
                 }
@@ -105,9 +105,9 @@ define([
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         if(this._textarea._paste){
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
                         }else{
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
                         }
                     }
                 }
@@ -138,12 +138,11 @@ define([
     };
     
     proto.runOps = function(){
-        console.log('run ops');
         this.value = this._textarea.value;
         this._updatePOR();
         for(var i=0; i<this.q.length; i++){
             if(this.q[i].type == 'insert'){
-                this.insertChar(this.q[i].value['char'], this.q[i].position, this.q[i].value['filter']);
+                this.insertChar(this.q[i].value['char'], this.q[i].position);
                 if(this.q[i].value['caretInfo'] != null){
                     this._textarea.attendees[this.q[i].value['caretInfo'].site] = {
                         start: this.q[i].value['caretInfo'].start,
@@ -162,7 +161,7 @@ define([
                     };
                 }
             if(this.q[i].type == 'update')
-                this.updateChar(this.q[i].value['char'], this.q[i].position, this.q[i].value['filter']);
+                this.updateChar(this.q[i].value['char'], this.q[i].position);
                 if(this.q[i].value['caretInfo'] != null){
                     this._textarea.attendees[this.q[i].value['caretInfo'].site] = {
                         start: this.q[i].value['caretInfo'].start,
@@ -202,7 +201,7 @@ define([
         this._textarea.render();
     };
         
-    proto.insertChar = function(c, pos, filter) {
+    proto.insertChar = function(c, pos) {
         var t = this._textarea;
         if(pos>t.value.start && pos<t.value.end){
             t.clearSelection();
@@ -212,7 +211,6 @@ define([
         por = this._por,
         start = por.start,
         end = por.end;
-        var f = (filter == null || undefined) ? [] : filter;
         t.value.string = t.value.string.slice(0, pos).concat([c]).concat(t.value.string.slice(pos));
         if(pos < por.end) {
             if(pos >= por.start && por.end != por.start)
@@ -243,14 +241,13 @@ define([
         this._prevPor.end = this._por.end;
     };
         
-    proto.updateChar = function(c, pos, filter) {
+    proto.updateChar = function(c, pos) {
         var t = this._textarea;
         if(pos>=t.value.start && pos<=t.value.end){
             t.clearSelection();
             this._updatePOR();
         }
         var sel = Math.abs(this._por.start-this._por.end);
-        var f = (filter == null || undefined) ? [] : filter;
         t.value.string = t.value.string.slice(0, pos).concat([c]).concat(t.value.string.slice(pos+1));
         this._prevPor.start = this._por.start;
         this._prevPor.end = this._por.end;
