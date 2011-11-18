@@ -18,7 +18,7 @@ define([
         this.domNode        =   args.domNode;
         this.id             =   args.id;
         this.parent         =   args.parent;
-        
+
         //2. Build stuff
         this._buildTemplates();
         
@@ -29,6 +29,7 @@ define([
         
         //4. properties
         this.value              =   {start:0,end:0,string:[]};
+        this.prevValue          =   {start:0,end:0};
         this.attendees          =   {};
         this.displayCaret       =   false;
         this.title              =   'Untitled Document';
@@ -54,112 +55,80 @@ define([
     proto.render = function(slider) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
-        var a = [];
-        var b = [];
-        var c = [];
+        var a = []; var b = []; var c = [];
         var sel = 'background-color:#99CCFF;';
 
-        for(var i=0, len=this.value.string.length; i<len; i++){
-           var p = this.value.string[i];
-           var filter = p['filters'].join('');
-           if(p['char']==this.newLine){
-               if(i<start){
-                   a.push('<br>');
-               }else if(i>end){
-                   c.push('<br>');
-               }else{
-                   b.push('<br>');
-               }
-           }else if(p['char']==this.newSpace){
-               if(i<start){
-                   a.push('<span style='+filter+'>&nbsp; </span>');
-               }else if(i>=end){
-                   c.push('<span style='+filter+'>&nbsp; </span>');
-               }else{
-                   b.push('<span style='+filter+'>&nbsp; </span>');
-               }
-           }else{
-               if(i<start){
-                   a.push('<span style='+filter+'>'+p['char']+'</span>');
-               }else if(i>=end){
-                   c.push('<span style='+filter+'>'+p['char']+'</span>');
-               }else{
-                   b.push('<span style='+filter+'>'+p['char']+'</span>');
-               }
-           }
-        }
-        var tempA = a.join("");
-        var tempB = b.join("");
-        var tempC = c.join("");
+        var a = this.value.string.slice(0,this.value.start).join("");
+        var b = this.value.string.slice(this.value.start,this.value.end).join("");
+        var c = this.value.string.slice(this.value.end,this.value.string.length).join("");
 
-        dojo.byId('thisFrame').innerHTML = tempA;
-        dojo.create('span',{id:'selection',innerHTML:tempB,'class':'selection'},dojo.byId('thisFrame'),'last');
-        dojo.byId('thisFrame').innerHTML = dojo.byId('thisFrame').innerHTML + tempC;
+        dojo.byId('thisFrame').innerHTML = a;
+        dojo.create('span',{id:'selection',innerHTML:b,'class':'selection'},dojo.byId('thisFrame'),'last');
+        dojo.byId('thisFrame').innerHTML = dojo.byId('thisFrame').innerHTML + c;
         
         //Place remote carets in approriate positions
         var nl = dojo.query("#thisDiv span,#thisDiv br");
-        var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length));
-        var rc;
-        for(var x in this.attendees){
-            if(this.attendees[x]['start']<this.value.start){
-                rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
-            }else if(this.attendees[x]['start']>this.value.end){
-                rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
-            }else if(this.attendees[x]['start']==this.value.start){
-                rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
-            }else if(this.attendees[x]['start']==this.value.end){
-                rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
-            }else if(this.attendees[x]['start']<this.value.end && this.attendees[x]['start']>this.value.start){
-                rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
-            }
-            //selection
-            //nlFixed.slice(this.attendees[x]['start'],this.attendees[x]['end']).forEach(dojo.hitch(this, function(node, index, arr){ dojo.place(node, rc, 'last'); })); 
-        }
-
-        //Render other stuff
-        this._renderLineNumbers();
-        this._scrollWith();
-
-        if(!slider || slider==false)
-           dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
+                var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length));
+                var rc;
+                for(var x in this.attendees){
+                    if(this.attendees[x]['start']<this.value.start){
+                        rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+                    }else if(this.attendees[x]['start']>this.value.end){
+                        rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
+                    }else if(this.attendees[x]['start']==this.value.start){
+                        rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
+                    }else if(this.attendees[x]['start']==this.value.end){
+                        rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+                    }else if(this.attendees[x]['start']<this.value.end && this.attendees[x]['start']>this.value.start){
+                        rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+                    }
+                    //selection
+                    //nlFixed.slice(this.attendees[x]['start'],this.attendees[x]['end']).forEach(dojo.hitch(this, function(node, index, arr){ dojo.place(node, rc, 'last'); })); 
+                }
+        
+                //Render other stuff
+                this._renderLineNumbers();
+                this._scrollWith();
+        
+                if(!slider || slider==false)
+                   dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     // Insert single char at this.value.start & custom render
     proto.insert = function(c, paste) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
+        this.prevValue.start = start; this.prevValue.end = end;
         var v = this.value;
         if(paste)
             this._paste = true;
         if(start != end)
             this.destroySelection();
-        for(var i=c.length-1; i>=0; i--){
-            var f = this.filters.slice();
-            if(!paste || paste==undefined){
-                v.string = v.string.slice(0,start).concat([{'char':c[i],'filters':f}]).concat(v.string.slice(start,v.string.length));
-            }else{
-                v.string = v.string.slice(0,start).concat([{'char':c[i],'filters':[]}]).concat(v.string.slice(start,v.string.length));
-            }
-            
-            //Fix all remote carets
-            var pos = start;
-            for(var j in this.attendees){
-                var s = this.attendees[j].start;
-                var e = this.attendees[j].end;
-                if(pos < this.attendees[j].end) {
-                    if(pos >= this.attendees[j].start && this.attendees[j].end != this.attendees[j].start)
-                        ++s;
-                    ++e;
-                }
-                if(pos < this.attendees[j].start)
-                    ++s;
-                this.attendees[j].start = s;
-                this.attendees[j].end = e;
-            }
-            
-            v.start = v.start+1;
-            v.end = v.start;
+        var f = this.filters.slice();
+        if(!paste || paste==undefined){
+            v.string = v.string.slice(0,start).concat([c]).concat(v.string.slice(start,v.string.length));
+        }else{
+            v.string = v.string.slice(0,start).concat([c]).concat(v.string.slice(start,v.string.length));
         }
+        
+        //Fix all remote carets
+        var pos = start;
+        for(var j in this.attendees){
+            var s = this.attendees[j].start;
+            var e = this.attendees[j].end;
+            if(pos < this.attendees[j].end) {
+                if(pos >= this.attendees[j].start && this.attendees[j].end != this.attendees[j].start)
+                    ++s;
+                ++e;
+            }
+            if(pos < this.attendees[j].start)
+                ++s;
+            this.attendees[j].start = s;
+            this.attendees[j].end = e;
+        }
+        
+        v.start = v.start+1;
+        v.end = v.start;
         dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
         this.render();
         this._lock = false;  
@@ -170,6 +139,7 @@ define([
         if(this.value.string.length>0){
             var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
             var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
+            this.prevValue.start = start; this.prevValue.end = end;
             var v = this.value;
             if(!n)
                 var n = 1;
@@ -205,6 +175,7 @@ define([
         var v = this.value;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
+        this.prevValue.start = start; this.prevValue.end = end;
         if(this.value.start != this.value.end){
              if(!dir || dir == 'left'){
                 v.start = start;
@@ -222,6 +193,7 @@ define([
         var v = this.value;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
+        this.prevValue.start = start; this.prevValue.end = end;
         this.value.end = start;
         v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
         this.render();
@@ -230,6 +202,7 @@ define([
     // Select all text & full render
     proto.selectAll = function() {
         var v = this.value;
+        this.prevValue.start = v.start; this.prevValue.end = v.end;
         if(!(v.end == 0 && v.start == v.string.length)){
             if(v.start != v.end)
                 this.clearSelection('right');
@@ -241,10 +214,7 @@ define([
     
     // Get plain string representation of curr value
     proto.getValue = function() {
-        var s = '';
-        for(var i=0; i<this.value.string.length; i++)
-            s = s+this.value.string[i]['char'];
-        return s;
+        return this.value.string;
     };
     
     // Set plain string representation of curr value
@@ -265,6 +235,7 @@ define([
         var top = Math.round(dojo.byId('selection').offsetTop-this._lineHeight);
         var lineAbove = {};
         var line = {};
+        this.prevValue.start = this.value.start; this.prevValue.end = this.value.end;
         if((this.value.start != this.value.end) && !select)
             this.clearSelection();
         var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
@@ -344,6 +315,7 @@ define([
         var top = Math.round(dojo.byId('selection').offsetTop+dojo.byId('selection').offsetHeight);
         var lineBelow = {};
         var line = {};
+        this.prevValue.start = this.value.start; this.prevValue.end = this.value.end;
         if(this.value.start != this.value.end && !select)
             this.clearSelection();
         var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
@@ -367,6 +339,10 @@ define([
                     this._lineIndex = k;
             }
             this._lock = true;    
+        }
+        if(this._lineIndex == 0){
+            this.moveCaretRight(true);
+            this._lineIndex++;
         }
         
         var count = this._count(lineBelow);
@@ -436,6 +412,7 @@ define([
     proto.moveCaretLeft = function(select) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
+        this.prevValue.start = start; this.prevValue.end = end;
         if(!select){
             if(start>0)
                 start--;
@@ -454,6 +431,7 @@ define([
     proto.moveCaretRight = function(select) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
+        this.prevValue.start = start; this.prevValue.end = end;
         if(!select){
             if(end<this.value.string.length)
                 end++;
@@ -470,6 +448,7 @@ define([
     
     // Move caret to end of text
     proto.moveCaretToEnd = function(){
+        this.prevValue.start = this.value.start; this.prevValue.end = this.value.end;
         this.value.start = this.value.string.length;
         this.value.end = this.value.string.length;
         this.render();
@@ -477,6 +456,7 @@ define([
     
     // Move caret to beginning of text
     proto.moveCaretToStart = function(){
+        this.prevValue.start = this.value.start; this.prevValue.end = this.value.end;
         this.value.start = 0;
         this.value.end = 0;
         this.render();
@@ -685,7 +665,13 @@ define([
     };
     
     proto._scrollWith = function(){
-        //TODO
+        if(dojo.byId('selection')){
+            if(dojo.byId('selection').offsetTop+50 >= (dojo.byId('divHolder').scrollTop+dojo.style('divHolder','height'))){
+                dojo.byId('divHolder').scrollTop = dojo.byId('divHolder').scrollTop+50;
+            }else if(dojo.byId('selection').offsetTop-50 <= (dojo.byId('divHolder').scrollTop)){
+                dojo.byId('divHolder').scrollTop = dojo.byId('selection').offsetTop-50;
+            }
+        }
     }; 
     
     proto._hidePalette = function(){
@@ -1092,15 +1078,15 @@ define([
         if(e.charCode == 0){
             switch(e.keyCode){
                 case 9: //TAB
-                    this.insert(this.tab);
+                    this.insert('&nbsp; &nbsp; &nbsp; &nbsp;');
                     break;
                 case 8: //BACKSPACE
                     this._delete(1);
                     break;
                 case 13: //NEWLINE
-                    if(this.value.string[this.value.start-1] && this.value.string[this.value.start-1]['char'] == this.newSpace)
+                    if(this.value.string[this.value.start-1] && this.value.string[this.value.start-1] == this.newSpace)
                         this._delete(1);
-                    setTimeout(dojo.hitch(this, function(){this.insert(this.newLine);}), 100);
+                    setTimeout(dojo.hitch(this, function(){this.insert('<br>');}), 100);
                     break;
                 case 35: //END
                     this.moveCaretToEnd();
@@ -1124,7 +1110,13 @@ define([
         }else{
             //INSERT CHAR
             if(this.cancelKeys[e.keyCode] != undefined){ }else{
-                this.insert(String.fromCharCode(e.which));
+                switch(e.charCode){
+                    case 32:
+                        this.insert('&nbsp; ');
+                        break;
+                    default:
+                        this.insert('<span>'+String.fromCharCode(e.which)+'</span>');
+                }
             }
         }
     };
@@ -1135,7 +1127,7 @@ define([
     
     proto._onclick = function(e){
         var sel = window.getSelection();
-        
+        this.prevValue.start = this.value.start; this.prevValue.end = this.value.end;
         //If dragging to select
         if(sel.toString().length > 0){
             var range = sel.getRangeAt(0);

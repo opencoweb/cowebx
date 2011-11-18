@@ -24,7 +24,7 @@ define([
         this._util          =   new ld({});
         this.oldSnapshot    =   this.snapshot();
         this.newSnapshot    =   '';
-        this.interval       =   100;            //Broadcast interval in ms
+        this.interval       =   10;             //Broadcast interval in ms
         this.t              =   null;           //Handle for timeouts
         this.q              =   [];             //Queue for incoming ops when paused
         this.min            =   0;              //Min caret pos in iteration loop
@@ -71,11 +71,11 @@ define([
                 var mx = this.max+(newLength - oldLength);
                 //Paste optimization
                 if(newLength-oldLength>50){
-                    var text = this.newSnapshot.substring(this.min, mx);
+                    var text = this.newSnapshot.slice(this.min, mx);
                     for(var i=0; i<text.length; i++)
                         this.collab.sendSync('editorUpdate', {'char':text[i],'filter':[]}, 'insert', i+this.min);
                 }else{
-                    syncs = this._util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
+                    syncs = this._util.ld(this.oldSnapshot.slice(this.min, this.max), this.newSnapshot.slice(this.min, mx));
                     if(syncs){
                         for(var i=0; i<syncs.length; i++){
                             if(this._textarea._paste){
@@ -89,7 +89,7 @@ define([
             }else if(newLength < oldLength){
                 var mx = this.max+(oldLength-newLength);
                 var mn = (this.min-1 > -1) ? this.min-1 : 0;
-                syncs = this._util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
+                syncs = this._util.ld(this.oldSnapshot.slice(mn, mx), this.newSnapshot.slice(mn, this.max));
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         if(this._textarea._paste){
@@ -101,7 +101,7 @@ define([
                 }
             }else if(newLength == oldLength){
                 if(this.oldSnapshot != this.newSnapshot)
-                    syncs = this._util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, this.max));
+                    syncs = this._util.ld(this.oldSnapshot.slice(this.min, this.max), this.newSnapshot.slice(this.min, this.max));
                 if(syncs){
                     for(var i=0; i<syncs.length; i++){
                         if(this._textarea._paste){
@@ -213,7 +213,7 @@ define([
         start = por.start,
         end = por.end;
         var f = (filter == null || undefined) ? [] : filter;
-        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f}]).concat(t.value.string.slice(pos));
+        t.value.string = t.value.string.slice(0, pos).concat([c]).concat(t.value.string.slice(pos));
         if(pos < por.end) {
             if(pos >= por.start && por.end != por.start)
                 ++start;
@@ -251,7 +251,7 @@ define([
         }
         var sel = Math.abs(this._por.start-this._por.end);
         var f = (filter == null || undefined) ? [] : filter;
-        t.value.string = t.value.string.slice(0, pos).concat([{'char':c,'filters':f}]).concat(t.value.string.slice(pos+1));
+        t.value.string = t.value.string.slice(0, pos).concat([c]).concat(t.value.string.slice(pos+1));
         this._prevPor.start = this._por.start;
         this._prevPor.end = this._por.end;
     };
