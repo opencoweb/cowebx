@@ -877,28 +877,25 @@ define([
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         
         if(start == end){
-            if((this._prevForeColor == null || undefined) || (dojo.indexOf(this.filters,'color:'+this._prevForeColor+';') == -1)){
+            if((this._prevForeColor == null || undefined) || (dojo.indexOf(this.filters,'color: '+this._prevForeColor+';') == -1)){
                 
             }else if(this._prevForeColor){
-                this.filters[dojo.indexOf(this.filters,'color:'+this._prevForeColor+';')] = '';
+                this.filters[dojo.indexOf(this.filters,'color: '+this._prevForeColor+';')] = '';
             }
-            this.filters.push('color:'+color+';');
+            this.filters.push('color: '+color+';');
             this._prevForeColor = color;
             dojo.attr(this.ForeColor.domNode, 'style', 'border-bottom:3px solid '+color);
         }else{
             var x=0;
             for(var i=start; i<end; i++){
-                var tmp = dojo.byId('selection').childNodes[x];
                 for(var j=0; j<this._pastForeColors.length; j++){
-                    if(dojo.indexOf(this.value.string[i]['filters'],'color:'+this._pastForeColors[j]+';') != -1){
-                        this.value.string[i]['filters'][dojo.indexOf(this.value.string[i]['filters'],'color:'+this._pastForeColors[j]+';')] = '';
-                        if(dojo.attr(tmp, "style"))
-                            dojo.attr(tmp,'style', dojo.attr(tmp,'style').replace('color:'+this._pastForeColors[j]+';',''));
+                    if(this.value.string[i].search("color: "+this._pastForeColors[j]+";") != -1){
+                        var index = this.value.string[i].search("color: "+this._pastForeColors[j]+";");
+                        this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+8+this._pastForeColors[j].length, this.value.string[i].length);
                     }
                 }
-                this.value.string[i]['filters'].push('color:'+color+';'); 
-                var curr = (dojo.attr(tmp,'style') == null) ? '' : dojo.attr(tmp,'style');
-                dojo.attr(tmp,'style',curr+'color:'+color+';');
+                var index = this.value.string[i].search('">');
+                this.value.string[i] = this.value.string[i].substring(0,index)+'color: '+color+';'+this.value.string[i].substring(index, this.value.string[i].length);
                 x++;
             }
             this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
@@ -907,7 +904,7 @@ define([
         this._pastForeColors.push(color);
         dojo.byId('thisDiv').focus();
         this._hidePalette();
-        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
+        this.render();
     };
     
     proto._onHiliteColorClick = function() {
@@ -929,40 +926,34 @@ define([
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         
         if(start == end){
-            if((this._prevHiliteColor == null || undefined) || (dojo.indexOf(this.filters,'background:'+this._prevHiliteColor+';') == -1)){
+            if((this._prevHiliteColor == null || undefined) || (dojo.indexOf(this.filters,'background: '+this._prevHiliteColor+';') == -1)){
                 
             }else if(this._prevHiliteColor){
-                this.filters[dojo.indexOf(this.filters,'background:'+this._prevForeColor+';')] = '';
+                this.filters[dojo.indexOf(this.filters,'background: '+this._prevHiliteColor+';')] = '';
             }
-            this.filters.push('background:'+color+';');
+            this.filters.push('background: '+color+';');
             this._prevHiliteColor = color;
             dojo.attr(this.HiliteColor.domNode, 'style', 'border-bottom:3px solid '+color);
         }else{
             var x=0;
             for(var i=start; i<end; i++){
-                var tmp = dojo.byId('selection').childNodes[x];
-                if(this.value.string[i]['filters'] == undefined){
-                    this.value.string[i]['filters'] = [];
-                }
                 for(var j=0; j<this._pastHiliteColors.length; j++){
-                    if(dojo.indexOf(this.value.string[i]['filters'],'background:'+this._pastHiliteColors[j]+';') != -1){
-                        this.value.string[i]['filters'][dojo.indexOf(this.value.string[i]['filters'],'background:'+this._pastHiliteColors[j]+';')] = '';
-                        if(dojo.attr(tmp, "style"))
-                            dojo.attr(tmp,'style', dojo.attr(tmp,'style').replace('background:'+this._pastHiliteColors[j]+';',''));
+                    if(this.value.string[i].search("background: "+this._pastHiliteColors[j]+";") != -1){
+                        var index = this.value.string[i].search("background: "+this._pastHiliteColors[j]+";");
+                        this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+13+this._pastHiliteColors[j].length, this.value.string[i].length);
                     }
                 }
-                this.value.string[i]['filters'].push('background:'+color+';'); 
-                var curr = (dojo.attr(tmp,'style') == null) ? '' : dojo.attr(tmp,'style');
-                dojo.attr(tmp,'style',curr+'background:'+color+';');
+                var index = this.value.string[i].search('">');
+                this.value.string[i] = this.value.string[i].substring(0,index)+'background: '+color+';'+this.value.string[i].substring(index, this.value.string[i].length);
                 x++;
             }
             this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
         }
-        
+
         this._pastHiliteColors.push(color);
         dojo.byId('thisDiv').focus();
         this._hidePalette();
-        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
+        this.render();
     };
     
     proto._onRemoteStyle = function(obj) {
