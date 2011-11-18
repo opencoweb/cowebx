@@ -7,8 +7,8 @@
 define([
     '../TextEditor',
     'org/OpenAjax',
-    'util',
-    'listener',
+    './util',
+    './listener',
 ], function(TextEditor, OpenAjax, util, listener) {
     var modOpts = function() {
         return {

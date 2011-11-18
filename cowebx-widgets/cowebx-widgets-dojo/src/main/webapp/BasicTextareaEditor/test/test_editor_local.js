@@ -5,8 +5,7 @@
 //
 /*global define module test raises deepEqual ok equal strictEqual*/
 define([
-    '../TextEditor',
-    ''
+    '../TextEditor'
 ], function(TextEditor) {
     var modOpts = function() {
         return {
