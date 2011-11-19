@@ -11,7 +11,7 @@ define([
     './ShareButton'
 ], function(dojo, dijit, coweb, Toolbar, ToggleButton, Separator, Dialog, ColorPalette, Slider, ShareButton) {
     var textarea = function(args){
-       
+       console.log('test');
     };
     var proto = textarea.prototype;
 
