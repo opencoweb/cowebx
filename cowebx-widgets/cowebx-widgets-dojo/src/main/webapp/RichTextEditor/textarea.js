@@ -11,40 +11,7 @@ define([
     './ShareButton'
 ], function(dojo, dijit, coweb, Toolbar, ToggleButton, Separator, Dialog, ColorPalette, Slider, ShareButton) {
     var textarea = function(args){
-        if(!args.domNode || !args.id || !args.parent)
-            throw new Error("Textarea: missing arg");
-        //1. Process args
-        this.noSlider       =   (!args.noSlider) ? false : args.noSlider;
-        this.domNode        =   args.domNode;
-        this.id             =   args.id;
-        this.parent         =   args.parent;
-
-        //2. Build stuff
-        this._buildTemplates();
-        
-        //3. Style and connect
-        this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
-        this._connect();
-        this._onResize();
-        
-        //4. properties
-        this.value              =   {start:0,end:0,string:[]};
-        this.attendees          =   {};
-        this.displayCaret       =   false;
-        this.title              =   'Untitled Document';
-        this.newSpace           =   '<span>&nbsp; </span>';
-        this.filters            =   [];
-        this._pastForeColors    =   [];
-        this._pastHiliteColors  =   [];
-        this._lock              =   false;
-        this._paste             =   false;
-        this.cancelKeys         =   {
-            27 : 'esc',
-            91 : 'meta',
-            18 : 'option',
-            17 : 'control',
-            16 : 'shift'
-        };
+       
     };
     var proto = textarea.prototype;
 
