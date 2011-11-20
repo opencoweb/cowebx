@@ -443,6 +443,17 @@ define([
         this._scrollWith();
     };
     
+    proto.onClickRender = function(endNode){
+        dojo.destroy('selection');
+        dojo.create('span',{id:'selection','class':'selection'},endNode,'after');
+    };
+    
+    proto.onDragRender = function(startNode, nl){
+        dojo.destroy('selection');
+        var a = dojo.create('span',{id:'selection','class':'selection'},startNode,'before');
+        nl.place(dojo.byId('selection'));
+    };
+    
 // Utility functions
     
     proto._moveToEmptyLine = function(clickHt) {
@@ -986,11 +997,9 @@ define([
     
     proto._onclick = function(e){
         var sel = window.getSelection();
-        
         //If dragging to select
         if(sel.toString().length > 0 && dojo.byId('thisFrame').childNodes.length>1){
             var range = sel.getRangeAt(0);
-
             //1. Get start and end node for for click+drag
             var start = (range.startOffset == 0) ? range.startContainer.parentNode : range.startContainer.parentNode.nextSibling;
             var end = (range.endOffset == 0) ? range.endContainer.parentNode : range.endContainer.parentNode.nextSibling;
@@ -998,20 +1007,16 @@ define([
                 start = start.nextSibling;
             if(end && end.id == 'selection')
                 end = end.nextSibling;
-            
             //2. Place selection before start
             dojo.place('selection',start,'before');
-            
             //3. Query all nodes in doc, remove selection
             var nl = dojo.query("#thisDiv span,#thisDiv br");
             var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length));
-            
             //4. Set this.value.start & this.value.end to proper values
             this.value.start = nlFixed.indexOf(start);
             this.value.end = (end == null) ? nlFixed.length : nlFixed.indexOf(end);
-            this.render();
             window.getSelection().removeAllRanges();
-            
+            this.onDragRender(start, nlFixed.slice(this.value.start, this.value.end));
         //If clicking
         }else{
             var endNode = e.target;
@@ -1024,14 +1029,13 @@ define([
                 if(endNode == node)
                     end = j;
             }));
-            
             if(end == null){
                 this._onFocus();
                 this._moveToEmptyLine(e.clientY);
             }else{
                 this.value.start = end;
                 this.value.end = end;
-                this.render();
+                this.onClickRender(endNode);
             }
         }
     };
