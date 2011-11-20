@@ -457,7 +457,32 @@ define([
 // Utility functions
     
     proto._moveToEmptyLine = function(clickHt) {
-        //TODO
+        var diff = 100000;
+        var diff2 = 100000;
+        var to = null;
+        var from = null;
+        dojo.query('#lineNumbers span').forEach(dojo.hitch(this, function(node, index, arr){
+            if(node.innerHTML == 1 && dojo.attr(node, 'num')){
+                if(Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop)) < diff){
+                    diff = Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop));
+                    to = parseInt(dojo.attr(node, 'num'));
+                }
+                if(Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top) < diff2){
+                    diff2 = Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top);
+                    from = parseInt(dojo.attr(node, 'num'));
+                }
+            }
+        }));
+        this._lock = true;
+        this._lineIndex = 10000;
+
+        if(from <= to){
+            for(var i=0; i<to-from; i++)
+                this.moveCaretDown();
+        }else{
+            for(var i=0; i<from-to; i++)
+                this.moveCaretUp();
+        }
     };
     
     proto._renderLineNumbers = function(){
