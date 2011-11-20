@@ -199,8 +199,9 @@ define([
     
     // Move caret up one line & custom render
     proto.moveCaretUp = function(select) {
-        var targetX = dojo.byId('selection').offsetLeft;
-        var top = dojo.byId('selection').offsetTop-this._lineHeight;
+        var s = dojo.byId('selection');
+        var targetX = s.offsetLeft;
+        var top = s.offsetTop-this._lineHeight;
         var targetNode = null;
         var backupNode = null;
         var diff = 10000;
@@ -214,7 +215,7 @@ define([
                     targetNode = node;
                     targetIndex = index;
                 }
-            }else if(node.offsetTop > dojo.byId('selection').offsetTop-2 && node.offsetTop < dojo.byId('selection').offsetTop+2 && node.tagName != 'BR'){
+            }else if(node.offsetTop > s.offsetTop-2 && node.offsetTop < s.offsetTop+2 && node.tagName != 'BR'){
                 if(!backupNode){
                     backupNode = node;
                     backupIndex = index;
@@ -245,9 +246,10 @@ define([
     };
     
     // Move caret down one line & custom render
-    proto.moveCaretDown = function(select) { 
-        var targetX = dojo.byId('selection').offsetLeft;
-        var top = dojo.byId('selection').offsetTop+dojo.byId('selection').offsetHeight;
+    proto.moveCaretDown = function(select) {
+        var s = dojo.byId('selection');
+        var targetX = s.offsetLeft;
+        var top = s.offsetTop+s.offsetHeight;
         var targetNode = null;
         var backupNode = null;
         var targetIndex = 0;
@@ -273,7 +275,7 @@ define([
             targetIndex++;
         }
         if(targetNode){
-            if(select && dojo.byId('selection').childNodes[dojo.byId('selection').childNodes.length-1] && (dojo.byId('selection').childNodes[dojo.byId('selection').childNodes.length-1].tagName == 'BR')){
+            if(select && s.childNodes[s.childNodes.length-1] && (s.childNodes[s.childNodes.length-1].tagName == 'BR')){
                 this.moveCaretRight(true);
                 this.moveCaretDown(true);
             }else{
@@ -283,9 +285,9 @@ define([
                 this.moveDownRender(select, targetNode, nl, dir);
             }
         }else{
-            if(dojo.byId('selection').nextSibling && dojo.byId('selection').nextSibling.tagName == 'BR' && select){
+            if(s.nextSibling && s.nextSibling.tagName == 'BR' && select){
                 this.moveCaretRight(true);
-            }else if(dojo.byId('selection').nextSibling){
+            }else if(s.nextSibling){
                 this.value.end = backupIndex;
                 if(!select)
                     this.value.start = backupIndex;
@@ -984,7 +986,7 @@ define([
         var sel = window.getSelection();
         
         //If dragging to select
-        if(sel.toString().length > 0){
+        if(sel.toString().length > 0 && dojo.byId('thisFrame').childNodes.length>1){
             var range = sel.getRangeAt(0);
 
             //1. Get start and end node for for click+drag
