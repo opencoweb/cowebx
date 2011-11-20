@@ -22,6 +22,7 @@
    height:100%;
    background:grey;
    min-width:30px;
+   font-family: Andale Mono, monospace;
 }
 
 #thisDiv{
@@ -157,7 +158,7 @@
     font:10px arial;
     float:right;
     position:relative;
-    top:3px;
+    top:5px;
     margin-right:2px;
     color:lightgrey;
 }

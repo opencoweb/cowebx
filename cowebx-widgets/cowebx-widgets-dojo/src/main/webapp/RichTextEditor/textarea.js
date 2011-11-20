@@ -464,7 +464,32 @@ define([
         var a = dojo.create('div',{innerHTML:'G'},dojo.byId('thisFrame'),'first');
         this._lineHeight = dojo.style(a, 'height');
         dojo.destroy(a);
-        //TODO
+        
+        if(!this._prevLines)
+            this._prevLines = 0;
+        
+        var contentHeight = dojo.style('thisFrame', 'height');
+        var lines = Math.floor(contentHeight / this._lineHeight);
+        if(this._prevLines < lines){
+            var diff = lines - this._prevLines;
+            var div = dojo.byId('lineNumbers');
+            for(var i=1; i<=diff; i++){
+                dojo.create('span',{style:'color:grey;visibility:hidden;',innerHTML:'1',id:i+this._prevLines+'a','num':i+this._prevLines},div,'last');
+                dojo.create('span',{'class':'line',innerHTML:i+this._prevLines,id:i+this._prevLines+'b'},div,'last');
+                dojo.create('br',{id:i+this._prevLines+'c'},div,'last');
+            }
+            this._prevLines = lines;
+        }else if(this._prevLines > lines){
+            var diff = Math.abs(lines - this._prevLines);
+            var div = dojo.byId('lineNumbers');
+            var n = this._prevLines+0;
+            for(var i=0; i<diff; i++){
+                dojo.destroy(div.lastChild);
+                dojo.destroy(div.lastChild);
+                dojo.destroy(div.lastChild);
+            }
+            this._prevLines = lines;
+        }
     };
     
     proto._scrollWith = function(){
