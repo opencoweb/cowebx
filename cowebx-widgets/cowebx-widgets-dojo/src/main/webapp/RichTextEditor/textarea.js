@@ -310,6 +310,7 @@ define([
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
         
         if(!select){
+            this.clearSelection();
             if(start>0)
                 start--;
             end = start;
@@ -319,7 +320,7 @@ define([
         }
         this.value.start = start;
         this.value.end = end;
-        this.render();
+        this.moveLeftRender(select);
         this._lock = false;  
     };
     
@@ -329,6 +330,7 @@ define([
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
         
         if(!select){
+            this.clearSelection('right');
             if(end<this.value.string.length)
                 end++;
             start = end;
@@ -338,7 +340,7 @@ define([
         }
         this.value.start = start;
         this.value.end = end;
-        this.render();
+        this.moveRightRender(select);
         this._lock = false;  
     };
     
@@ -391,7 +393,6 @@ define([
         var temp = f.innerHTML+'';
         f.innerHTML = '';
         dojo.create('span',{id:'selection',innerHTML:temp,'class':'selection'},f,'last');
-        this._renderLineNumbers();
         this._scrollWith();
     };
     
@@ -435,10 +436,39 @@ define([
         this._scrollWith();
     };
     
+    proto.moveLeftRender = function(select){
+        var s = dojo.byId('selection');
+        if(!select && s.previousSibling){
+            dojo.place(s.previousSibling, s, 'after');
+        }else if(s.previousSibling){
+            dojo.place(s.previousSibling, s, 'first');
+        }
+    };
+    
+    proto.moveRightRender = function(select){
+        var s = dojo.byId('selection');
+        if(!select && s.nextSibling){
+            dojo.place(s.nextSibling, s, 'before');
+        }else if(s.nextSibling){
+            dojo.place(s.nextSibling, s, 'last');
+        }
+    };
+    
 // Utility functions
     
     proto._moveToEmptyLine = function(clickHt) {
         //TODO
+    };
+    
+    proto._renderLineNumbers = function(){
+        var a = dojo.create('div',{innerHTML:'G'},dojo.byId('thisFrame'),'first');
+        this._lineHeight = dojo.style(a, 'height');
+        dojo.destroy(a);
+        //TODO
+    };
+    
+    proto._scrollWith = function(){
+        
     };
     
     proto._listenForKeyCombo = function(e) {
@@ -464,13 +494,6 @@ define([
                 this._universalKeyCombo();
             }
         }
-    };
-    
-    proto._renderLineNumbers = function(){
-        var a = dojo.create('div',{innerHTML:'G'},dojo.byId('thisFrame'),'first');
-        this._lineHeight = dojo.style(a, 'height');
-        dojo.destroy(a);
-        //TODO
     };
     
     proto._chromeKeyCombo = function() {
@@ -615,16 +638,6 @@ define([
         do { curDate = new Date(); }
         while(curDate-date < millis);
     };
-    
-    proto._scrollWith = function(){
-        if(dojo.byId('selection')){
-            if(dojo.byId('selection').offsetTop+50 >= (dojo.byId('divHolder').scrollTop+dojo.style('divHolder','height'))){
-                dojo.byId('divHolder').scrollTop = dojo.byId('divHolder').scrollTop+50;
-            }else if(dojo.byId('selection').offsetTop-50 <= (dojo.byId('divHolder').scrollTop)){
-                dojo.byId('divHolder').scrollTop = dojo.byId('selection').offsetTop-50;
-            }
-        }
-    }; 
     
     proto._hidePalette = function(){
 		dojo.style(this._palette.domNode, 'display', 'none');
