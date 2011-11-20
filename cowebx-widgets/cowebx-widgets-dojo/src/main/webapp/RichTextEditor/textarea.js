@@ -31,7 +31,7 @@ define([
         this.value              =   {start:0,end:0,string:[]};
         this.attendees          =   {};
         this.title              =   'Untitled Document';
-        this.newSpace           =   '<span>&nbsp; </span>';
+        this.newSpace           =   '<span>&nbsp;</span>';
         this.prevValue          =   [];
         this.filters            =   [];
         this._pastForeColors    =   [];
@@ -49,6 +49,7 @@ define([
 
     // Rips through all of this.value and blasts proper html equiv into dom
     proto.render = function(slider) {
+        console.log('full render');
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var a = []; var b = []; var c = [];
@@ -64,21 +65,21 @@ define([
         var nl = dojo.query("#thisDiv span,#thisDiv br");
         var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length));
         var rc;
-        for(var x in this.attendees){
-            if(this.attendees[x]['start']<this.value.start){
-                rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
-            }else if(this.attendees[x]['start']>this.value.end){
-                rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
-            }else if(this.attendees[x]['start']==this.value.start){
-                rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
-            }else if(this.attendees[x]['start']==this.value.end){
-                rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
-            }else if(this.attendees[x]['start']<this.value.end && this.attendees[x]['start']>this.value.start){
-                rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
-            }
-            //selection
-            //nlFixed.slice(this.attendees[x]['start'],this.attendees[x]['end']).forEach(dojo.hitch(this, function(node, index, arr){ dojo.place(node, rc, 'last'); })); 
-        }
+        // for(var x in this.attendees){
+        //             if(this.attendees[x]['start']<this.value.start){
+        //                 rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+        //             }else if(this.attendees[x]['start']>this.value.end){
+        //                 rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
+        //             }else if(this.attendees[x]['start']==this.value.start){
+        //                 rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
+        //             }else if(this.attendees[x]['start']==this.value.end){
+        //                 rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+        //             }else if(this.attendees[x]['start']<this.value.end && this.attendees[x]['start']>this.value.start){
+        //                 rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+        //             }
+        //             //selection
+        //             //nlFixed.slice(this.attendees[x]['start'],this.attendees[x]['end']).forEach(dojo.hitch(this, function(node, index, arr){ dojo.place(node, rc, 'last'); })); 
+        //         }
         
         //Render other stuff
         this._renderLineNumbers();
@@ -222,8 +223,10 @@ define([
                 }
             }
         }));
-        if(diff>=10)
-            dir = 'after';
+        if(diff>=10 && targetNode){
+            targetNode = targetNode.nextSibling;
+            targetIndex++;
+        }
         if(targetNode){
             this.value.start = targetIndex;
             if(!select)
@@ -344,28 +347,12 @@ define([
         this._lock = false;  
     };
     
-    // Move caret to end of text
-    proto.moveCaretToEnd = function(){
-        
-        this.value.start = this.value.string.length;
-        this.value.end = this.value.string.length;
-        this.render();
-    };
-    
-    // Move caret to beginning of text
-    proto.moveCaretToStart = function(){
-        
-        this.value.start = 0;
-        this.value.end = 0;
-        this.render();
-    };
-    
 // Custom render functions
 
     proto.insertRender = function(c){
         var ch;
         if((c.search('">') != -1)||(c.search("nbsp") != -1)){
-            ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
+            ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp;';
             var f = this.filters.join("");
             dojo.create('span',{innerHTML:ch,style:f},dojo.byId('selection'),'before');
         }else if(c.search('br') != -1){
@@ -443,6 +430,7 @@ define([
         }else if(s.previousSibling){
             dojo.place(s.previousSibling, s, 'first');
         }
+        this._scrollWith();
     };
     
     proto.moveRightRender = function(select){
@@ -452,6 +440,7 @@ define([
         }else if(s.nextSibling){
             dojo.place(s.nextSibling, s, 'last');
         }
+        this._scrollWith();
     };
     
 // Utility functions

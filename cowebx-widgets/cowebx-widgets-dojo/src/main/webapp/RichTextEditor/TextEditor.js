@@ -73,12 +73,17 @@ define([
                 if(newLength-oldLength>50){
                     var text = this.newSnapshot.slice(this.min, mx);
                     for(var i=0; i<text.length; i++)
-                        this.collab.sendSync('editorUpdate', {'char':text[i]}, 'insert', i+this.min);
+                        this.collab.sendSync('editorUpdate', {'char':text[i],'filter':[],'caretInfo':caretInfo}, 'insert', i+this.min);
                 }else{
                     syncs = this._util.ld(this.oldSnapshot.slice(this.min, this.max), this.newSnapshot.slice(this.min, mx));
                     if(syncs){
-                        for(var i=0; i<syncs.length; i++)
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
+                        for(var i=0; i<syncs.length; i++){
+                            if(this._textarea._paste){
+                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
+                            }else{
+                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
+                            }
+                        }
                     }
                 }
             }else if(newLength < oldLength){
@@ -86,15 +91,25 @@ define([
                 var mn = (this.min-1 > -1) ? this.min-1 : 0;
                 syncs = this._util.ld(this.oldSnapshot.slice(mn, mx), this.newSnapshot.slice(mn, this.max));
                 if(syncs){
-                    for(var i=0; i<syncs.length; i++)
-                        this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
+                    for(var i=0; i<syncs.length; i++){
+                        if(this._textarea._paste){
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
+                        }else{
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
+                        }
+                    }
                 }
             }else if(newLength == oldLength){
                 if(this.oldSnapshot != this.newSnapshot)
                     syncs = this._util.ld(this.oldSnapshot.slice(this.min, this.max), this.newSnapshot.slice(this.min, this.max));
                 if(syncs){
-                    for(var i=0; i<syncs.length; i++)
-                        this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
+                    for(var i=0; i<syncs.length; i++){
+                        if(this._textarea._paste){
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
+                        }else{
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
+                        }
+                    }
                 }
             }
             
@@ -126,7 +141,7 @@ define([
         this._updatePOR();
         for(var i=0; i<this.q.length; i++){
             if(this.q[i].type == 'insert'){
-                this.insertChar(this.q[i].value['char'], this.q[i].position);
+                this.insertChar(this.q[i].value['char'], this.q[i].position, this.q[i].value['filter']);
                 if(this.q[i].value['caretInfo'] != null){
                     this._textarea.attendees[this.q[i].value['caretInfo'].site] = {
                         start: this.q[i].value['caretInfo'].start,
@@ -145,7 +160,7 @@ define([
                     };
                 }
             if(this.q[i].type == 'update')
-                this.updateChar(this.q[i].value['char'], this.q[i].position);
+                this.updateChar(this.q[i].value['char'], this.q[i].position, this.q[i].value['filter']);
                 if(this.q[i].value['caretInfo'] != null){
                     this._textarea.attendees[this.q[i].value['caretInfo'].site] = {
                         start: this.q[i].value['caretInfo'].start,
@@ -182,11 +197,12 @@ define([
             end: obj.value.end,
             color: this._attendeeList.attendees[obj.value.site]['color']
         };
-        this._textarea.render();
+        //this._textarea.render();
     };
         
-    proto.insertChar = function(c, pos) {
+    proto.insertChar = function(c, pos, filter) {
         var t = this._textarea;
+        var ch;
         if(pos>t.value.start && pos<t.value.end){
             t.clearSelection();
             this._updatePOR();
@@ -195,7 +211,25 @@ define([
         por = this._por,
         start = por.start,
         end = por.end;
+        var f = (filter == null || undefined) ? [] : filter;
         t.value.string = t.value.string.slice(0, pos).concat([c]).concat(t.value.string.slice(pos));
+        
+        if(pos<t.value.start || (pos==t.value.start && sel>0)){
+            if((c.search('">') != -1)||(c.search("nbsp") != -1)){
+                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp;';
+                dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos],'before');
+            }else if(c.search('br') != -1){
+                dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos],'before');
+            }
+        }else{
+            if((c.search('">') != -1)||(c.search("nbsp") != -1)){
+                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp;';
+                dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos-sel],'after');
+            }else if(c.search('br') != -1){
+                dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos-sel],'after');
+            }
+        }
+        
         if(pos < por.end) {
             if(pos >= por.start && por.end != por.start)
                 ++start;
@@ -217,6 +251,15 @@ define([
         }
         var sel = Math.abs(this._por.start-this._por.end);
         t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
+        
+        if(pos<t.value.start){
+            if(dojo.byId('thisFrame').childNodes[pos])
+                dojo.destroy(dojo.byId('thisFrame').childNodes[pos]);
+        }else{
+            if(dojo.byId('thisFrame').childNodes[pos+1-sel])
+                dojo.destroy(dojo.byId('thisFrame').childNodes[pos+1-sel]);
+        }
+
         if(pos < this._por.start)
             --this._por.start;
         if(pos < this._por.end)
@@ -225,14 +268,35 @@ define([
         this._prevPor.end = this._por.end;
     };
         
-    proto.updateChar = function(c, pos) {
+    proto.updateChar = function(c, pos, filter) {
         var t = this._textarea;
         if(pos>=t.value.start && pos<=t.value.end){
             t.clearSelection();
             this._updatePOR();
         }
         var sel = Math.abs(this._por.start-this._por.end);
+        var f = (filter == null || undefined) ? [] : filter;
         t.value.string = t.value.string.slice(0, pos).concat([c]).concat(t.value.string.slice(pos+1));
+        
+        var ch;
+        if(pos<t.value.start){
+            dojo.destroy(dojo.byId('thisFrame').childNodes[pos]);
+            if((c.search('">') != -1)||(c.search("nbsp") != -1)){
+                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp;';
+                dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos-1],'after');
+            }else if(c.search('br') != -1){
+                dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos-1],'after');
+            }
+        }else{
+            dojo.destroy(dojo.byId('thisFrame').childNodes[pos+1-sel]);
+            if((c.search('">') != -1)||(c.search("nbsp") != -1)){
+                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp;';
+                dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos-sel],'after');
+            }else if(c.search('br') != -1){
+                dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos-sel],'after');
+            }
+        }
+        
         this._prevPor.start = this._por.start;
         this._prevPor.end = this._por.end;
     };
@@ -301,7 +365,7 @@ define([
     proto._moveCaretToPOR = function() {
         this._textarea.value.start = this._por.start;
         this._textarea.value.end = this._por.end;
-        this._textarea.render();
+        
     };
 
     proto._updatePOR = function() {
