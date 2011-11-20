@@ -30,14 +30,13 @@ define([
         //4. properties
         this.value              =   {start:0,end:0,string:[]};
         this.attendees          =   {};
-        this.displayCaret       =   false;
         this.title              =   'Untitled Document';
         this.newSpace           =   '<span>&nbsp; </span>';
+        this.prevValue          =   [];
         this.filters            =   [];
         this._pastForeColors    =   [];
         this._pastHiliteColors  =   [];
         this._lock              =   false;
-        this._paste             =   false;
         this.cancelKeys         =   {
             27 : 'esc',
             91 : 'meta',
@@ -59,9 +58,7 @@ define([
         var b = this.value.string.slice(this.value.start,this.value.end).join("");
         var c = this.value.string.slice(this.value.end,this.value.string.length).join("");
 
-        dojo.byId('thisFrame').innerHTML = a;
-        dojo.create('span',{id:'selection',innerHTML:b,'class':'selection'},dojo.byId('thisFrame'),'last');
-        dojo.byId('thisFrame').innerHTML = dojo.byId('thisFrame').innerHTML + c;
+        dojo.byId('thisFrame').innerHTML = a+'<span id="selection" class="selection">'+b+'</span>'+c;
         
         //Place remote carets in approriate positions
         var nl = dojo.query("#thisDiv span,#thisDiv br");
@@ -82,30 +79,21 @@ define([
             //selection
             //nlFixed.slice(this.attendees[x]['start'],this.attendees[x]['end']).forEach(dojo.hitch(this, function(node, index, arr){ dojo.place(node, rc, 'last'); })); 
         }
-
+        
         //Render other stuff
         this._renderLineNumbers();
         this._scrollWith();
-
-        if(!slider || slider==false)
-           dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
     };
     
     // Insert single char at this.value.start & custom render
-    proto.insert = function(c, paste) {
+    proto.insert = function(c) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
        
         var v = this.value;
-        if(paste)
-            this._paste = true;
         if(start != end)
             this.destroySelection();
-        if(!paste || paste==undefined){
-            v.string = v.string.slice(0,start).concat([c]).concat(v.string.slice(start,v.string.length));
-        }else{
-            v.string = v.string.slice(0,start).concat([c]).concat(v.string.slice(start,v.string.length));
-        }
+        v.string = v.string.slice(0,start).concat([c]).concat(v.string.slice(start,v.string.length));
         
         //Fix all remote carets
         var pos = start;
@@ -122,11 +110,9 @@ define([
             this.attendees[j].start = s;
             this.attendees[j].end = e;
         }
-        
         v.start = v.start+1;
         v.end = v.start;
-        dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
-        this.render();
+        this.insertRender(c);
         this._lock = false;  
     };
     
@@ -159,9 +145,8 @@ define([
                     v.start = v.start - n;
                     v.end = v.start;
                 }
-                this.render();
+                this.deleteRender();
             }
-            dojo.publish("editorHistory", [{save:dojo.clone(this.value)}]);
             this._lock = false; 
         }
     };
@@ -173,7 +158,7 @@ define([
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
         
         if(this.value.start != this.value.end){
-             if(!dir || dir == 'left'){
+            if(!dir || dir == 'left'){
                 v.start = start;
                 v.end = start;
             }else if(dir && dir == 'right'){
@@ -192,19 +177,18 @@ define([
         
         this.value.end = start;
         v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
-        this.render();
+        this.destroySelRender();
     };
     
     // Select all text & full render
     proto.selectAll = function() {
-        var v = this.value;
-        
+        var v = this.value;   
         if(!(v.end == 0 && v.start == v.string.length)){
             if(v.start != v.end)
-                this.clearSelection('right');
+                this.clearSelection();
             v.end=v.string.length;
             v.start=0;
-            this.render();
+            this.selectAllRender();
         }
     };
     
@@ -215,181 +199,107 @@ define([
     
     // Move caret up one line & custom render
     proto.moveCaretUp = function(select) {
-        var i=0;
-        var top = Math.round(dojo.byId('selection').offsetTop-this._lineHeight);
-        var lineAbove = {};
-        var line = {};
-        
+        var targetX = dojo.byId('selection').offsetLeft;
+        var top = dojo.byId('selection').offsetTop-this._lineHeight;
+        var targetNode = null;
+        var backupNode = null;
+        var diff = 10000;
+        var dir = 'before';
         if((this.value.start != this.value.end) && !select)
             this.clearSelection();
         var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
             if(node.offsetTop > top-2 && node.offsetTop < top+2 && node.tagName != 'BR'){
-                lineAbove[this._count(lineAbove)] = {
-                    node: node,
-                    index: i
-                };
-            }else if(node.offsetTop == dojo.byId('selection').offsetTop){
-                line[this._count(line)] = {
-                    node: node,
-                    index: i
-                };
+                if(Math.abs(targetX - node.offsetLeft) < diff){
+                    diff = Math.abs(targetX - node.offsetLeft);
+                    targetNode = node;
+                    targetIndex = index;
+                }
+            }else if(node.offsetTop > dojo.byId('selection').offsetTop-2 && node.offsetTop < dojo.byId('selection').offsetTop+2 && node.tagName != 'BR'){
+                if(!backupNode){
+                    backupNode = node;
+                    backupIndex = index;
+                }
             }
-            i++;
         }));
-        
-        if(!this._lock){
-            for(var k in line){
-                if(line[k]['node'].id=='selection')
-                    this._lineIndex = k;
-            }
-            this._lock = true;    
-        }
-        
-        var count = this._count(lineAbove);
-        if(count>0){
-            if(count >= this._lineIndex){
-                if(lineAbove[this._lineIndex]){
-                    if(select){
-                        this.value.start = lineAbove[this._lineIndex].index; 
-                        this.render();
-                    }else{
-                        this.value.start = lineAbove[this._lineIndex].index;
-                        this.value.end = lineAbove[this._lineIndex].index;
-                        this.render();
-                    }
-                }else{
-                    if(select){
-                        this.value.start = lineAbove[this._lineIndex-1].index+1;
-                        this.render();
-                    }else{
-                        this.value.start = lineAbove[this._lineIndex-1].index+1;
-                        this.value.end = lineAbove[this._lineIndex-1].index+1;
-                        this.render();
-                    }
-                }
-            }else if(count < this._lineIndex){
-                if(select){
-                    this.value.start = lineAbove[0].index+count;
-                    this.render();
-                }else{
-                    this.value.start = lineAbove[0].index+count;
-                    this.value.end = lineAbove[0].index+count;
-                    this.render();
-                }
-            }
+        if(diff>=10)
+            dir = 'after';
+        if(targetNode){
+            this.value.start = targetIndex;
+            if(!select)
+                this.value.end = targetIndex;
+            this.moveUpRender(select, targetNode, nl, dir);
         }else{
-            if(select){
-                this.value.start = line[0].index;
-                this.render();
-                this.moveCaretLeft(true);
-            }else{
-                if(line[0].node.previousSibling){
-                    this.value.start = line[0].index-1;
-                    this.value.end = line[0].index-1;
-                    this.render();
-                }
-            }
+            this.value.start = backupIndex;
+            if(!select)
+                this.value.end = backupIndex;
+            this.moveUpRender(select, null, nl, dir, backupNode);
         }
-        
+        // 
+        // if(!this._lock){
+        //     for(var k in line){
+        //         if(line[k]['node'].id=='selection')
+        //             this._lineIndex = k;
+        //     }
+        //     this._lock = true;
+        // }
     };
     
     // Move caret down one line & custom render
-    proto.moveCaretDown = function(select) {  
-        var i=0;
-        var top = Math.round(dojo.byId('selection').offsetTop+dojo.byId('selection').offsetHeight);
-        var lineBelow = {};
-        var line = {};
-        
-        if(this.value.start != this.value.end && !select)
+    proto.moveCaretDown = function(select) { 
+        var targetX = dojo.byId('selection').offsetLeft;
+        var top = dojo.byId('selection').offsetTop+dojo.byId('selection').offsetHeight;
+        var targetNode = null;
+        var backupNode = null;
+        var targetIndex = 0;
+        var backupIndex = 0;
+        var diff = 10000;
+        var dir = 'before';
+        if((this.value.start != this.value.end) && !select)
             this.clearSelection();
         var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-            if(node.offsetTop > top-5 && node.offsetTop < top+5 && node.tagName != 'BR'){
-                lineBelow[this._count(lineBelow)] = {
-                    node: node,
-                    index: i
-                };
-            }else if(node.offsetTop == dojo.byId('selection').offsetTop){
-                line[this._count(line)] = {
-                    node: node,
-                    index: i
-                };
+            if(node.offsetTop > top-2 && node.offsetTop < top+2 && node.tagName != 'BR'){
+                if(Math.abs(targetX - node.offsetLeft) < diff){
+                    diff = Math.abs(targetX - node.offsetLeft);
+                    targetNode = node;
+                    targetIndex = index-1;
+                }
+            }else if((node.offsetTop == (top-this._lineHeight)) && node.tagName != 'BR'){
+                backupNode = node;
+                backupIndex = index;
             }
-            i++;
         }));
-
-        if(!this._lock){
-            for(var k in line){
-                if(line[k]['node'].id=='selection')
-                    this._lineIndex = k;
-            }
-            this._lock = true;    
+        if(diff>=10){
+            dir = 'after';
+            targetIndex++;
         }
-        if(this._lineIndex == 0){
-            this.moveCaretRight(true);
-            this._lineIndex++;
-        }
-        
-        var count = this._count(lineBelow);
-        if(this._count(lineBelow)>0){
-            if(count >= this._lineIndex){
-                if(lineBelow[this._lineIndex]){
-                    if(select){
-                        this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
-                        this.render();
-                    }else{
-                        this.value.start = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
-                        this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
-                        this.render();
-                    }
-                }else{
-                    if(select){
-                        this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
-                        this.render();
-                    }else{
-                        this.value.start = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
-                        this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
-                        this.render();
-                    }
-                }
-            }else if(count < this._lineIndex){
-                if(select){
-                    this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
-                    this.render();
-                }else{
-                    this.value.start = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
-                    this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
-                    this.render();
-                }
+        if(targetNode){
+            if(select && dojo.byId('selection').childNodes[dojo.byId('selection').childNodes.length-1] && (dojo.byId('selection').childNodes[dojo.byId('selection').childNodes.length-1].tagName == 'BR')){
+                this.moveCaretRight(true);
+                this.moveCaretDown(true);
+            }else{
+                this.value.end = targetIndex;
+                if(!select)
+                    this.value.start = targetIndex;
+                this.moveDownRender(select, targetNode, nl, dir);
             }
         }else{
-            if(select){
-                //console.log('4');
-                line = {};
-                var anchor = dojo.byId('selection').nextSibling;
-                i=0;
-                if(anchor && anchor.tagName != 'BR'){
-                    var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-                        if(node.offsetTop == anchor.offsetTop){
-                            line[this._count(line)] = {
-                                node: node,
-                                index: i
-                            };
-                        }
-                        i++;
-                    }));
-                    this.value.end = line[this._count(line)-1].index;
-                    this.render();
-                }else{
-                    this.moveCaretRight(true);
-                }
-            }else{
-                if(line[this._count(line)-1].node.nextSibling){
-                    this.value.start = line[this._count(line)-1].index+1;
-                    this.value.end = line[this._count(line)-1].index+1;
-                    this.render();
-                }
+            if(dojo.byId('selection').nextSibling && dojo.byId('selection').nextSibling.tagName == 'BR' && select){
+                this.moveCaretRight(true);
+            }else if(dojo.byId('selection').nextSibling){
+                this.value.end = backupIndex;
+                if(!select)
+                    this.value.start = backupIndex;
+                this.moveDownRender(select, null, nl, dir, backupNode);
             }
         }
+        // 
+        // if(!this._lock){
+        //     for(var k in line){
+        //         if(line[k]['node'].id=='selection')
+        //             this._lineIndex = k;
+        //     }
+        //     this._lock = true;
+        // }
     };
     
     // Move caret left one char & custom render
@@ -446,35 +356,87 @@ define([
         this.render();
     };
     
+// Custom render functions
+
+    proto.insertRender = function(c){
+        var ch;
+        if((c.search('">') != -1)||(c.search("nbsp") != -1)){
+            ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
+            var f = this.filters.join("");
+            dojo.create('span',{innerHTML:ch,style:f},dojo.byId('selection'),'before');
+        }else if(c.search('br') != -1){
+            dojo.create('br',{},dojo.byId('selection'),'before');
+        }
+        this._renderLineNumbers();
+        this._scrollWith();
+    };
+    
+    proto.deleteRender = function(){
+        dojo.destroy(dojo.byId('selection').previousSibling);
+        this._renderLineNumbers();
+        this._scrollWith();
+    };
+    
+    proto.destroySelRender = function(){
+        dojo.byId('selection').innerHTML = '';
+        this._renderLineNumbers();
+        this._scrollWith();
+    };
+    
+    proto.selectAllRender = function(){
+        dojo.destroy('selection');
+        var f = dojo.byId('thisFrame');
+        var temp = f.innerHTML+'';
+        f.innerHTML = '';
+        dojo.create('span',{id:'selection',innerHTML:temp,'class':'selection'},f,'last');
+        this._renderLineNumbers();
+        this._scrollWith();
+    };
+    
+    proto.moveUpRender = function(select, node, nl, dir, backupNode){
+        if(!select && node){
+            dojo.place('selection',node,dir);
+        }else if(select && node){
+            var a = dojo.query('#selection span, #selection br');
+            if(dir == 'before'){
+                var newSel = nl.slice( nl.indexOf(node) , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
+            }else{
+                var newSel = nl.slice( nl.indexOf(node)+1 , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
+            }
+        }else if(!select && !node){
+            dojo.place('selection', backupNode, 'before');
+            this.moveCaretLeft(select);
+        }else if(select && !node){
+            var a = dojo.query('#selection span, #selection br');
+            var newSel = nl.slice( nl.indexOf(backupNode) , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
+            this.moveCaretLeft(select);
+        }
+        this._scrollWith();
+    };
+    
+    proto.moveDownRender = function(select, node, nl, dir, backupNode){
+        if(!select && node){
+            dojo.place('selection',node,dir);
+        }else if(select && node){
+            if(dir == 'before'){
+                var newSel = nl.slice( nl.indexOf(dojo.byId('selection'))+1, nl.indexOf(node)).place(dojo.byId('selection'));
+            }else{
+                var newSel = nl.slice( nl.indexOf(dojo.byId('selection'))+1, nl.indexOf(node)+1).place(dojo.byId('selection'));
+            }
+        }else if(!select && backupNode){
+            dojo.place('selection', backupNode, 'after');
+            this.moveCaretRight(select);
+        }else if(select && backupNode){
+            var newSel = nl.slice( nl.indexOf(dojo.byId('selection'))+1, nl.indexOf(backupNode)+1).place(dojo.byId('selection'));
+            this.moveCaretRight(select);
+        }
+        this._scrollWith();
+    };
+    
 // Utility functions
     
     proto._moveToEmptyLine = function(clickHt) {
-        var diff = 100000;
-        var diff2 = 100000;
-        var to = null;
-        var from = null;
-        dojo.query('#lineNumbers span').forEach(dojo.hitch(this, function(node, index, arr){
-            if(node.innerHTML == 1 && dojo.attr(node, 'num')){
-                if(Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop)) < diff){
-                    diff = Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop));
-                    to = parseInt(dojo.attr(node, 'num'));
-                }
-                if(Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top) < diff2){
-                    diff2 = Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top);
-                    from = parseInt(dojo.attr(node, 'num'));
-                }
-            }
-        }));
-        this._lock = true;
-        this._lineIndex = 10000;
-
-        if(from <= to){
-            for(var i=0; i<to-from; i++)
-                this.moveCaretDown();
-        }else{
-            for(var i=0; i<from-to; i++)
-                this.moveCaretUp();
-        }
+        //TODO
     };
     
     proto._listenForKeyCombo = function(e) {
@@ -503,36 +465,10 @@ define([
     };
     
     proto._renderLineNumbers = function(){
-        if(!this._lineHeight){
-            var a = dojo.create('div',{innerHTML:'G'},dojo.byId('thisFrame'),'first');
-            this._lineHeight = dojo.style(a, 'height');
-            dojo.destroy(a);
-        }
-
-        if(!this._prevLines)
-            this._prevLines = 0;
-        var contentHeight = dojo.style(dojo.byId('thisFrame'), 'height');
-        var lines = Math.floor(contentHeight / this._lineHeight);
-        if(this._prevLines < lines){
-            var diff = lines - this._prevLines;
-            var div = dojo.byId('lineNumbers');
-            for(var i=1; i<=diff; i++){
-                dojo.create('span',{style:'color:grey;visibility:hidden;',innerHTML:'1',id:i+this._prevLines+'a','num':i+this._prevLines},div,'last');
-                dojo.create('span',{'class':'line',innerHTML:i+this._prevLines,id:i+this._prevLines+'b'},div,'last');
-                dojo.create('br',{id:i+this._prevLines+'c'},div,'last');
-            }
-            this._prevLines = lines;
-        }else if(this._prevLines > lines){
-            var diff = Math.abs(lines - this._prevLines);
-            var div = dojo.byId('lineNumbers');
-            var n = this._prevLines+0;
-            for(var i=0; i<diff; i++){
-                dojo.destroy(div.lastChild);
-                dojo.destroy(div.lastChild);
-                dojo.destroy(div.lastChild);
-            }
-            this._prevLines = lines;
-        }
+        var a = dojo.create('div',{innerHTML:'G'},dojo.byId('thisFrame'),'first');
+        this._lineHeight = dojo.style(a, 'height');
+        dojo.destroy(a);
+        //TODO
     };
     
     proto._chromeKeyCombo = function() {
@@ -541,7 +477,22 @@ define([
             if(e.which == 86){
                 this.t = setTimeout(dojo.hitch(this, function(){
                     var text = this._hidden.value;
-                    this.insert(text, true);
+                    for(var i=0; i<text.length-1; i++){
+                        if(text[i]==' '){
+                            this.insert(this.newSpace, true);
+                        }else if(text[i]=='^'){
+                            this.insert('<br>',true);
+                        }else{
+                            this.insert('<span style="">'+text[i]+'</span>',true);
+                        }
+                    }
+                    if(text[text.length-1]==' '){
+                        this.insert(this.newSpace);
+                    }else if(text[text.length-1]=='^'){
+                        this.insert('<br>');
+                    }else{
+                        this.insert('<span style="">'+text[text.length-1]+'</span>');
+                    }
                 }), 100);
             //selectAll
             }else if(e.which == 65){
@@ -570,7 +521,22 @@ define([
             if(e.which == 118){
                 this.t = setTimeout(dojo.hitch(this, function(){
                     var text = this._hidden.value;
-                    this.insert(text, true);
+                    for(var i=0; i<text.length-1; i++){
+                        if(text[i]==' '){
+                            this.insert(this.newSpace, true);
+                        }else if(text[i]=='^'){
+                            this.insert('<br>',true);
+                        }else{
+                            this.insert('<span style="">'+text[i]+'</span>',true);
+                        }
+                    }
+                    if(text[text.length-1]==' '){
+                        this.insert(this.newSpace);
+                    }else if(text[text.length-1]=='^'){
+                        this.insert('<br>');
+                    }else{
+                        this.insert('<span style="">'+text[text.length-1]+'</span>');
+                    }
                 }), 100);
             //selectAll
             }else if((e.which == 97) || (e.which == 65)){
@@ -742,7 +708,8 @@ define([
                 for(var i=start; i<end; i++){
                     if(this.value.string[i].search("font-weight: bold;") == -1){
                         var index = this.value.string[i].search('">');
-                        this.value.string[i] = this.value.string[i].substring(0,index)+'font-weight: bold;'+this.value.string[i].substring(index, this.value.string[i].length);
+                        if(index != -1)
+                            this.value.string[i] = this.value.string[i].substring(0,index)+'font-weight: bold;'+this.value.string[i].substring(index, this.value.string[i].length);
                     }
                 }
                 this._hold = true;
@@ -751,7 +718,8 @@ define([
                 for(var i=start; i<end; i++){
                     if(this.value.string[i].search("font-weight: bold;") != -1){
                         var index = this.value.string[i].search('font-weight: bold;');
-                        this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+18, this.value.string[i].length);
+                        if(index != -1)
+                            this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+18, this.value.string[i].length);
                     }
                 }
                 this._hold = false;
@@ -785,7 +753,8 @@ define([
                 for(var i=start; i<end; i++){
                     if(this.value.string[i].search("font-style: italic;") == -1){
                         var index = this.value.string[i].search('">');
-                        this.value.string[i] = this.value.string[i].substring(0,index)+'font-style: italic;'+this.value.string[i].substring(index, this.value.string[i].length);
+                        if(index != -1)
+                            this.value.string[i] = this.value.string[i].substring(0,index)+'font-style: italic;'+this.value.string[i].substring(index, this.value.string[i].length);
                     }
                 }
                 this._hold = true;
@@ -794,7 +763,8 @@ define([
                 for(var i=start; i<end; i++){
                     if(this.value.string[i].search("font-style: italic;") != -1){
                         var index = this.value.string[i].search('font-style: italic;');
-                        this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+19, this.value.string[i].length);
+                        if(index != -1)
+                            this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+19, this.value.string[i].length);
                     }
                 }
                 this._hold = false;
@@ -828,7 +798,8 @@ define([
                 for(var i=start; i<end; i++){
                     if(this.value.string[i].search("text-decoration: underline;") == -1){
                         var index = this.value.string[i].search('">');
-                        this.value.string[i] = this.value.string[i].substring(0,index)+'text-decoration: underline;'+this.value.string[i].substring(index, this.value.string[i].length);
+                        if(index != -1)
+                            this.value.string[i] = this.value.string[i].substring(0,index)+'text-decoration: underline;'+this.value.string[i].substring(index, this.value.string[i].length);
                     }
                 }
                 this._hold = true;
@@ -837,7 +808,8 @@ define([
                 for(var i=start; i<end; i++){
                     if(this.value.string[i].search("text-decoration: underline;") != -1){
                         var index = this.value.string[i].search('text-decoration: underline;');
-                        this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+27, this.value.string[i].length);
+                        if(index != -1)
+                            this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+27, this.value.string[i].length);
                     }
                 }
                 this._hold = false;
@@ -881,11 +853,13 @@ define([
                 for(var j=0; j<this._pastForeColors.length; j++){
                     if(this.value.string[i].search("color: "+this._pastForeColors[j]+";") != -1){
                         var index = this.value.string[i].search("color: "+this._pastForeColors[j]+";");
-                        this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+8+this._pastForeColors[j].length, this.value.string[i].length);
+                        if(index != -1)
+                            this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+8+this._pastForeColors[j].length, this.value.string[i].length);
                     }
                 }
                 var index = this.value.string[i].search('">');
-                this.value.string[i] = this.value.string[i].substring(0,index)+'color: '+color+';'+this.value.string[i].substring(index, this.value.string[i].length);
+                if(index != -1)
+                    this.value.string[i] = this.value.string[i].substring(0,index)+'color: '+color+';'+this.value.string[i].substring(index, this.value.string[i].length);
             }
             this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
         }
@@ -928,11 +902,13 @@ define([
                 for(var j=0; j<this._pastHiliteColors.length; j++){
                     if(this.value.string[i].search("background: "+this._pastHiliteColors[j]+";") != -1){
                         var index = this.value.string[i].search("background: "+this._pastHiliteColors[j]+";");
-                        this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+13+this._pastHiliteColors[j].length, this.value.string[i].length);
+                        if(index != -1)
+                            this.value.string[i] = this.value.string[i].substring(0,index)+this.value.string[i].substring(index+13+this._pastHiliteColors[j].length, this.value.string[i].length);
                     }
                 }
                 var index = this.value.string[i].search('">');
-                this.value.string[i] = this.value.string[i].substring(0,index)+'background: '+color+';'+this.value.string[i].substring(index, this.value.string[i].length);
+                if(index != -1)
+                    this.value.string[i] = this.value.string[i].substring(0,index)+'background: '+color+';'+this.value.string[i].substring(index, this.value.string[i].length);
             }
             this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
         }
@@ -1057,7 +1033,6 @@ define([
     };
     
     proto._onFocus = function(e){
-        this.displayCaret = true;
         if(dojo.byId('hidden'))
             dojo.destroy('hidden');
         dojo.publish("hideAll", [{}]);
@@ -1065,7 +1040,6 @@ define([
     
     proto._onBlur = function(){
         dojo.style(dojo.byId('ipadFloat'),'display','block');
-        this.displayCaret = false;
     };
     
     proto._onResize = function() {

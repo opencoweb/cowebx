@@ -77,13 +77,8 @@ define([
                 }else{
                     syncs = this._util.ld(this.oldSnapshot.slice(this.min, this.max), this.newSnapshot.slice(this.min, mx));
                     if(syncs){
-                        for(var i=0; i<syncs.length; i++){
-                            if(this._textarea._paste){
-                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
-                            }else{
-                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
-                            }
-                        }   
+                        for(var i=0; i<syncs.length; i++)
+                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
                     }
                 }
             }else if(newLength < oldLength){
@@ -91,25 +86,15 @@ define([
                 var mn = (this.min-1 > -1) ? this.min-1 : 0;
                 syncs = this._util.ld(this.oldSnapshot.slice(mn, mx), this.newSnapshot.slice(mn, this.max));
                 if(syncs){
-                    for(var i=0; i<syncs.length; i++){
-                        if(this._textarea._paste){
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
-                        }else{
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
-                        }
-                    }
+                    for(var i=0; i<syncs.length; i++)
+                        this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
                 }
             }else if(newLength == oldLength){
                 if(this.oldSnapshot != this.newSnapshot)
                     syncs = this._util.ld(this.oldSnapshot.slice(this.min, this.max), this.newSnapshot.slice(this.min, this.max));
                 if(syncs){
-                    for(var i=0; i<syncs.length; i++){
-                        if(this._textarea._paste){
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
-                        }else{
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
-                        }
-                    }
+                    for(var i=0; i<syncs.length; i++)
+                        this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
                 }
             }
             
@@ -129,7 +114,6 @@ define([
             this._textarea._renderLineNumbers();
             dojo.publish("editorHistory", [{save:dojo.clone(this._textarea.value)}]);
         }
-        this._textarea._paste = false;
         this.q = [];
         this.oldSnapshot = this.snapshot();
         this._forcePOR();

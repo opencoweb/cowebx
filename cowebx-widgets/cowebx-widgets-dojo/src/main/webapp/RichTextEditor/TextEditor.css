@@ -1,6 +1,7 @@
 .selection{
     background:#99CCFF;
     border-left:1px solid black;
+    border-right:1px solid black;
 }
 
 .remoteSelection{
@@ -30,6 +31,7 @@
    z-index:1000;
    height:100%;
    min-height:100%;
+   font-family: Andale Mono, monospace;
 }
 
 .footerDiv {
