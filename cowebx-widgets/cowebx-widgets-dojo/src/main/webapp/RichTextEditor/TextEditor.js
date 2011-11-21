@@ -216,14 +216,14 @@ define([
         
         if(pos<t.value.start || (pos==t.value.start && sel>0)){
             if((c.search('">') != -1)||(c.search("nbsp") != -1)){
-                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp;';
+                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
                 dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos],'before');
             }else if(c.search('br') != -1){
                 dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos],'before');
             }
         }else{
             if((c.search('">') != -1)||(c.search("nbsp") != -1)){
-                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp;';
+                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
                 dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos-sel],'after');
             }else if(c.search('br') != -1){
                 dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos-sel],'after');
@@ -282,7 +282,7 @@ define([
         if(pos<t.value.start){
             dojo.destroy(dojo.byId('thisFrame').childNodes[pos]);
             if((c.search('">') != -1)||(c.search("nbsp") != -1)){
-                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp;';
+                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
                 dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos-1],'after');
             }else if(c.search('br') != -1){
                 dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos-1],'after');
@@ -290,7 +290,7 @@ define([
         }else{
             dojo.destroy(dojo.byId('thisFrame').childNodes[pos+1-sel]);
             if((c.search('">') != -1)||(c.search("nbsp") != -1)){
-                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp;';
+                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
                 dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos-sel],'after');
             }else if(c.search('br') != -1){
                 dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos-sel],'after');
