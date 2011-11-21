@@ -247,6 +247,7 @@
     background:white;
     overflow-y:auto;
     vertical-align:top;
+    min-width:200px;
 }
 
 .attendee{

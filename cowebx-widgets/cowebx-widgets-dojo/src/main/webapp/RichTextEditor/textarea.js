@@ -518,13 +518,7 @@ define([
     };
     
     proto._scrollWith = function(){
-        if(dojo.byId('selection')){
-            if(dojo.byId('selection').offsetTop+50 >= (dojo.byId('divHolder').scrollTop+dojo.style('divHolder','height'))){
-                dojo.byId('divHolder').scrollTop = dojo.byId('divHolder').scrollTop+50;
-            }else if(dojo.byId('selection').offsetTop-50 <= (dojo.byId('divHolder').scrollTop)){
-                dojo.byId('divHolder').scrollTop = dojo.byId('selection').offsetTop-50;
-            }
-        }
+        
     };
     
     proto._listenForKeyCombo = function(e) {
