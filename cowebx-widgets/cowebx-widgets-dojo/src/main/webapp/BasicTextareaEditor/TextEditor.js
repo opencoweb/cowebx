@@ -40,6 +40,7 @@ define([
             this.value = '';
             this.interval = 500;
             this._por = {start : 0, end: 0};
+            this._first = true;
            
             //4. connect
             this.connect();
@@ -50,6 +51,7 @@ define([
 		
 		onCollabReady : function(){
 	        this.collab.pauseSync();
+	        this.resize();
 	    },
 
 	    listenInit : function(){
@@ -246,6 +248,10 @@ define([
 	        setTimeout(function() {
 	            self._moveCaretToPOR();
 	        },0);
+	        if(this._first){
+	            this._first = false;
+	            dojo.attr(this._textarea, 'innerHTML', '');
+	        }
 	    },
 
 	    _onBlur : function(event) {
@@ -296,7 +302,13 @@ define([
 	        dojo.connect(this._textarea, 'onkeyup', this, '_updatePOR');
 	        dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
 	        dojo.connect(this._textarea, 'onblur', this, '_onBlur');
+	        dojo.connect(window, 'resize', this, 'resize');
 	        attendance.subscribeChange(this, 'onUserChange');
+	    },
+	    
+	    resize: function(){
+	        console.log('resize');
+	        dojo.style(dojo.byId('editorTable'),'height',dojo.byId('editorTable').parentNode.offsetHeight+'px');
 	    },
 
 	    _loadTemplate : function(url) {
@@ -309,12 +321,11 @@ define([
 	    },
 	    
 	    style: function(){
+	        dojo.attr(this._textarea, 'innerHTML', 'To begin, just start <strong>typing</strong>...');
 	        this._loadTemplate('../lib/cowebx/dojo/BasicTextareaEditor/TextEditor.css');
-	        dojo.style(this._textarea.parentNode,'width','100%');
-            dojo.style(this._textarea, 'width','100%');
-            dojo.style(this._textarea.parentNode,'height','100%');
-            dojo.style(this._textarea, 'height','100%');
-            dojo.style(this._textarea, 'margin','0px');
+	        dojo.addClass(this._textarea.parentNode, 'textareaContainer');
+	        dojo.style(this._textarea.parentNode, 'border', '1px solid #CACACA');
+            dojo.addClass(this._textarea, 'textarea');
             dojo.style(this._toolbar.parentNode.parentNode,'width','100%');
             dojo.style(this._toolbar.parentNode.parentNode,'height','37px');
             dojo.style(this._toolbar.parentNode,'height','37px');
@@ -322,7 +333,6 @@ define([
             dojo.style(this._toolbar.parentNode,'width','100%');
             dojo.style(this._toolbar, 'width','100%');
             dojo.style(this._toolbar, 'margin','0px');
-            dojo.addClass(this._toolbar, 'gradient');
             for(var i=0; i<this._toolbar.childNodes.length; i++){
                 dojo.style(this._toolbar.childNodes[i],'margin','5px');
             }

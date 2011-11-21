@@ -1,9 +1,8 @@
-.editorTable{
-    height:100%;
+#editorTable{
     width:100%;
     border-spacing:0px;
     border-collapse:true;
-    background:white;
+    background:#EBEBEB;
 }
 
 .editorRow{
@@ -14,6 +13,33 @@
     width:200px;
     height:100%;
     vertical-align:top;
+    border-left:1px solid #CACACA;
+    background:white;
+}
+
+.textareaContainer{
+    margin-left:auto !important;
+    margin-right:auto !important;
+    margin-top:40px !important;
+    padding:60px !important;
+    background:white !important;
+    width:830px !important;
+    height:100% !important;
+}
+
+.textarea{
+    width:830px !important;
+    height:100% !important;
+    margin:0px !important;
+    outline:0px solid transparent !important;
+    font: 14px arial !important;
+}
+
+.textarea:focus{
+    width:830px !important;
+    height:100% !important;
+    margin:0px !important;
+    outline:0px solid transparent !important;
 }
 
 .attendee{
