@@ -9,10 +9,11 @@ define([
     './ld',
     './AttendeeList',
     'coweb/ext/attendance',
+    './ShareButton',
     'dijit/layout/ContentPane',
     'dijit/layout/BorderContainer',
     'dojox/mobile/parser'
-], function(dojo, declare, _Widget, _TemplatedMixin, _Contained, template, coweb, ld, AttendeeList, attendance,parser){
+], function(dojo, declare, _Widget, _TemplatedMixin, _Contained, template, coweb, ld, AttendeeList, attendance, ShareButton){
 
 	return declare("TextEditor", [_Widget, _TemplatedMixin, _Contained], {
 	    // widget template
@@ -25,11 +26,17 @@ define([
 
 	        //2. Build stuff
 	        dojo.create('textarea', {style:'width:100%;height:100%;'}, dojo.byId('divContainer'));
-	        this._attendeeList = new AttendeeList({domNode:dojo.byId('listContainer'), id:'_attendeeList'});
+	        this._attendeeList = new AttendeeList({domNode:dojo.byId('innerList'), id:'_attendeeList'});
             this.util = new ld({});
 	        nicEditors.allTextAreas();
             this._textarea = dojo.query('.nicEdit-main')[0];
             this._toolbar = dojo.query('.nicEdit-panel')[0];
+            this._shareButton = new ShareButton({
+                'domNode':dojo.byId('infoDiv'),
+                'listenTo':this._textarea,
+                'id':'shareButton',
+                'displayButton':false
+            });
             this.style();
             
             //3. parameters
@@ -248,10 +255,10 @@ define([
 	        setTimeout(function() {
 	            self._moveCaretToPOR();
 	        },0);
-	        if(this._first){
-	            this._first = false;
-	            dojo.attr(this._textarea, 'innerHTML', '');
-	        }
+            // if(this._first){
+            //     this._first = false;
+            //     dojo.attr(this._textarea, 'innerHTML', '');
+            // }
 	    },
 
 	    _onBlur : function(event) {
@@ -302,13 +309,18 @@ define([
 	        dojo.connect(this._textarea, 'onkeyup', this, '_updatePOR');
 	        dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
 	        dojo.connect(this._textarea, 'onblur', this, '_onBlur');
+	        dojo.connect(dojo.byId('url'),'onfocus',this,function(){ document.execCommand('selectAll',false,null) });
+	        dojo.connect(dojo.byId('url'),'onblur',this,function(e){ e.target.innerHTML = window.location; });
 	        dojo.connect(window, 'resize', this, 'resize');
+	        dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
+	            dojo.publish("shareClick", [{}]);
+	        });
 	        attendance.subscribeChange(this, 'onUserChange');
 	    },
 	    
 	    resize: function(){
-	        console.log('resize');
 	        dojo.style(dojo.byId('editorTable'),'height',dojo.byId('editorTable').parentNode.offsetHeight+'px');
+	        dojo.style(dojo.byId('innerList'),'height',(dojo.byId('editorTable').parentNode.offsetHeight-dojo.byId('infoDiv').offsetHeight)+'px');
 	    },
 
 	    _loadTemplate : function(url) {
@@ -321,7 +333,7 @@ define([
 	    },
 	    
 	    style: function(){
-	        dojo.attr(this._textarea, 'innerHTML', 'To begin, just start <strong>typing</strong>...');
+	        //dojo.attr(this._textarea, 'innerHTML', 'To begin, just start click and start <strong>typing</strong>...');
 	        this._loadTemplate('../lib/cowebx/dojo/BasicTextareaEditor/TextEditor.css');
 	        dojo.addClass(this._textarea.parentNode, 'textareaContainer');
 	        dojo.style(this._textarea.parentNode, 'border', '1px solid #CACACA');
@@ -336,6 +348,7 @@ define([
             for(var i=0; i<this._toolbar.childNodes.length; i++){
                 dojo.style(this._toolbar.childNodes[i],'margin','5px');
             }
+            dojo.attr('url','innerHTML',window.location);
 	    }
 	});
 });

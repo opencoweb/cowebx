@@ -75,6 +75,7 @@ define([
                 if(e.keyCode == 8)
                     e.target.value = '';
             });
+            dojo.place(a,this.domNode,'first');
         }else{
             dojo.attr(a, 'innerHTML', name);
             var color = dojo.create('div',{'class':'attendeeColor'},a,'first');

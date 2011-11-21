@@ -1,8 +1,18 @@
 <div>
 	<table id="editorTable">
 		<tr class="editorRow">
-			<td id="divContainer"></td>
-			<td id="listContainer"></td>
+			<td class="outerDiv">
+				<div id="divContainer"></div>
+			</td>
+			<td id="listContainer">
+				<div id="innerList"></div>
+				<div id="infoDiv">
+					<div class="collabTitle">Share or Save</div>
+					<div contentEditable='true' id="url"></div>
+					<div class="collabSubTitle">Copy url to friends to collaborate</div>
+					<div id="saveButton">save document</div>
+				</div>
+			</td>
 		</tr>
 	</table>
 </div>
