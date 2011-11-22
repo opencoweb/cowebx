@@ -22,6 +22,7 @@
    height:100%;
    background:grey;
    min-width:30px;
+   font-family: Andale Mono, monospace;
 }
 
 #thisDiv{
@@ -30,6 +31,7 @@
    z-index:1000;
    height:100%;
    min-height:100%;
+   font-family: Andale Mono, monospace;
 }
 
 .footerDiv {
@@ -156,7 +158,7 @@
     font:10px arial;
     float:right;
     position:relative;
-    top:3px;
+    top:5px;
     margin-right:2px;
     color:lightgrey;
 }
@@ -245,6 +247,7 @@
     background:white;
     overflow-y:auto;
     vertical-align:top;
+    min-width:200px;
 }
 
 .attendee{
@@ -260,7 +263,7 @@
     display:inline-block;
     cursor:hand;cursor:pointer;
     background: lightyellow;
-    font-weight:bold;
+    font-weight: bold;
     color: orange;
     font: 18px arial;
     border:0px;
@@ -278,7 +281,7 @@
 
 .localUser{
     background: lightyellow;
-    font-weight:bold;
+    font-weight: bold;
     color: orange;
 }
 
