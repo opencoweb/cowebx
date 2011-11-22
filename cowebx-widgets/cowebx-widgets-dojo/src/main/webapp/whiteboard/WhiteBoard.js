@@ -499,36 +499,39 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 	        this.collab.sendStateResponse(state,token);
 	    },
 	    onStateResponse: function(obj){
-	        console.log("state response:"+JSON.stringify(obj));
-			if (obj.attached) {
-				this.attach(false);
-			} else {
-				this.detach(false);
-			}
-        	this.currentId = obj.currentId;
-	        if (obj.history) {
-		        this.history = obj.history;
-		        for (var i = 0; i < this.history.length; i++) {
-		        	this.currentType = this.history[i].type;
-		        	this.color = this.history[i].color;
-		        	this.lineSize = this.history[i].lineSize;
-		        	var shape = this._render(this.history[i].data, false);
-		        	if (this.history[i].data.transform) {
-						shape.applyLeftTransform(new matrix.Matrix2D(JSON.parse(this.history[i].data.transform)));
-		        	}
-		        	this.shapes[this.history[i].id] = {shape: shape};
-		        	
-		        }
-	        } else {
-	        	console.warn("state response does not contain history data !!!");
-	        }
-			if (obj.mode === "draw") {
-				this.setDrawMode();
-			} else {
-				this.setMoveMode(false);
-				if (obj.selectedId !== -1) {
-					this._shapeSelected(obj.selectedId, this.history[obj.selectedId].type, this, this.shapes[obj.selectedId]);
+	    	try {
+				console.log("state response:"+JSON.stringify(obj));
+				if (obj.attached) {
+					this.attach(false);
+				} else {
+					this.detach(false);
 				}
+				this.currentId = obj.currentId;
+				if (obj.history) {
+					this.history = obj.history;
+					for (var i = 0; i < this.history.length; i++) {
+						this.currentType = this.history[i].type;
+						this.color = this.history[i].color;
+						this.lineSize = this.history[i].lineSize;
+						var shape = this._render(this.history[i].data, false);
+						if (this.history[i].data.transform) {
+							shape.applyLeftTransform(new matrix.Matrix2D(JSON.parse(this.history[i].data.transform)));
+						}
+						this.shapes[this.history[i].id] = {shape: shape};
+					}
+				} else {
+					console.warn("state response does not contain history data !!!");
+				}
+				if (obj.mode === "draw") {
+					this.setDrawMode();
+				} else {
+					this.setMoveMode(false);
+					if (obj.selectedId !== -1) {
+						this._shapeSelected(obj.selectedId, this.history[obj.selectedId].type, this, this.shapes[obj.selectedId]);
+					}
+				}
+			} catch(e) {
+				console.error("Failed to process state : "+e);
 			}
 	    },
 	    _iterate: function() {
