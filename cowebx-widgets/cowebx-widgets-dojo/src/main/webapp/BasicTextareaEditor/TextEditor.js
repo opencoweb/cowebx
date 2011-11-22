@@ -106,21 +106,53 @@ define([
 	    fix: function(arr){
 	        var temp = dojo.clone(arr);
             for(var i=0; i<arr.length; i++){
-                if(arr[i].ch=='&'&&arr[i+1].ch=='n'&&arr[i+2].ch=='b'&&arr[i+3].ch=='s'&&arr[i+4].ch=='p'&&arr[i+5].ch==';'){
+                if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3]&&arr[i+4]&&arr[i+5])&&(arr[i].ch=='&'&&arr[i+1].ch=='n'&&arr[i+2].ch=='b'&&arr[i+3].ch=='s'&&arr[i+4].ch=='p'&&arr[i+5].ch==';')){
                     temp[i].ch = '&nbsp;';
                     delete temp[i+1];
                     delete temp[i+2];
                     delete temp[i+3];
                     delete temp[i+4];
                     delete temp[i+5];
-                }else if(arr[i].ch=='&'&&arr[i+1].ch=='n'&&arr[i+2].ch=='s'&&arr[i+3].ch=='p'&&arr[i+4].ch==';'){
+                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3]&&arr[i+4])&&(arr[i].ch=='&'&&arr[i+1].ch=='n'&&arr[i+2].ch=='s'&&arr[i+3].ch=='p'&&arr[i+4].ch==';')){
                     temp[i].ch = '&nbsp;';
                     delete temp[i+1];
                     delete temp[i+2];
                     delete temp[i+3];
                     delete temp[i+4];
+                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='b'&&arr[i+2].ch=='r'&&arr[i+3].ch=='>')){
+                    temp[i].ch = '<br>';
+                    delete temp[i+1];
+                    delete temp[i+2];
+                    delete temp[i+3];
+                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='b'&&arr[i+2].ch=='r'&&arr[i+3].ch=='>')){
+                    temp[i].ch = '<br>';
+                    delete temp[i+1];
+                    delete temp[i+2];
+                    delete temp[i+3];
+                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='u'&&arr[i+2].ch=='l'&&arr[i+3].ch=='>')){
+                    temp[i].ch = '<ul>';
+                    delete temp[i+1];
+                    delete temp[i+2];
+                    delete temp[i+3];
+                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='l'&&arr[i+2].ch=='i'&&arr[i+3].ch=='>')){
+                    temp[i].ch = '<li>';
+                    delete temp[i+1];
+                    delete temp[i+2];
+                    delete temp[i+3];
+                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='/'&&arr[i+2].ch=='u'&&arr[i+3].ch=='l'&&arr[i+4].ch=='>')){
+                    temp[i].ch = '</ul>';
+                    delete temp[i+1];
+                    delete temp[i+2];
+                    delete temp[i+3];
+                    delete temp[i+4];
+                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='/'&&arr[i+2].ch=='l'&&arr[i+3].ch=='i'&&arr[i+4].ch=='>')){
+                    temp[i].ch = '</li>';
+                    delete temp[i+1];
+                    delete temp[i+2];
+                    delete temp[i+3];
+                    delete temp[i+4];
                 }
-        }
+            }
             return temp;
 	    },
 	    
@@ -281,7 +313,7 @@ define([
 	    },
 
 	    onStateResponse : function(obj){
-	       // this._textarea.innerHTML = obj.snapshot;
+	        this._textarea.innerHTML = obj.snapshot;
 	        this.newSnapshot = obj.snapshot;
 	        this.oldSnapshot = obj.snapshot;
 	        for(var i in obj.attendees){
@@ -309,8 +341,8 @@ define([
 	        dojo.connect(this._textarea, 'onkeyup', this, '_updatePOR');
 	        dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
 	        dojo.connect(this._textarea, 'onblur', this, '_onBlur');
-	        dojo.connect(dojo.byId('url'),'onfocus',this,function(){ document.execCommand('selectAll',false,null) });
-	        dojo.connect(dojo.byId('url'),'onblur',this,function(e){ e.target.innerHTML = window.location; });
+	        dojo.connect(dojo.byId('url'),'onclick',this,function(e){ this.selectElementContents(e.target) });
+            dojo.connect(dojo.byId('url'),'onblur',this,function(e){ e.target.innerHTML = window.location; });
 	        dojo.connect(window, 'resize', this, 'resize');
 	        dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
 	            dojo.publish("shareClick", [{}]);
@@ -318,9 +350,19 @@ define([
 	        attendance.subscribeChange(this, 'onUserChange');
 	    },
 	    
+	    selectElementContents: function(el){
+            var range = document.createRange();
+            range.selectNodeContents(el);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        },
+        
+	    
 	    resize: function(){
 	        dojo.style(dojo.byId('editorTable'),'height',dojo.byId('editorTable').parentNode.offsetHeight+'px');
 	        dojo.style(dojo.byId('innerList'),'height',(dojo.byId('editorTable').parentNode.offsetHeight-dojo.byId('infoDiv').offsetHeight)+'px');
+	        dojo.style(dojo.byId('divContainer'),'height',dojo.byId('editorTable').parentNode.offsetHeight+'px');
 	    },
 
 	    _loadTemplate : function(url) {
