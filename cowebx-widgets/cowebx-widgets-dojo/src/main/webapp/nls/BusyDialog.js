@@ -1,4 +1,5 @@
-{
+define({ root:
+({
     title : "Busy",
     cancel_button : "Cancel",
     back_button : "Back",
@@ -64,4 +65,5 @@
         icon : "fail",
         actions : "fail"
     }
-}
+})
+});

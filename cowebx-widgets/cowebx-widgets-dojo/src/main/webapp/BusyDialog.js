@@ -5,29 +5,37 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 /*global dojo dijit window cowebx*/
-dojo.provide('cowebx.BusyDialog');
-dojo.require('dijit.Dialog');
-dojo.require('dijit.form.Button');
-dojo.require('dojo.string');
-dojo.require('dojo.i18n');
-dojo.requireLocalization('cowebx', 'BusyDialog');
+define([
+'dijit/Dialog', 
+'dojo/_base/declare',
+'dijit/_Widget',
+'dijit/_TemplatedMixin',
+'dijit/_WidgetsInTemplateMixin',
+'dojo/dom-class',
+'dojo/dom-style',
+'dojo/text!./templates/BusySheet.html',
+'dojo/i18n',
+'dojo/i18n!./nls/BusyDialog',
+'dijit/form/Button'
+], 
+function(Dialog, declare, _Widget, _TemplatedMixin, _WidgetsInTemplateMixin, domClass, domStyle, template, i18n) {
+
+var messages = i18n.getLocalization("cowebx.dojo", "BusyDialog"); 
 
 /**
  * Dialog containing a busy indicator, status message, and cancel button.
  */
-dojo.declare('cowebx.BusySheet', [dijit._Widget, dijit._Templated], {
+var BusySheet = declare('cowebx.BusySheet', [_Widget, _TemplatedMixin, _WidgetsInTemplateMixin], {
     // reference to a session interface instance
     session: null,
     // widget template
-    templatePath: dojo.moduleUrl('cowebx', 'templates/BusySheet.html'),
-    widgetsInTemplate: true,
-
+	templateString: template,
+	
     /**
      * Called after widget properties are available.
      */
     postMixInProperties: function() {
-        // load the localized labels
-        this.labels = dojo.i18n.getLocalization('cowebx', 'BusyDialog');
+    	this.labels = messages;
         // failure state reached, no further updates allowed
         this._frozen = false;
         // connect to session for status updates
@@ -62,11 +70,11 @@ dojo.declare('cowebx.BusySheet', [dijit._Widget, dijit._Templated], {
      */
     _showActions: function(name) {
         if(name === 'fail') {
-            dojo.style(this.cancel_actions, 'display', 'none');
-            dojo.style(this.fail_actions, 'display', 'block');
+            domStyle.set(this.cancel_actions, 'display', 'none');
+            domStyle.set(this.fail_actions, 'display', 'block');
         } else if(name === 'busy') {
-            dojo.style(this.fail_actions, 'display', 'none');
-            dojo.style(this.cancel_actions, 'display', 'block');
+            domStyle.set(this.fail_actions, 'display', 'none');
+            domStyle.set(this.cancel_actions, 'display', 'block');
         }
     },
 
@@ -76,11 +84,11 @@ dojo.declare('cowebx.BusySheet', [dijit._Widget, dijit._Templated], {
     _showIcon: function(name) {
         if(name === 'fail') {
             this._frozen = true;
-            dojo.addClass(this.icon, 'cowebFailIcon');
-            dojo.removeClass(this.icon, 'cowebBusyIcon');
+            domClass.add(this.icon, 'cowebFailIcon');
+            domClass.remove(this.icon, 'cowebBusyIcon');
         } else if(name === 'busy') {
-            dojo.addClass(this.icon, 'cowebBusyIcon');
-            dojo.removeClass(this.icon, 'cowebFailIcon');
+            domClass.add(this.icon, 'cowebBusyIcon');
+            domClass.remove(this.icon, 'cowebFailIcon');
         }
     },
     
@@ -110,7 +118,7 @@ dojo.declare('cowebx.BusySheet', [dijit._Widget, dijit._Templated], {
 /**
  * Dialog containing the busy sheet.
  */
-dojo.declare('cowebx.BusyDialog', dijit.Dialog, {
+var BusyDialog = dojo.declare('cowebx.BusyDialog', Dialog, {
     // assume content is parsed for us by default
     parseOnLoad: false,
     // no dragging, to assist with popup z-index problems
@@ -130,9 +138,9 @@ dojo.declare('cowebx.BusyDialog', dijit.Dialog, {
         // call base class
         this.inherited(arguments);
         // busy dialog style
-        dojo.addClass(this.domNode, 'cowebBusyDialog');
+        domClass.add(this.domNode, 'cowebBusyDialog');
         // hide close button
-        dojo.style(this.closeButtonNode, 'display', 'none');
+        domStyle.set(this.closeButtonNode, 'display', 'none');
     },
 
     /**
@@ -176,37 +184,40 @@ dojo.declare('cowebx.BusyDialog', dijit.Dialog, {
 });
 
 // busy dialog singleton
-cowebx._busyDlg = null;
+var _busyDlg = null;
 
-/**
- * Factory function that creates a modal busy status dialog singleton.
- */
-cowebx.createBusy = function(session) {
-    var dlg;
-    if(!cowebx._busyDlg) {
-        // create a dialog box
-        var lbl = dojo.i18n.getLocalization('cowebx', 'BusyDialog');
-        dlg = new cowebx.BusyDialog({title : lbl.title});
-        // create a busy sheet
-        var sheet = new cowebx.BusySheet({session:session});
-        // put the sheet in the dialog
-        dlg.attr('content', sheet.domNode);
-        cowebx._busyDlg = dlg;
-        // return the sheet
-        return sheet;
-    } else {
-        dlg = cowebx._busyDlg;
-        return dlg._sheet;
-    }
+return {
+	/**
+	 * Factory function that creates a modal busy status dialog singleton.
+	 */
+	createBusy: function(session) {
+		var dlg;
+		if(!_busyDlg) {
+			// create a dialog box
+			dlg = new BusyDialog({title : messages.title});
+			// create a busy sheet
+			var sheet = new BusySheet({session:session});
+			// put the sheet in the dialog
+			dlg.attr('content', sheet.domNode);
+			_busyDlg = dlg;
+			// return the sheet
+			return sheet;
+		} else {
+			dlg = _busyDlg;
+			return dlg._sheet;
+		}
+	},
+	
+	/**
+	 * Destroy the busy dialog singleton.
+	 */
+	destroyBusy: function() {
+		var dlg = _busyDlg;
+		if(dlg) {
+			dlg.destroyRecursive();
+			_busyDlg = null;
+		}
+	}
 };
 
-/**
- * Destroy the busy dialog singleton.
- */
-cowebx.destroyBusy = function() {
-    var dlg = cowebx._busyDlg;
-    if(dlg) {
-        dlg.destroyRecursive();
-        cowebx._busyDlg = null;
-    }
-};
+});
