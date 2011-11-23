@@ -20,6 +20,7 @@ define([
 		templateString: template,
 		
         postCreate: function(){
+            window.foo = this;
 			//1. Process args
 	        this.id = 'TextEditor';
 	        this.go = true;
@@ -184,6 +185,7 @@ define([
 	    runOps : function(){
 	        this.value = this._textarea.innerHTML;
 	        this._updatePOR();
+            // var sel = this.saveSelection();
 	        for(var i=0; i<this.q.length; i++){
 	            if(this.q[i].type == 'insert')
 	                this.insertChar(this.q[i].value, this.q[i].position);
@@ -194,6 +196,7 @@ define([
 	        }
 	        this._textarea.innerHTML = this.value;
 	        console.log(this.value);
+            // this.restoreSelection(sel);
 	        this._moveCaretToPOR();
 	    },
 
@@ -287,10 +290,6 @@ define([
 	        setTimeout(function() {
 	            self._moveCaretToPOR();
 	        },0);
-            // if(this._first){
-            //     this._first = false;
-            //     dojo.attr(this._textarea, 'innerHTML', '');
-            // }
 	    },
 
 	    _onBlur : function(event) {
@@ -327,7 +326,7 @@ define([
 	            this._attendeeList.onRemoteUserJoin(o);
 	        }
 	    },
-
+ 
 	    connect : function(){
 	        this.collab = coweb.initCollab({id : this.id});  
 	        this.collab.subscribeReady(this,'onCollabReady');
@@ -357,8 +356,7 @@ define([
             sel.removeAllRanges();
             sel.addRange(range);
         },
-        
-	    
+         
 	    resize: function(){
 	        dojo.style(dojo.byId('editorTable'),'height',dojo.byId('editorTable').parentNode.offsetHeight+'px');
 	        dojo.style(dojo.byId('innerList'),'height',(dojo.byId('editorTable').parentNode.offsetHeight-dojo.byId('infoDiv').offsetHeight)+'px');
@@ -391,6 +389,31 @@ define([
                 dojo.style(this._toolbar.childNodes[i],'margin','5px');
             }
             dojo.attr('url','innerHTML',window.location);
-	    }
+	    },
+        
+        beginRobot: function(){
+            this._textarea.innerHTML = this._textarea.innerHTML+'A';
+        },
+        
+        saveSelection: function(){
+            
+        },
+        
+        restoreSelection: function(){
+            
+        },
+        
+        getOffset: function(node){
+            sel = window.getSelection();
+            if (sel.getRangeAt && sel.rangeCount) {
+                return sel.getRangeAt(0);
+            }
+        },
+        
+        createRange: function(start, end){
+            sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);  
+        }
 	});
 });
