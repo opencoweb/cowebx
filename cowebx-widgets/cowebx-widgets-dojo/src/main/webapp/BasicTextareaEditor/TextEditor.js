@@ -1,28 +1,25 @@
 define([
     'dojo',
-	"dojo/_base/declare", // declare
 	"dijit/_Widget",
 	"dijit/_TemplatedMixin",
 	"dijit/_Contained",
 	"dojo/text!./TextEditor.html",
 	'coweb/main',
+	'coweb/ext/attendance',
     './ld',
     './AttendeeList',
-    'coweb/ext/attendance',
     './ShareButton',
     'dijit/layout/ContentPane',
     'dijit/layout/BorderContainer',
-    'dojox/mobile/parser',
     './rangy/rangy-core',
     './rangy/uncompressed/rangy-selectionsaverestore'
-], function(dojo, declare, _Widget, _TemplatedMixin, _Contained, template, coweb, ld, AttendeeList, attendance, ShareButton){
+], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton){
 
-	return declare("TextEditor", [_Widget, _TemplatedMixin, _Contained], {
+	return dojo.declare("TextEditor", [_Widget, _TemplatedMixin, _Contained], {
 	    // widget template
 		templateString: template,
 		
         postCreate: function(){
-            window.foo = this;
 			//1. Process args
 	        this.id = 'TextEditor';
 	        this.go = true;
@@ -49,9 +46,7 @@ define([
             this.q = [];
             this.value = '';
             this.interval = 500;
-            this._por = {start : 0, end: 0};
-            this._first = true;
-           
+
             //4. connect
             this.connect();
    
@@ -104,6 +99,109 @@ define([
 
 	    onRemoteChange : function(obj){
 	        this.q.push(obj);
+	    },
+
+	    onUserChange : function(params) {
+	        //Break if empty object
+	        if(!params.users[0])
+	            return;
+	        if(params.type == "join"){
+	            //Locally create a new listItem for the user
+	            this._attendeeList.onLocalUserJoin(params.users);
+	        }else if(params.type == "leave"){
+	            //Locally delete listItem for the user
+	            this._attendeeList.onUserLeave(params.users);
+	        }
+	    },
+
+	    runOps : function(){
+            var sel = rangy.saveSelection();
+            this.value = this._textarea.innerHTML;
+	        for(var i=0; i<this.q.length; i++){
+	            if(this.q[i].type == 'insert')
+	                this.insertChar(this.q[i].value, this.q[i].position);
+	            if(this.q[i].type == 'delete')
+	                this.deleteChar(this.q[i].position);
+	            if(this.q[i].type == 'update')
+	                this.updateChar(this.q[i].value, this.q[i].position);
+	        }
+	        this._textarea.innerHTML = this.value;
+            rangy.restoreSelection(sel);
+	    },
+
+	    insertChar : function(c, pos) {
+	        var t = this._textarea;
+	        var start = this.getSelectionStart();
+	        var end = this.getSelectionEnd();
+	        if(start!=-1 && end!= -79){
+	            if(pos>=end){
+    	            pos = pos + 156;
+    	        }else if(pos>start && pos<end){
+    	            this.clearSelection();
+    	            //clear selection
+    	        }
+	        }
+	        this.value = this.value.substr(0, pos) + c + this.value.substr(pos);
+	    },
+
+	    deleteChar : function(pos) {
+	        var t = this._textarea;
+	        var start = this.getSelectionStart();
+	        var end = this.getSelectionEnd();
+	        if(start!=-1 && end!= -79){
+	            if(pos>=end){
+    	            pos = pos + 156;
+    	        }else if(pos>start && pos<end){
+    	            this.clearSelection();
+    	            //clear selection
+    	        }
+	        }
+	        this.value = this.value.substr(0, pos) + this.value.substr(pos+1);
+	    },
+
+	    updateChar : function(c, pos) {
+	        var t = this._textarea;
+	        var start = this.getSelectionStart();
+	        var end = this.getSelectionEnd();
+	        if(start!=-1 && end!= -79){
+	            if(pos>=end){
+    	            pos = pos + 156;
+    	        }else if(pos>start && pos<end){
+    	            this.clearSelection();
+    	            //clear selection
+    	        }
+	        }
+	        this.value = this.value.substr(0, pos) + c + this.value.substr(pos+1);
+	    },
+	    
+	    getSelectionStart: function(){
+	        var start = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_1">');
+	        if(start == -1)
+	            var start = this.value.search('<span id="selectionBoundary_1" style="line-height: 0; display: none;">');
+	        return start;
+	    },
+	    
+	    getSelectionEnd: function(){
+	        var end = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_2">﻿')-78;
+	        if(end == -79)
+	            var end = this.value.search('<span id="selectionBoundary_2" style="line-height: 0; display: none;">')-78;
+	        return end;
+	    },
+	    
+	    clearSelection: function(){
+	        
+	    },
+	    
+	    hasIncompleteTags : function(arr){
+            var openCount = 0;
+            var closeCount = 0;
+            for(var i=0; i<arr.length; i++){
+                if(arr[i].value == '<')
+                    openCount++;
+                if(arr[i].value == '>')
+                    closeCount++;
+            }
+            return !(openCount == closeCount);
 	    },
 	    
 	    fix: function(arr){
@@ -158,147 +256,26 @@ define([
             }
             return temp;
 	    },
-	    
-	    hasIncompleteTags : function(arr){
-            var openCount = 0;
-            var closeCount = 0;
-            for(var i=0; i<arr.length; i++){
-                if(arr[i].value == '<')
-                    openCount++;
-                if(arr[i].value == '>')
-                    closeCount++;
-            }
-            return !(openCount == closeCount);
-	    },
-
-	    onUserChange : function(params) {
-	        //Break if empty object
-	        if(!params.users[0])
-	            return;
-	        if(params.type == "join"){
-	            //Locally create a new listItem for the user
-	            this._attendeeList.onLocalUserJoin(params.users);
-	        }else if(params.type == "leave"){
-	            //Locally delete listItem for the user
-	            this._attendeeList.onUserLeave(params.users);
-	        }
-	    },
-
-	    runOps : function(){
-	        this._updatePOR();
-            var sel = rangy.saveSelection();
-            this.value = this._textarea.innerHTML;
-	        for(var i=0; i<this.q.length; i++){
-	            if(this.q[i].type == 'insert')
-	                this.insertChar(this.q[i].value, this.q[i].position);
-	            if(this.q[i].type == 'delete')
-	                this.deleteChar(this.q[i].position);
-	            if(this.q[i].type == 'update')
-	                this.updateChar(this.q[i].value, this.q[i].position);
-	        }
-	        this._textarea.innerHTML = this.value;
-            rangy.restoreSelection(sel);
-	        this._moveCaretToPOR();
-	    },
-
-	    insertChar : function(c, pos) {
-	        var t = this._textarea;
-	        var start = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_1">');
-	        if(start == -1)
-	            var start = this.value.search('<span id="selectionBoundary_1" style="line-height: 0; display: none;">');
-	        var end = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_2">﻿')-78;
-	        if(end == -79)
-	            var end = this.value.search('<span id="selectionBoundary_2" style="line-height: 0; display: none;">')-78;
-	        
-	        if(start!=-1 && end!= -79){
-	            if(pos>=end){
-    	            pos = pos + 156;
-    	        }else if(pos>start && pos<end){
-    	            //clear selection
-    	        }
-	        }
-	        this.value = this.value.substr(0, pos) + c + this.value.substr(pos);
-	    },
-
-	    insertString : function(string, pos) {
-	        var x = pos;
-	        for(var i=0; i<string.length; i++){
-	            this.insertChar(string[i], x);
-	            x++;
-	        }
-	    },
-
-	    deleteString : function(start, end) {
-	        for(var i=start; i<end; i++){
-	            this.deleteChar(i);
-	        }
-	    },
-
-	    deleteChar : function(pos) {
-	        //this._updatePOR();
-	        var t = this._textarea;
-	        //t.value = t.value.substr(0, pos) + t.value.substr(pos+1);
-	        this.value = this.value.substr(0, pos) + this.value.substr(pos+1);
-	        if(pos < this._por.start) {
-	            --this._por.start;
-	        }
-	        if(pos < this._por.end) {
-	            --this._por.end;
-	        }
-	        //this._moveCaretToPOR();
-	    },
-
-	    updateChar : function(c, pos) {
-	        //this._updatePOR();
-	        var t = this._textarea;
-	        //t.value = t.value.substr(0, pos) + c + t.value.substr(pos+1);
-	        this.value = this.value.substr(0, pos) + c + this.value.substr(pos+1);
-	    },
 
 	    snapshot : function(){
-	        return this._getValueAttr();
+	        return this._getValue();
 	    },
-
-	    _getValueAttr : function() {
-	        return this._textarea.innerHTML;
-	    },
-
-	    _moveCaretToPOR : function() {
-	        if(this._focused) {
-	            //this._textarea.setSelectionRange(this._por.start, this._por.end);
-	        }
-	    },
-
-	    _updatePOR : function(e) {
-	        if(this._focused) {
-	            var t = e ? e.target : this._textarea;
-	            this._por.start = t.selectionStart;
-	            this._por.end = t.selectionEnd;
-	        }
-	    },
-
-	    setPOR : function(pos){
-	        this._por.start = pos;
-	        this._por.end = pos;
-	    },
-
-	    _onFocus : function(event) {
-	        this._focused = true;
-	        var self = this;
-	        setTimeout(function() {
-	            self._moveCaretToPOR();
-	        },0);
-	    },
-
-	    _onBlur : function(event) {
-	        this._focused = false;
-	    },
-
-	    cleanup : function() {
-	        if(this.t != null){
-	            clearTimeout(this.t);
-	            this. t = null;
-	        }
+	    
+	    connect : function(){
+	        this.collab = coweb.initCollab({id : this.id});  
+	        this.collab.subscribeReady(this,'onCollabReady');
+	        this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
+	        this.collab.subscribeStateRequest(this, 'onStateRequest');
+	    	this.collab.subscribeStateResponse(this, 'onStateResponse');
+	        dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
+	        dojo.connect(this._textarea, 'onblur', this, '_onBlur');
+	        dojo.connect(dojo.byId('url'),'onclick',this,function(e){ this.selectElementContents(e.target) });
+            dojo.connect(dojo.byId('url'),'onblur',this,function(e){ e.target.innerHTML = window.location; });
+	        dojo.connect(window, 'resize', this, 'resize');
+	        dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
+	            dojo.publish("shareClick", [{}]);
+	        });
+	        attendance.subscribeChange(this, 'onUserChange');
 	    },
 
 	    onStateRequest : function(token){
@@ -325,28 +302,18 @@ define([
 	        }
 	    },
  
-	    connect : function(){
-	        this.collab = coweb.initCollab({id : this.id});  
-	        this.collab.subscribeReady(this,'onCollabReady');
-	        this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
-	        this.collab.subscribeStateRequest(this, 'onStateRequest');
-	    	this.collab.subscribeStateResponse(this, 'onStateResponse');
-	        dojo.connect(this._textarea, 'onmousedown', this, '_updatePOR');
-	        dojo.connect(this._textarea, 'onmouseup', this, '_updatePOR');
-	        dojo.connect(this._textarea, 'onmousemove', this, '_updatePOR');
-	        dojo.connect(this._textarea, 'onkeydown', this, '_updatePOR');
-	        dojo.connect(this._textarea, 'onkeyup', this, '_updatePOR');
-	        dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
-	        dojo.connect(this._textarea, 'onblur', this, '_onBlur');
-	        dojo.connect(dojo.byId('url'),'onclick',this,function(e){ this.selectElementContents(e.target) });
-            dojo.connect(dojo.byId('url'),'onblur',this,function(e){ e.target.innerHTML = window.location; });
-	        dojo.connect(window, 'resize', this, 'resize');
-	        dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
-	            dojo.publish("shareClick", [{}]);
-	        });
-	        attendance.subscribeChange(this, 'onUserChange');
+	    _getValue : function() {
+	        return this._textarea.innerHTML;
 	    },
-	    
+
+	    _onFocus : function(event) {
+	        this._focused = true;
+	    },
+
+	    _onBlur : function(event) {
+	        this._focused = false;
+	    },
+
 	    selectElementContents: function(el){
             var range = document.createRange();
             range.selectNodeContents(el);
@@ -387,6 +354,13 @@ define([
                 dojo.style(this._toolbar.childNodes[i],'margin','5px');
             }
             dojo.attr('url','innerHTML',window.location);
+	    },
+	    
+	    cleanup : function() {
+	        if(this.t != null){
+	            clearTimeout(this.t);
+	            this. t = null;
+	        }
 	    }
 	});
 });
