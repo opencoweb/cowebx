@@ -12,7 +12,9 @@ define([
     './ShareButton',
     'dijit/layout/ContentPane',
     'dijit/layout/BorderContainer',
-    'dojox/mobile/parser'
+    'dojox/mobile/parser',
+    './rangy/rangy-core',
+    './rangy/uncompressed/rangy-selectionsaverestore'
 ], function(dojo, declare, _Widget, _TemplatedMixin, _Contained, template, coweb, ld, AttendeeList, attendance, ShareButton){
 
 	return declare("TextEditor", [_Widget, _TemplatedMixin, _Contained], {
@@ -183,9 +185,9 @@ define([
 	    },
 
 	    runOps : function(){
-	        this.value = this._textarea.innerHTML;
 	        this._updatePOR();
-            // var sel = this.saveSelection();
+            var sel = rangy.saveSelection();
+            this.value = this._textarea.innerHTML;
 	        for(var i=0; i<this.q.length; i++){
 	            if(this.q[i].type == 'insert')
 	                this.insertChar(this.q[i].value, this.q[i].position);
@@ -195,31 +197,27 @@ define([
 	                this.updateChar(this.q[i].value, this.q[i].position);
 	        }
 	        this._textarea.innerHTML = this.value;
-	        console.log(this.value);
-            // this.restoreSelection(sel);
+            rangy.restoreSelection(sel);
 	        this._moveCaretToPOR();
 	    },
 
 	    insertChar : function(c, pos) {
-	        //this._updatePOR();
-	        var t = this._textarea,
-	        por = this._por,
-	        start = por.start,
-	        end = por.end;
-	        //t.value = t.value.substr(0, pos) + c + t.value.substr(pos);
+	        var t = this._textarea;
+	        var start = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_1">');
+	        if(start == -1)
+	            var start = this.value.search('<span id="selectionBoundary_1" style="line-height: 0; display: none;">');
+	        var end = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_2">﻿')-78;
+	        if(end == -79)
+	            var end = this.value.search('<span id="selectionBoundary_2" style="line-height: 0; display: none;">')-78;
+	        
+	        if(start!=-1 && end!= -79){
+	            if(pos>=end){
+    	            pos = pos + 156;
+    	        }else if(pos>start && pos<end){
+    	            //clear selection
+    	        }
+	        }
 	        this.value = this.value.substr(0, pos) + c + this.value.substr(pos);
-	        if(pos < por.end) {
-	            if(pos >= por.start && por.end != por.start) {
-	                ++start;
-	            }
-	            ++end;
-	        }
-	        if(pos < por.start) {
-	            ++start;
-	        }
-	        por.start = start;
-	        por.end = end;
-	        //this._moveCaretToPOR();
 	    },
 
 	    insertString : function(string, pos) {
@@ -389,31 +387,6 @@ define([
                 dojo.style(this._toolbar.childNodes[i],'margin','5px');
             }
             dojo.attr('url','innerHTML',window.location);
-	    },
-        
-        beginRobot: function(){
-            this._textarea.innerHTML = this._textarea.innerHTML+'A';
-        },
-        
-        saveSelection: function(){
-            
-        },
-        
-        restoreSelection: function(){
-            
-        },
-        
-        getOffset: function(node){
-            sel = window.getSelection();
-            if (sel.getRangeAt && sel.rangeCount) {
-                return sel.getRangeAt(0);
-            }
-        },
-        
-        createRange: function(start, end){
-            sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);  
-        }
+	    }
 	});
 });
