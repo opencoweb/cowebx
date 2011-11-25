@@ -20,6 +20,8 @@ define([
 		templateString: template,
 		
         postCreate: function(){
+            window.foo = this;
+            
 			//1. Process args
 	        this.id = 'TextEditor';
 	        this.go = true;
@@ -83,7 +85,6 @@ define([
 	                    if(syncs[i] != undefined){
 	                       this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
 	                       s = s+syncs[i].ch;
-	                       // console.log(syncs[i].ty+' '+syncs[i].ch)
 	                    }
 	                }
 	            }
@@ -160,8 +161,7 @@ define([
                 if(pos>=end){
     	            pos = pos + 156;
     	        }else if(pos>start && pos<end){
-    	            this.clearSelection();
-    	            //clear selection
+    	            pos = pos + 78;
     	        } 
 	        }else if(start == -1){
 	            var end = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_2">﻿');
@@ -174,6 +174,10 @@ define([
 	        }
 	        
 	        return pos;
+	    },
+	    
+	    clearSelection: function(){
+            
 	    },
 	    
 	    hasIncompleteTags : function(arr){
@@ -336,8 +340,13 @@ define([
             dojo.style(this._toolbar, 'margin','0px');
             for(var i=0; i<this._toolbar.childNodes.length; i++){
                 dojo.style(this._toolbar.childNodes[i],'margin','5px');
+                if(i>3)
+                    dojo.style(this._toolbar.childNodes[i],'display','none');
             }
             dojo.attr('url','innerHTML',window.location);
+            
+            //HIDE UNUSED BUTTONS
+            
 	    },
 	    
 	    cleanup : function() {
