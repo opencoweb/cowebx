@@ -25,7 +25,7 @@ define([
 	        this.go = true;
 
 	        //2. Build stuff
-	        dojo.create('textarea', {style:'width:100%;height:100%;'}, dojo.byId('divContainer'));
+	        dojo.create('textarea', {style:'width:100%;height:100%;' }, dojo.byId('divContainer'));
 	        this._attendeeList = new AttendeeList({domNode:dojo.byId('innerList'), id:'_attendeeList'});
             this.util = new ld({});
 	        nicEditors.allTextAreas();
@@ -77,9 +77,13 @@ define([
 	            //Send syncs
 	            if(syncs){
 	                syncs = this.fix(syncs);
+	                console.log(syncs);
+	                var s = '';
 	                for(var i=0; i<syncs.length; i++){
 	                    if(syncs[i] != undefined){
 	                       this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
+	                       s = s+syncs[i].ch;
+	                       // console.log(syncs[i].ty+' '+syncs[i].ch)
 	                    }
 	                }
 	            }
@@ -130,66 +134,46 @@ define([
 	    },
 
 	    insertChar : function(c, pos) {
-	        var t = this._textarea;
-	        var start = this.getSelectionStart();
-	        var end = this.getSelectionEnd();
-	        if(start!=-1 && end!= -79){
-	            if(pos>=end){
-    	            pos = pos + 156;
-    	        }else if(pos>start && pos<end){
-    	            this.clearSelection();
-    	            //clear selection
-    	        }
-	        }
-	        this.value = this.value.substr(0, pos) + c + this.value.substr(pos);
+	        var p = this.fixPos(pos);
+	        this.value = this.value.substr(0, p) + c + this.value.substr(p);
 	    },
 
 	    deleteChar : function(pos) {
-	        var t = this._textarea;
-	        var start = this.getSelectionStart();
-	        var end = this.getSelectionEnd();
-	        if(start!=-1 && end!= -79){
-	            if(pos>=end){
-    	            pos = pos + 156;
-    	        }else if(pos>start && pos<end){
-    	            this.clearSelection();
-    	            //clear selection
-    	        }
-	        }
-	        this.value = this.value.substr(0, pos) + this.value.substr(pos+1);
+            var p = this.fixPos(pos);
+	        this.value = this.value.substr(0, p) + this.value.substr(p+1);
 	    },
 
 	    updateChar : function(c, pos) {
-	        var t = this._textarea;
-	        var start = this.getSelectionStart();
-	        var end = this.getSelectionEnd();
-	        if(start!=-1 && end!= -79){
-	            if(pos>=end){
+            var p = this.fixPos(pos);
+	        this.value = this.value.substr(0, p) + c + this.value.substr(p+1);
+	    },
+	    
+	    fixPos: function(pos){
+	        var start = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_1">');
+	        if(start == -1)
+	            var start = this.value.search('<span id="selectionBoundary_1" style="line-height: 0; display: none;">');
+	        
+	        if(start != -1){
+	            var end = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_2">﻿')-78;
+    	        if(end == -79)
+    	            var end = this.value.search('<span id="selectionBoundary_2" style="line-height: 0; display: none;">')-78;   
+                if(pos>=end){
     	            pos = pos + 156;
     	        }else if(pos>start && pos<end){
     	            this.clearSelection();
     	            //clear selection
+    	        } 
+	        }else if(start == -1){
+	            var end = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_2">﻿');
+    	        if(end == -1)
+    	            var end = this.value.search('<span id="selectionBoundary_2" style="line-height: 0; display: none;">');
+    	        if(end != -1){
+    	            if(pos>=end)
+        	            pos = pos + 78;
     	        }
 	        }
-	        this.value = this.value.substr(0, pos) + c + this.value.substr(pos+1);
-	    },
-	    
-	    getSelectionStart: function(){
-	        var start = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_1">');
-	        if(start == -1)
-	            var start = this.value.search('<span id="selectionBoundary_1" style="line-height: 0; display: none;">');
-	        return start;
-	    },
-	    
-	    getSelectionEnd: function(){
-	        var end = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_2">﻿')-78;
-	        if(end == -79)
-	            var end = this.value.search('<span id="selectionBoundary_2" style="line-height: 0; display: none;">')-78;
-	        return end;
-	    },
-	    
-	    clearSelection: function(){
 	        
+	        return pos;
 	    },
 	    
 	    hasIncompleteTags : function(arr){
