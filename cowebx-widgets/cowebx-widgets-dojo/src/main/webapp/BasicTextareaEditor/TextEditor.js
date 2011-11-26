@@ -120,6 +120,7 @@ define([
 	    },
 
 	    runOps : function(){
+	        console.log(this.q);
             var sel = rangy.saveSelection();
             this.value = this._textarea.innerHTML;
 	        for(var i=0; i<this.q.length; i++){
