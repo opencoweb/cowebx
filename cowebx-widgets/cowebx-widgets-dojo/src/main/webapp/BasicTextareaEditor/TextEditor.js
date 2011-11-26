@@ -47,7 +47,7 @@ define([
             this.t = null;
             this.q = [];
             this.value = '';
-            this.interval = 500;
+            this.interval = 1500;
 
             //4. connect
             this.connect();
@@ -340,13 +340,11 @@ define([
             dojo.style(this._toolbar, 'margin','0px');
             for(var i=0; i<this._toolbar.childNodes.length; i++){
                 dojo.style(this._toolbar.childNodes[i],'margin','5px');
+                //HIDE UNUSED BUTTONS
                 if(i>3)
                     dojo.style(this._toolbar.childNodes[i],'display','none');
             }
             dojo.attr('url','innerHTML',window.location);
-            
-            //HIDE UNUSED BUTTONS
-            
 	    },
 	    
 	    cleanup : function() {
