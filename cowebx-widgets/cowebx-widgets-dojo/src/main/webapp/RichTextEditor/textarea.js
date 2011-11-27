@@ -664,7 +664,15 @@ define([
 		dojo.style(this._bgPalette.domNode, 'display', 'none');
 		this._hilitecolor = false;
 		this._forecolor = false;
-	};
+	};     
+	
+	proto._selectElementContents = function(el){
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    },
 	
 //Toolbar click events
 
@@ -1082,13 +1090,17 @@ define([
         dojo.connect(dojo.byId('thisDiv'), 'onfocus', this, '_onFocus');
         dojo.connect(dojo.byId('thisDiv'), 'onblur', this, '_onBlur');
         dojo.connect(dojo.byId('thisDiv'), 'onkeypress', this, '_onKeyPress');
-        dojo.connect(dojo.byId('thisDiv'), 'onkeydown', this, '_listenForKeyCombo');
+        dojo.connect(dojo.byId('thisDiv'), 'onkeydown', this, '_listenForKeyCombo');   
+        dojo.connect(dojo.byId('url'),'onclick',this,function(e){ this._selectElementContents(e.target) });   
+        dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
+            dojo.publish("shareClick", [{}]);
+        });
         dojo.subscribe("hideAll", dojo.hitch(this, function(message){ this._hidePalette(); }));
         document.onkeydown = function(e){
             if (e.which == 8)
     			return false;
         };
-        
+         
         this.collab = coweb.initCollab({id : this.id});
         this.collab.subscribeSync('editorStyle', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
@@ -1123,7 +1135,15 @@ define([
             'id':'shareButton',
             'displayButton':false});
         //5. Caret
-        dojo.create('span',{id:'selection','class':'selection'},dojo.byId('thisFrame'),'last');
+        dojo.create('span',{id:'selection','class':'selection'},dojo.byId('thisFrame'),'last');         
+        //6. Build infoDiv
+        var template = '<div id="infoDiv">'
+			+'<div class="collabTitle">Share or Save</div>'
+			+'<div id="url"></div>'
+			+'<div class="collabSubTitle">Copy url to friends to collaborate</div>'
+			+'<div id="saveButton">save document</div></div>';
+	    dojo.byId('attendeeListContainer').innerHTML =  dojo.byId('attendeeListContainer').innerHTML+template;   
+	    dojo.byId('url').innerHTML = window.location;
     };
     
     proto._buildToolbar = function(){

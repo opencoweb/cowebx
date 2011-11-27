@@ -56,7 +56,7 @@ define([
     };
     
     proto.createUserEntry = function(name, site, local){
-        var a = dojo.create('div',{id:'user'+site,'class':'attendee'},this.domNode);
+        var a = dojo.create('div',{id:'user'+site,'class':'attendee'},this.domNode, 'first');
         if(local){
             var b = dojo.create('input',{'class':'attendeeText',value:name,type:'text'},a);
             var color = dojo.create('div',{'class':'attendeeColor'},a,'first');

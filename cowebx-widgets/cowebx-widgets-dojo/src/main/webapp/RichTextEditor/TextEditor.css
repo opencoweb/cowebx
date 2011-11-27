@@ -74,12 +74,13 @@ body{
     height:25px;
     background:#EFEFEF;
     position:relative;
-    top:-5px;
-    z-index:100;
+    top:-6px;
+    z-index:100;     
+    border-bottom:1px solid white;
 }
 
 .gradient {
-    background-image: -webkit-gradient(
+/*    background-image: -webkit-gradient(
         linear,
         left bottom,
         left top,
@@ -92,7 +93,8 @@ body{
         rgb(0,0,0) 33%,
         rgb(64,64,64) 67%,
         rgb(102,102,102) 84%
-    );
+    );       */
+    background:black;
 }
 
 .header {
@@ -167,7 +169,8 @@ body{
     height:12px;
     cursor:hand;cursor:pointer;
     margin-right:5px;
-    overflow:hidden;
+    overflow:hidden;       
+    border:0px;
 }
 
 .editIcon {
@@ -312,4 +315,65 @@ body{
     float:right;
     position:relative;
     top:3px;
+}
+
+
+
+
+
+#infoDiv{
+    height:145px;
+    border-top:1px solid #CACACA;
+    position:absolute;bottom:0;
+    width:200px;
+}
+
+.collabTitle{
+    height:29px;
+    font:18px arial;
+    color:white;
+    background:grey;
+    padding-top:8px;
+    padding-left:5px;
+}
+
+.collabSubTitle{
+    font:12px arial;
+    color:grey;
+    margin-top:5px;
+    text-align:center;
+}
+
+#url{
+    width:180px;
+    overflow:hidden;
+    font:14px arial;
+    height:15px;
+    white-space: nowrap;
+    margin-left:auto;
+    margin-right:auto;
+    border:1px solid #CACACA;
+    outline:0px solid transparent;
+    margin-top:5px;
+    padding:5px;
+}
+
+#url:focus{
+    outline:0px solid transparent;
+}
+
+
+#saveButton{
+    width:190px;
+    font:14px arial;
+    height:22px;
+    padding-top:3px;
+    margin-left:auto;
+    margin-right:auto;
+    border:1px solid #CACACA;
+    margin-top:14px;
+    color:black;
+    background:#CACACA;
+    text-align:center;
+    cursor:hand;cursor:pointer;
 }
