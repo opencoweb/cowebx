@@ -202,111 +202,12 @@ define([
     
     // Move caret up one line & custom render
     proto.moveCaretUp = function(select) {
-        var s = dojo.byId('selection');
-        var targetX = s.offsetLeft;
-        var top = s.offsetTop-this._lineHeight;
-        var targetNode = null;
-        var backupNode = null;
-        var diff = 10000;
-        var dir = 'before';
-        if((this.value.start != this.value.end) && !select)
-            this.clearSelection();
-        var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-            if(node.offsetTop > top-2 && node.offsetTop < top+2 && node.tagName != 'BR'){
-                if(Math.abs(targetX - node.offsetLeft) < diff){
-                    diff = Math.abs(targetX - node.offsetLeft);
-                    targetNode = node;
-                    targetIndex = index;
-                }
-            }else if(node.offsetTop > s.offsetTop-2 && node.offsetTop < s.offsetTop+2 && node.tagName != 'BR'){
-                if(!backupNode){
-                    backupNode = node;
-                    backupIndex = index;
-                }
-            }
-        }));
-        if(diff>=10 && targetNode){
-            targetNode = targetNode.nextSibling;
-            targetIndex++;
-        }
-        if(targetNode){
-            this.value.start = targetIndex;
-            if(!select)
-                this.value.end = targetIndex;
-            this.moveUpRender(select, targetNode, nl, dir);
-        }else{
-            this.value.start = backupIndex;
-            if(!select)
-                this.value.end = backupIndex;
-            this.moveUpRender(select, null, nl, dir, backupNode);
-        }
-        // 
-        // if(!this._lock){
-        //     for(var k in line){
-        //         if(line[k]['node'].id=='selection')
-        //             this._lineIndex = k;
-        //     }
-        //     this._lock = true;
-        // }
+        
     };
     
     // Move caret down one line & custom render
     proto.moveCaretDown = function(select) {
-        var s = dojo.byId('selection');
-        var targetX = s.offsetLeft;
-        var top = s.offsetTop+s.offsetHeight;
-        var targetNode = null;
-        var backupNode = null;
-        var targetIndex = 0;
-        var backupIndex = 0;
-        var diff = 10000;
-        var dir = 'before';
-        if((this.value.start != this.value.end) && !select)
-            this.clearSelection();
-        var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-            if(node.offsetTop > top-2 && node.offsetTop < top+2 && node.tagName != 'BR'){
-                if(Math.abs(targetX - node.offsetLeft) < diff){
-                    diff = Math.abs(targetX - node.offsetLeft);
-                    targetNode = node;
-                    targetIndex = index-1;
-                }
-            }else if((node.offsetTop == (top-this._lineHeight)) && node.tagName != 'BR'){
-                backupNode = node;
-                backupIndex = index;
-            }
-        }));
-        if(diff>=10){
-            dir = 'after';
-            targetIndex++;
-        }
-        if(targetNode){
-            if(select && s.childNodes[s.childNodes.length-1] && (s.childNodes[s.childNodes.length-1].tagName == 'BR')){
-                this.moveCaretRight(true);
-                this.moveCaretDown(true);
-            }else{
-                this.value.end = targetIndex;
-                if(!select)
-                    this.value.start = targetIndex;
-                this.moveDownRender(select, targetNode, nl, dir);
-            }
-        }else{
-            if(s.nextSibling && s.nextSibling.tagName == 'BR' && select){
-                this.moveCaretRight(true);
-            }else if(s.nextSibling){
-                this.value.end = backupIndex;
-                if(!select)
-                    this.value.start = backupIndex;
-                this.moveDownRender(select, null, nl, dir, backupNode);
-            }
-        }
-        // 
-        // if(!this._lock){
-        //     for(var k in line){
-        //         if(line[k]['node'].id=='selection')
-        //             this._lineIndex = k;
-        //     }
-        //     this._lock = true;
-        // }
+        
     };
     
     // Move caret left one char & custom render
@@ -385,44 +286,12 @@ define([
         this._scrollWith();
     };
     
-    proto.moveUpRender = function(select, node, nl, dir, backupNode){
-        if(!select && node){
-            dojo.place('selection',node,dir);
-        }else if(select && node){
-            var a = dojo.query('#selection span, #selection br');
-            if(dir == 'before'){
-                var newSel = nl.slice( nl.indexOf(node) , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-            }else{
-                var newSel = nl.slice( nl.indexOf(node)+1 , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-            }
-        }else if(!select && !node){
-            dojo.place('selection', backupNode, 'before');
-            this.moveCaretLeft(select);
-        }else if(select && !node){
-            var a = dojo.query('#selection span, #selection br');
-            var newSel = nl.slice( nl.indexOf(backupNode) , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-            this.moveCaretLeft(select);
-        }
-        this._scrollWith();
+    proto.moveUpRender = function(){
+        
     };
     
-    proto.moveDownRender = function(select, node, nl, dir, backupNode){
-        if(!select && node){
-            dojo.place('selection',node,dir);
-        }else if(select && node){
-            if(dir == 'before'){
-                var newSel = nl.slice( nl.indexOf(dojo.byId('selection'))+1, nl.indexOf(node)).place(dojo.byId('selection'));
-            }else{
-                var newSel = nl.slice( nl.indexOf(dojo.byId('selection'))+1, nl.indexOf(node)+1).place(dojo.byId('selection'));
-            }
-        }else if(!select && backupNode){
-            dojo.place('selection', backupNode, 'after');
-            this.moveCaretRight(select);
-        }else if(select && backupNode){
-            var newSel = nl.slice( nl.indexOf(dojo.byId('selection'))+1, nl.indexOf(backupNode)+1).place(dojo.byId('selection'));
-            this.moveCaretRight(select);
-        }
-        this._scrollWith();
+    proto.moveDownRender = function(){
+        
     };
     
     proto.moveLeftRender = function(select){
@@ -459,32 +328,32 @@ define([
 // Utility functions
     
     proto._moveToEmptyLine = function(clickHt) {
-        var diff = 100000;
-        var diff2 = 100000;
-        var to = null;
-        var from = null;
-        dojo.query('#lineNumbers span').forEach(dojo.hitch(this, function(node, index, arr){
-            if(node.innerHTML == 1 && dojo.attr(node, 'num')){
-                if(Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop)) < diff){
-                    diff = Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop));
-                    to = parseInt(dojo.attr(node, 'num'));
-                }
-                if(Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top) < diff2){
-                    diff2 = Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top);
-                    from = parseInt(dojo.attr(node, 'num'));
-                }
-            }
-        }));
-        this._lock = true;
-        this._lineIndex = 10000;
-
-        if(from <= to){
-            for(var i=0; i<to-from; i++)
-                this.moveCaretDown();
-        }else{
-            for(var i=0; i<from-to; i++)
-                this.moveCaretUp();
-        }
+        // var diff = 100000;
+        //         var diff2 = 100000;
+        //         var to = null;
+        //         var from = null;
+        //         dojo.query('#lineNumbers span').forEach(dojo.hitch(this, function(node, index, arr){
+        //             if(node.innerHTML == 1 && dojo.attr(node, 'num')){
+        //                 if(Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop)) < diff){
+        //                     diff = Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop));
+        //                     to = parseInt(dojo.attr(node, 'num'));
+        //                 }
+        //                 if(Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top) < diff2){
+        //                     diff2 = Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top);
+        //                     from = parseInt(dojo.attr(node, 'num'));
+        //                 }
+        //             }
+        //         }));
+        //         this._lock = true;
+        //         this._lineIndex = 10000;
+        // 
+        //         if(from <= to){
+        //             for(var i=0; i<to-from; i++)
+        //                 this.moveCaretDown();
+        //         }else{
+        //             for(var i=0; i<from-to; i++)
+        //                 this.moveCaretUp();
+        //         }
     };
     
     proto._scrollWith = function(){

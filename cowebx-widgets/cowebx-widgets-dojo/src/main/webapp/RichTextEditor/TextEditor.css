@@ -271,7 +271,8 @@ body{
     background:white;
     overflow-y:auto;
     vertical-align:top;
-    min-width:200px;
+    min-width:200px;    
+    border-left:1px solid grey;
 }
 
 .attendee{
@@ -286,9 +287,8 @@ body{
     width:120px;
     display:inline-block;
     cursor:hand;cursor:pointer;
-    background: lightyellow;
-    font-weight: bold;
-    color: orange;
+    background: grey;
+    color: white;
     font: 18px arial;
     border:0px;
 }
@@ -304,9 +304,7 @@ body{
 }
 
 .localUser{
-    background: lightyellow;
-    font-weight: bold;
-    color: orange;
+    background: grey;
 }
 
 .userEditIcon{
@@ -316,10 +314,6 @@ body{
     position:relative;
     top:3px;
 }
-
-
-
-
 
 #infoDiv{
     height:145px;
