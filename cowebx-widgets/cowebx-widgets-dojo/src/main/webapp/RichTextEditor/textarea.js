@@ -44,12 +44,14 @@ define([
             17 : 'control',
             16 : 'shift'
         };
+        var a = dojo.create('div',{innerHTML:'G'},dojo.byId('thisFrame'),'first');
+        this._lineHeight = dojo.style(a, 'height');
+        dojo.destroy(a);
     };
     var proto = textarea.prototype;
 
     // Rips through all of this.value and blasts proper html equiv into dom
     proto.render = function(slider) {
-        console.log('full render');
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var a = []; var b = []; var c = [];
@@ -82,7 +84,7 @@ define([
         //         }
         
         //Render other stuff
-        this._renderLineNumbers();
+        
         this._scrollWith();
     };
     
@@ -358,19 +360,19 @@ define([
         }else if(c.search('br') != -1){
             dojo.create('br',{},dojo.byId('selection'),'before');
         }
-        this._renderLineNumbers();
+        
         this._scrollWith();
     };
     
     proto.deleteRender = function(){
         dojo.destroy(dojo.byId('selection').previousSibling);
-        this._renderLineNumbers();
+        
         this._scrollWith();
     };
     
     proto.destroySelRender = function(){
         dojo.byId('selection').innerHTML = '';
-        this._renderLineNumbers();
+        
         this._scrollWith();
     };
     
@@ -485,38 +487,6 @@ define([
         }
     };
     
-    proto._renderLineNumbers = function(){
-        var a = dojo.create('div',{innerHTML:'G'},dojo.byId('thisFrame'),'first');
-        this._lineHeight = dojo.style(a, 'height');
-        dojo.destroy(a);
-        
-        if(!this._prevLines)
-            this._prevLines = 0;
-        
-        var contentHeight = dojo.style('thisFrame', 'height');
-        var lines = Math.floor(contentHeight / this._lineHeight);
-        if(this._prevLines < lines){
-            var diff = lines - this._prevLines;
-            var div = dojo.byId('lineNumbers');
-            for(var i=1; i<=diff; i++){
-                dojo.create('span',{style:'color:grey;visibility:hidden;',innerHTML:'1',id:i+this._prevLines+'a','num':i+this._prevLines},div,'last');
-                dojo.create('span',{'class':'line',innerHTML:i+this._prevLines,id:i+this._prevLines+'b'},div,'last');
-                dojo.create('br',{id:i+this._prevLines+'c'},div,'last');
-            }
-            this._prevLines = lines;
-        }else if(this._prevLines > lines){
-            var diff = Math.abs(lines - this._prevLines);
-            var div = dojo.byId('lineNumbers');
-            var n = this._prevLines+0;
-            for(var i=0; i<diff; i++){
-                dojo.destroy(div.lastChild);
-                dojo.destroy(div.lastChild);
-                dojo.destroy(div.lastChild);
-            }
-            this._prevLines = lines;
-        }
-    };
-    
     proto._scrollWith = function(){
         
     };
@@ -530,7 +500,7 @@ define([
             var sel = this._stripTags(this._stripSpaces(this._replaceBR(dojo.byId('selection').innerHTML)));
             this._hidden = dojo.create('textarea',{
                 id:'hidden',
-                style:'position:absolute;left:-10000px;top:200px;height:100px;overflow:auto;',
+                style:'position:fixed;left:-10000px;top:100px;height:1px;width:1px;overflow:hidden;',
                 innerHTML: sel
             },dojo.byId('tContainer'),'before');
 
@@ -1097,12 +1067,12 @@ define([
     };
     
     proto._onBlur = function(){
-        dojo.style(dojo.byId('ipadFloat'),'display','block');
+
     };
     
     proto._onResize = function() {
         //Style on resize as a late hook, fix eventually
-        dojo.style(this._div, 'height', (window.innerHeight-70)+'px');
+        dojo.style(this._div, 'height', (window.innerHeight-70)+'px');    
     };
     
     proto._connect = function(){
@@ -1114,10 +1084,6 @@ define([
         dojo.connect(dojo.byId('thisDiv'), 'onkeypress', this, '_onKeyPress');
         dojo.connect(dojo.byId('thisDiv'), 'onkeydown', this, '_listenForKeyCombo');
         dojo.subscribe("hideAll", dojo.hitch(this, function(message){ this._hidePalette(); }));
-        dojo.connect(dojo.byId('ipadFloat'), 'onfocus', this, function(){ 
-            dojo.style(dojo.byId('ipadFloat'), 'display', 'none'); 
-            dojo.byId('thisDiv').focus();
-        });
         document.onkeydown = function(e){
             if (e.which == 8)
     			return false;
@@ -1136,15 +1102,12 @@ define([
         var outerRow = dojo.create('tr',{'style':'width:100%;height:100%;'},outerTable);
         var cell1 = dojo.create('td',{'style':'height:100%;'},outerRow,'first');
         var cell2 = dojo.create('td',{'style':'width:200px;height:100%;',id:'attendeeListContainer','class':'attendeeListContainer'},outerRow,'last');
-        dojo.create('div',{'style':'height:100%;min-width:800px;',id:'tContainer'},cell1);
+        dojo.create('div',{'style':'height:100%;min-width:800px;position:relative',id:'tContainer'},cell1);
         //2. Table
         this._div = dojo.create('div', {'style':'width:100%;height:100%;overflow-y:auto;',id:'divHolder'}, dojo.byId('tContainer'));
-        var table = dojo.create('table',{'class':'divTable'},this._div);
-        var tr = dojo.create('tr',{'style':'width:100%;height:100%;'},table);
-        var td1 = dojo.create('td',{'style':'width:40px;height:100%;'},tr,'first');
-        var td2 = dojo.create('td',{'style':'height:100%;'},tr,'last');
-        var d = dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, td2);
-        var l = dojo.create('div', {id:'lineNumbers','class':'lineNumbers'}, td1);
+        var rulerContainer = dojo.create('div',{'class':'rulerContainer',id:'rulerContainer'},'tContainer','first');
+        var i = dojo.create('img', {src:'../lib/cowebx/dojo/RichTextEditor/images/ruler.png', 'class':'ruler'}, rulerContainer, 'first');
+        var d = dojo.create('div', {tabindex:-1,id:'thisDiv','class':'div'}, this._div, 'last');
         dojo.create('div',{id:'thisFrame'},dojo.byId('thisDiv'),'first');
         //3. Toolbar, footer, & confirm dialog
         this._buildToolbar();
@@ -1161,8 +1124,6 @@ define([
             'displayButton':false});
         //5. Caret
         dojo.create('span',{id:'selection','class':'selection'},dojo.byId('thisFrame'),'last');
-        //6. iPad keyboard trigger
-        dojo.create('textarea',{id:'ipadFloat','class':'ipadFloat'},dojo.byId('thisDiv'),'first');
     };
     
     proto._buildToolbar = function(){

@@ -126,13 +126,13 @@ define([
         this.collab.pauseSync();
         if(this.q.length != 0){
             this.runOps();
-            this._textarea._renderLineNumbers();
+            
             dojo.publish("editorHistory", [{save:dojo.clone(this._textarea.value)}]);
         }
         this.q = [];
         this.oldSnapshot = this.snapshot();
         this._forcePOR();
-        this._textarea._renderLineNumbers();
+        
         this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
     };
     
