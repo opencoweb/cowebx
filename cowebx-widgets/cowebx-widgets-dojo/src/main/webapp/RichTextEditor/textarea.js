@@ -44,9 +44,6 @@ define([
             17 : 'control',
             16 : 'shift'
         };
-        var a = dojo.create('div',{innerHTML:'G'},dojo.byId('thisFrame'),'first');
-        this._lineHeight = dojo.style(a, 'height');
-        dojo.destroy(a);
     };
     var proto = textarea.prototype;
 
@@ -201,13 +198,120 @@ define([
     };
     
     // Move caret up one line & custom render
-    proto.moveCaretUp = function(select) {
-        
+    proto.moveCaretUp = function(select) { 
+        var s = dojo.byId('selection');
+        var lineHeight = (s.childNodes.length>0) ? s.childNodes[0].offsetHeight : dojo.byId('thisFrame').firstChild.offsetHeight;
+        var count = 0;
+        var lineIndex = 0;
+        var lineAbove = [];
+        var firstNode = null;
+        var nl = dojo.query('#thisDiv span').forEach(function(node, index, arr){ 
+            if(node.offsetTop == s.offsetTop-lineHeight)
+                lineAbove.push(node);
+            if(node.id == 'selection')
+                lineIndex = count;
+            if(node.offsetTop == s.offsetTop){ 
+                if(!firstNode)
+                    firstNode = node;
+                count++;                      
+            }
+        });
+        var nlTwo = dojo.query('#thisDiv span, #thisDiv br'); 
+        if(lineAbove[lineIndex]){
+            var targetNode = lineAbove[lineIndex];
+            var pos = 'before';
+            var start = nlTwo.indexOf(targetNode);
+        }else if(lineAbove.length > 0){
+            var targetNode = lineAbove[lineAbove.length-1];
+            var pos = 'after';
+            var start = nlTwo.indexOf(targetNode)+1;
+        }else{
+            var targetNode = firstNode.previousSibling;
+            pos = 'before';
+            var start = nlTwo.indexOf(targetNode);
+        }
+        if(pos == 'before'){
+            if(select){
+                nlTwo.slice(nlTwo.indexOf(targetNode), nlTwo.indexOf(s)).concat(dojo.query('#selection >')).place(s);
+                this.value.start = start;
+            }else{
+                dojo.place(s,targetNode,'before');
+                this.value.start = start;
+                this.value.end = start;
+            }
+        }else if(pos == 'after'){ 
+            if(select){
+                nlTwo.slice(nlTwo.indexOf(targetNode)+1, nlTwo.indexOf(s)).concat(dojo.query('#selection >')).place(s);
+                this.value.start = start;
+            }else{
+                dojo.place(s,targetNode,'after');
+                this.value.start = start;
+                this.value.end = start;
+            }
+        }   
     };
     
     // Move caret down one line & custom render
-    proto.moveCaretDown = function(select) {
-        
+    proto.moveCaretDown = function(select) { 
+        var s = dojo.byId('selection');
+        var lineHeight = (s.childNodes.length>0) ? s.childNodes[0].offsetHeight : dojo.byId('thisFrame').firstChild.offsetHeight;
+        var count = 0;
+        var lineIndex = 0;
+        var lineBelow = [];
+        var lastNode = null; 
+        var firstNode = null;
+        var nl = dojo.query('#thisDiv span').forEach(function(node, index, arr){
+            if(node.offsetTop == s.offsetTop+s.offsetHeight)
+                lineBelow.push(node);
+            if(node.id == 'selection')
+                lineIndex = count;
+            if(node.offsetTop == s.offsetTop){
+                count++;                      
+                lastNode = node; 
+                if(!firstNode)
+                    firstNode = node;
+            }
+        });
+        if(firstNode && s.innerHTML.length>0){
+            lineBelow = [];
+            var nl = dojo.query('#thisDiv span').forEach(function(node, index, arr){
+                if(node.offsetTop == s.offsetTop+s.offsetHeight+lineHeight)
+                    lineBelow.push(node);
+            });
+        }
+        var nlTwo = dojo.query('#thisDiv span, #thisDiv br');
+        if(lineBelow[lineIndex]){
+            var targetNode = lineBelow[lineIndex];
+            var pos = 'before';
+            var end = nlTwo.indexOf(targetNode)-1;
+        }else if(lineBelow.length > 0){
+            var targetNode = lineBelow[lineBelow.length-1];
+            var pos = 'after';
+            var end = nlTwo.indexOf(targetNode);
+        }else{
+            var targetNode = lastNode.nextSibling;
+            pos = 'after';
+            var end = nlTwo.indexOf(targetNode);
+        }
+        if(pos == 'before'){
+            if(select){
+                dojo.query('#selection >').concat(nlTwo.slice(nlTwo.indexOf(s.nextSibling), nlTwo.indexOf(targetNode))).place(s);
+                this.value.end = end;
+            }else{
+                dojo.place(s,targetNode,'before');
+                this.value.start = end;
+                this.value.end = end;
+            }
+        }else if(pos == 'after'){ 
+            if(select){
+                dojo.query('#selection >').concat(nlTwo.slice(nlTwo.indexOf(s.nextSibling), nlTwo.indexOf(targetNode)+1)).place(s); 
+                this.value.end = end;
+            }else{
+                dojo.place(s,targetNode,'after');
+                this.value.start = end;
+                this.value.end = end;
+            }
+        }
     };
     
     // Move caret left one char & custom render
