@@ -44,7 +44,6 @@ define([
 
             // make visible and parse for widgets now
             dojo.style(body, 'display', '');
-            dojo.parser.parse();
     
             // grab widgets
             this.map = dijit.byId('map');
