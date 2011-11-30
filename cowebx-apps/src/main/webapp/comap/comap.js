@@ -12,14 +12,16 @@ define([
     'coweb/ext/attendance',
     'GMap',
     'ChatBox',
+	'dojo/parser',
     'dijit/layout/BorderContainer',
     'dijit/layout/AccordionContainer',
     'dijit/layout/AccordionPane',
     'dijit/Toolbar',
     'dijit/form/Button',
     'dijit/form/CheckBox',
-    'dojo/hash'
-], function(dojo, dijit, coweb, attendance, GMap, ChatBox) {
+    'dojo/hash',
+    'dojo/domReady!'
+], function(dojo, dijit, coweb, attendance, GMap, ChatBox, parser) {
     // dojo.require('comap.GMap');
     // dojo.require('comap.ChatBox');
 
@@ -44,6 +46,7 @@ define([
 
             // make visible and parse for widgets now
             dojo.style(body, 'display', '');
+			parser.parse();
     
             // grab widgets
             this.map = dijit.byId('map');
@@ -301,7 +304,5 @@ define([
     };
 
     // initialize the app when all modules load and page is ready
-    dojo.ready(function() {
-        app.init();
-    });
+    app.init();
 });
