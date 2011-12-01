@@ -11,7 +11,6 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
         this.collab = coweb.initCollab({id : this.id});  
         this.collab.subscribeReady(this,'onCollabReady');
         this.collab.subscribeSync('whiteboardUpdate', this, 'onWhiteboardUpdate');
-        this.collab.subscribeSync('whiteboardUpdateHistory', this, 'onWhiteboardUpdateHistory');
         this.collab.subscribeSync('whiteboardClear', this, 'onWhiteboardClear');
         this.collab.subscribeSync('whiteboardMove', this, 'onWhiteboardMove');
         this.collab.subscribeSync('whiteboardModeChange', this, 'onWhiteboardModeChange');
@@ -340,7 +339,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 	    		var historyEntry = {data: data, type: this.currentType, color: this.color, lineSize: this.lineSize, id: shapeId}; 
 	    		this.history[shapeId] =  historyEntry;
 	    		this.shapes[shapeId] = {shape: this.last};
-				this.collab.sendSync('whiteboardUpdateHistory', historyEntry, "insert");
+				this.collab.sendSync('whiteboardUpdate', historyEntry, "insert");
 	    		this.points = [];
 				this.last = undefined;
     		}
@@ -427,12 +426,6 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 		},
 		onWhiteboardUpdate: function(obj) {
 			this.q.push(obj);
-		},
-		onWhiteboardUpdateHistory: function(obj) {
-    		this.history[obj.value.id] = obj.value;
-    		this.shapes[obj.value.id] = {shape: this.last};
-    		this.last = undefined;
-    		this.currentId++;
 		},
 		onWhiteboardClear: function(obj) {
 			this.clear(false);
@@ -540,12 +533,20 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 	        this.collab.pauseSync();
 	        if(this.q.length > 0) {
 	        	for (var i = 0; i < this.q.length; i++) {
-	        		this.points = this.q[i].value.points;
-	        		this.lastPoint = this.q[i].value.lastPoint;
-	        		this.currentType = this.q[i].value.currentType;
-	        		this.color = this.q[i].value.color;
-	        		this.lineSize = this.q[i].value.lineSize;
-	        		this.last = this._render(this.points, false, this.q[i].value.srcppi);
+	        		var qItem = this.q[i].value;
+	        		if (qItem.points) {
+						this.points = qItem.points;
+						this.lastPoint = qItem.lastPoint;
+						this.currentType = qItem.currentType;
+						this.color = qItem.color;
+						this.lineSize = qItem.lineSize;
+						this.last = this._render(this.points, false, qItem.srcppi);
+					} else if (qItem.data) {
+						this.history[qItem.id] = qItem;
+						this.shapes[qItem.id] = {shape: this.last};
+						this.last = undefined;
+						this.currentId++;
+					}
 	        	}
 	        }
 	        this.q = [];
