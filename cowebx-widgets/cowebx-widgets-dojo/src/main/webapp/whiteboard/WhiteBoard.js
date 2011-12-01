@@ -75,6 +75,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 				dojo.style(this.attachee.parentNode, "position", "static");
 				dojo.destroy(this.container);
 				this.container = null;
+				this.clear(false);
 				if (distribute) {
 					this.collab.sendSync('whiteboardAttach', {attached: this.attached}, "delete");					
 				}
