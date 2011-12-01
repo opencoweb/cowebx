@@ -89,11 +89,14 @@ define([
     proto.insert = function(c) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
-       
         var v = this.value;
         if(start != end)
             this.destroySelection();
+        
+        //1. Change string in memory
         v.string = v.string.slice(0,start).concat([c]).concat(v.string.slice(start,v.string.length));
+        v.start = v.start+1;
+        v.end = v.start;
         
         //Fix all remote carets
         // var pos = start;
@@ -110,8 +113,8 @@ define([
         //     this.attendees[j].start = s;
         //     this.attendees[j].end = e;
         // }
-        v.start = v.start+1;
-        v.end = v.start;
+        
+        //2. render
         this.insertRender(c);
         this._lock = false;  
     };
@@ -121,16 +124,19 @@ define([
         if(this.value.string.length>0){
             var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
             var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
-            
             var v = this.value;
-            if(!n)
-                var n = 1;
+            var n = (!n) ? 1 : n;
             if(start != end){
                 this.destroySelection();
             }else if(this.value.start>0){
+                //1. Adjust string in memory
                 var beforeLength = v.string.length+0;
                 v.string = v.string.slice(0,v.start-n).concat(v.string.slice(v.start,v.string.length));
                 var afterLength = v.string.length+0;
+                if(beforeLength != afterLength){
+                    v.start = v.start - n;
+                    v.end = v.start;
+                }
                 
                 //Fix all remote carets
                 // var pos = start;
@@ -141,10 +147,7 @@ define([
                 //         --this.attendees[j].end;
                 // } 
                 
-                if(beforeLength != afterLength){
-                    v.start = v.start - n;
-                    v.end = v.start;
-                }
+                //2. custom render
                 this.deleteRender();
             }
             this._lock = false; 
@@ -156,7 +159,6 @@ define([
         var v = this.value;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
-        
         if(this.value.start != this.value.end){
             if(!dir || dir == 'left'){
                 v.start = start;
@@ -174,7 +176,6 @@ define([
         var v = this.value;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
-        
         this.value.end = start;
         v.string = v.string.slice(0,start).concat(v.string.slice(end,v.string.length));
         this.destroySelRender();
@@ -198,7 +199,8 @@ define([
     };
     
     // Move caret up one line & custom render
-    proto.moveCaretUp = function(select) { 
+    proto.moveCaretUp = function(select) {
+        //1. Populate obj rep'ing current line and lineAbove
         this._lineHeight = 18;
         var i=0;
         var top = Math.round(dojo.byId('selection').offsetTop-this._lineHeight);
@@ -220,7 +222,8 @@ define([
             }
             i++;
         }));
-
+        
+        //2. Get curr index into curr line
         if(!this._lock){
             for(var k in line){
                 if(line[k]['node'].id=='selection')
@@ -228,77 +231,14 @@ define([
             }
             this._lock = true;    
         }
-
-        var count = this._count(lineAbove);
-        if(count>0){
-            if(count >= this._lineIndex){
-                if(lineAbove[this._lineIndex]){
-                    if(select){
-                        //console.log('1');
-                        var a = dojo.query('#selection span, #selection br');
-                        var newSel = nl.slice( nl.indexOf(lineAbove[this._lineIndex].node) , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                        newSel.forEach(function(node, index, arr){
-                            dojo.addClass(node,'trans');
-                        });
-                        this.value.start = lineAbove[this._lineIndex].index; 
-                    }else{
-                        this.value.start = lineAbove[this._lineIndex].index;
-                        this.value.end = lineAbove[this._lineIndex].index;
-                        dojo.place('selection', lineAbove[this._lineIndex].node, 'before');
-                    }
-                }else{
-                    if(select){
-                        //console.log('2');
-                        var a = dojo.query('#selection span, #selection br');
-                        var newSel = nl.slice( nl.indexOf(lineAbove[this._lineIndex-1].node)+1 , nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                        newSel.forEach(function(node, index, arr){
-                            dojo.addClass(node,'trans');
-                        });
-                        this.value.start = lineAbove[this._lineIndex-1].index+1;
-                    }else{
-                        this.value.start = lineAbove[this._lineIndex-1].index+1;
-                        this.value.end = lineAbove[this._lineIndex-1].index+1;
-                        dojo.place('selection', lineAbove[this._lineIndex-1].node, 'after');
-                    }
-                }
-            }else if(count < this._lineIndex){
-                if(select){
-                    //console.log('3');
-                    var a = dojo.query('#selection span, #selection br');
-                    var newSel = nl.slice( nl.indexOf(lineAbove[count-1].node)+1, nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                    newSel.forEach(function(node, index, arr){
-                        dojo.addClass(node,'trans');
-                    });
-                    this.value.start = lineAbove[0].index+count;
-                }else{
-                    this.value.start = lineAbove[0].index+count;
-                    this.value.end = lineAbove[0].index+count;
-                    dojo.place('selection', lineAbove[count-1].node, 'after');
-                }
-            }
-        }else{
-            if(select){
-                //console.log('4');
-                var a = dojo.query('#selection span, #selection br');
-                var newSel = nl.slice( nl.indexOf(line[0].node), nl.indexOf(dojo.byId('selection'))).concat(a).place(dojo.byId('selection'));
-                newSel.forEach(function(node, index, arr){
-                    dojo.addClass(node,'trans');
-                });
-                this.value.start = line[0].index;
-                this.moveCaretLeft(true);
-            }else{
-                if(line[0].node.previousSibling){
-                    this.value.start = line[0].index-1;
-                    this.value.end = line[0].index-1;
-                    dojo.place('selection', line[0].node.previousSibling, 'before');   
-                }
-            }
-        }
-        this._scrollWith();        
+        
+        //3. Custom render
+        this.moveCaretUpRender(lineAbove, line, select, nl);        
     };
     
     // Move caret down one line & custom render
     proto.moveCaretDown = function(select) {
+        //1. populate obj rep'ing curr line and lineBelow
         this._lineHeight = 18;
         var i=0;
         var top = Math.round(dojo.byId('selection').offsetTop+dojo.byId('selection').offsetHeight);
@@ -320,7 +260,8 @@ define([
             }
             i++;
         }));
-
+        
+        //2. get curr index into curr line
         if(!this._lock){
             for(var k in line){
                 if(line[k]['node'].id=='selection')
@@ -328,84 +269,9 @@ define([
             }
             this._lock = true;    
         }
-
-        var count = this._count(lineBelow);
-        if(this._count(lineBelow)>0){
-            if(count >= this._lineIndex){
-                if(lineBelow[this._lineIndex]){
-                    if(select){
-                        //console.log('1');
-                        var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[this._lineIndex].node)).place(dojo.byId('selection'));
-                        newSel.forEach(function(node, index, arr){
-                            dojo.addClass(node,'trans');
-                        });
-                        this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
-                    }else{
-                        this.value.start = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
-                        this.value.end = (lineBelow[this._lineIndex].index-1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex].index-1;
-                        dojo.place('selection', lineBelow[this._lineIndex].node, 'before');
-                    }
-                }else{
-                    if(select){
-                        //console.log('2');
-                        var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[this._lineIndex-1].node)+1).place(dojo.byId('selection'));
-                        newSel.forEach(function(node, index, arr){
-                            dojo.addClass(node,'trans');
-                        });
-                        this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
-                    }else{
-                        this.value.start = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
-                        this.value.end = (lineBelow[this._lineIndex-1].index+1>this.value.string.length) ? this.value.string.length : lineBelow[this._lineIndex-1].index+1;
-                        dojo.place('selection', lineBelow[this._lineIndex-1].node, 'after');
-                    }
-                }
-            }else if(count < this._lineIndex){
-                if(select){
-                    //console.log('3');
-                    var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(lineBelow[count-1].node)+1).place(dojo.byId('selection'));
-                    newSel.forEach(function(node, index, arr){
-                        dojo.addClass(node,'trans');
-                    });
-                    this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
-                }else{
-                    this.value.start = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
-                    this.value.end = (lineBelow[0].index+count-1>this.value.string.length) ? this.value.string.length : lineBelow[0].index+count-1;
-                    dojo.place('selection', lineBelow[count-1].node, 'after');
-                }
-            }
-        }else{
-            if(select){
-                //console.log('4');
-                line = {};
-                var anchor = dojo.byId('selection').nextSibling;
-                i=0;
-                if(anchor && anchor.tagName != 'BR'){
-                    var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
-                        if(node.offsetTop == anchor.offsetTop){
-                            line[this._count(line)] = {
-                                node: node,
-                                index: i
-                            };
-                        }
-                        i++;
-                    }));
-                    var newSel = nl.slice(nl.indexOf(dojo.byId('selection'))+1 , nl.indexOf(line[this._count(line)-1].node)+1).place(dojo.byId('selection'));
-                    newSel.forEach(function(node, index, arr){
-                        dojo.addClass(node,'trans');
-                    });
-                    this.value.end = line[this._count(line)-1].index;
-                }else{
-                    this.moveCaretRight(true);
-                }
-            }else{
-                if(line[this._count(line)-1].node.nextSibling){
-                    this.value.start = line[this._count(line)-1].index+1;
-                    this.value.end = line[this._count(line)-1].index+1;
-                    dojo.place('selection', line[this._count(line)-1].node.nextSibling, 'after');   
-                }
-            }
-        }
-        this._scrollWith();
+        
+        //3. Custom render
+        this.moveCaretDownRender(lineBelow, line, select, nl);
     };
     
     // Move caret left one char & custom render
@@ -484,11 +350,138 @@ define([
         this._scrollWith();
     };
     
+    proto.moveCaretUpRender = function(lineAbove, line, select, nl){
+        var count = this._count(lineAbove);
+        var a = dojo.query('#selection span, #selection br');
+        var s = dojo.byId('selection');
+        var v = this.value;  
+        if(count>0){
+            if(count >= this._lineIndex){
+                if(lineAbove[this._lineIndex]){
+                    if(select){
+                        var newSel = nl.slice( nl.indexOf(lineAbove[this._lineIndex].node) , nl.indexOf(s)).concat(a).place(s);
+                        newSel.forEach(function(node, index, arr){ dojo.addClass(node,'trans'); });
+                        v.start = lineAbove[this._lineIndex].index; 
+                    }else{
+                        v.start = lineAbove[this._lineIndex].index;
+                        v.end = lineAbove[this._lineIndex].index;
+                        dojo.place('selection', lineAbove[this._lineIndex].node, 'before');
+                    }
+                }else{
+                    if(select){
+                        var newSel = nl.slice( nl.indexOf(lineAbove[this._lineIndex-1].node)+1 , nl.indexOf(s)).concat(a).place(s);
+                        newSel.forEach(function(node, index, arr){ dojo.addClass(node,'trans'); });
+                        v.start = lineAbove[this._lineIndex-1].index+1;
+                    }else{
+                        v.start = lineAbove[this._lineIndex-1].index+1;
+                        v.end = lineAbove[this._lineIndex-1].index+1;
+                        dojo.place('selection', lineAbove[this._lineIndex-1].node, 'after');
+                    }
+                }
+            }else if(count < this._lineIndex){
+                if(select){
+                    var newSel = nl.slice( nl.indexOf(lineAbove[count-1].node)+1, nl.indexOf(s)).concat(a).place(s);
+                    newSel.forEach(function(node, index, arr){ dojo.addClass(node,'trans'); });
+                    v.start = lineAbove[0].index+count;
+                }else{
+                    v.start = lineAbove[0].index+count;
+                    v.end = lineAbove[0].index+count;
+                    dojo.place('selection', lineAbove[count-1].node, 'after');
+                }
+            }
+        }else{
+            if(select){
+                var newSel = nl.slice( nl.indexOf(line[0].node), nl.indexOf(s)).concat(a).place(s);
+                newSel.forEach(function(node, index, arr){ dojo.addClass(node,'trans'); });
+                v.start = line[0].index;
+                this.moveCaretLeft(true);
+            }else{
+                if(line[0].node.previousSibling){
+                    v.start = line[0].index-1;
+                    v.end = line[0].index-1;
+                    dojo.place('selection', line[0].node.previousSibling, 'before');   
+                }
+            }
+        }
+        this._scrollWith();
+    };
+    
+    proto.moveCaretDownRender = function(lineBelow, line, select, nl){
+        var count = this._count(lineBelow);
+        var s = dojo.byId('selection');
+        var v = this.value;
+        if(this._count(lineBelow)>0){
+            if(count >= this._lineIndex){
+                if(lineBelow[this._lineIndex]){
+                    if(select){
+                        var newSel = nl.slice(nl.indexOf(s)+1 , nl.indexOf(lineBelow[this._lineIndex].node)).place(s);
+                        newSel.forEach(function(node){ dojo.addClass(node,'trans'); });
+                        v.end = (lineBelow[this._lineIndex].index-1>v.string.length) ? v.string.length : lineBelow[this._lineIndex].index-1;
+                    }else{
+                        v.start = (lineBelow[this._lineIndex].index-1>v.string.length) ? v.string.length : lineBelow[this._lineIndex].index-1;
+                        v.end = (lineBelow[this._lineIndex].index-1>v.string.length) ? v.string.length : lineBelow[this._lineIndex].index-1;
+                        dojo.place('selection', lineBelow[this._lineIndex].node, 'before');
+                    }
+                }else{
+                    if(select){
+                        var newSel = nl.slice(nl.indexOf(s)+1 , nl.indexOf(lineBelow[this._lineIndex-1].node)+1).place(s);
+                        newSel.forEach(function(node, index, arr){ dojo.addClass(node,'trans'); });
+                        v.end = (lineBelow[this._lineIndex-1].index+1>v.string.length) ? v.string.length : lineBelow[this._lineIndex-1].index+1;
+                    }else{
+                        v.start = (lineBelow[this._lineIndex-1].index+1>v.string.length) ? v.string.length : lineBelow[this._lineIndex-1].index+1;
+                        v.end = (lineBelow[this._lineIndex-1].index+1>v.string.length) ? v.string.length : lineBelow[this._lineIndex-1].index+1;
+                        dojo.place('selection', lineBelow[this._lineIndex-1].node, 'after');
+                    }
+                }
+            }else if(count < this._lineIndex){
+                if(select){
+                    var newSel = nl.slice(nl.indexOf(s)+1 , nl.indexOf(lineBelow[count-1].node)+1).place(s);
+                    newSel.forEach(function(node, index, arr){ dojo.addClass(node,'trans'); });
+                    v.end = (lineBelow[0].index+count-1>v.string.length) ? v.string.length : lineBelow[0].index+count-1;
+                }else{
+                    v.start = (lineBelow[0].index+count-1>v.string.length) ? v.string.length : lineBelow[0].index+count-1;
+                    v.end = (lineBelow[0].index+count-1>v.string.length) ? v.string.length : lineBelow[0].index+count-1;
+                    dojo.place('selection', lineBelow[count-1].node, 'after');
+                }
+            }
+        }else{
+            if(select){
+                line = {};
+                var anchor = s.nextSibling;
+                i=0;
+                if(anchor && anchor.tagName != 'BR'){
+                    var nl = dojo.query('#thisFrame span, #thisFrame br').forEach(dojo.hitch(this, function(node, index, arr){
+                        if(node.offsetTop == anchor.offsetTop){
+                            line[this._count(line)] = {
+                                node: node,
+                                index: i
+                            };
+                        }
+                        i++;
+                    }));
+                    var newSel = nl.slice(nl.indexOf(s)+1 , nl.indexOf(line[this._count(line)-1].node)+1).place(s);
+                    newSel.forEach(function(node, index, arr){ dojo.addClass(node,'trans'); });
+                    v.end = line[this._count(line)-1].index;
+                }else{
+                    this.moveCaretRight(true);
+                }
+            }else{
+                if(line[this._count(line)-1].node.nextSibling){
+                    v.start = line[this._count(line)-1].index+1;
+                    v.end = line[this._count(line)-1].index+1;
+                    dojo.place('selection', line[this._count(line)-1].node.nextSibling, 'after');   
+                }
+            }
+        }
+        this._scrollWith();
+    };
+    
     proto.moveLeftRender = function(select){
         var s = dojo.byId('selection');
         if(!select && s.previousSibling){
             dojo.place(s.previousSibling, s, 'after');
         }else if(s.previousSibling){
+            dojo.addClass(s.previousSibling, 'trans'); 
             dojo.place(s.previousSibling, s, 'first');
         }
         this._scrollWith();
@@ -498,7 +491,8 @@ define([
         var s = dojo.byId('selection');
         if(!select && s.nextSibling){
             dojo.place(s.nextSibling, s, 'before');
-        }else if(s.nextSibling){
+        }else if(s.nextSibling){ 
+            dojo.addClass(s.nextSibling, 'trans');
             dojo.place(s.nextSibling, s, 'last');
         }
         this._scrollWith();
