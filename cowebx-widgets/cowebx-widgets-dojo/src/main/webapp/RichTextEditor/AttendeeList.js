@@ -66,6 +66,8 @@ define([
             var b = dojo.create('input',{'class':'attendeeText',value:name,type:'text'},a);
             var color = dojo.create('div',{id:'localColor','class':'attendeeColor'},a,'first');
             dojo.style(color,'background',this.attendees[site]['color']);
+			dojo.style('selection','borderLeft','2px solid '+this.attendees[site]['color']);
+			this._textarea._selColor = this.attendees[site]['color'];
             dojo.addClass(a, 'localUser');
             dojo.create('img',{src:'../lib/cowebx/dojo/RichTextEditor/images/pencil.png','class':'userEditIcon'},b,'after');
             dojo.connect(b, 'onclick', this, function(e){ e.target.value = ''; });
@@ -84,7 +86,6 @@ define([
 			dojo.place(a, this.domNode, 'first');
 			
 			//color palette
-			console.log(color);
 			dojo.connect(color, 'onclick', this, '_onColorClick');
 			var colorPaletteNode = dojo.create('div',{style:'width:100%;'},a,'after');
 			this._colorPalette = new ColorPalette({'class':'nameColorPalette'},colorPaletteNode);
