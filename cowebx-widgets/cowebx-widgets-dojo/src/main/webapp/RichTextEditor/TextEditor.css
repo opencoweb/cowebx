@@ -5,12 +5,11 @@ body{
 
 .selection{
     background:#99CCFF;
-    border-left:1px solid black;
 }
 
 .remoteSelection{
     background:#99CCFF;
-    border-left:3px solid;
+    border-left:2px solid;
     display: inline;
 }
 
@@ -356,18 +355,11 @@ body{
     outline:0px solid transparent;
 }
 
-
-#saveButton{
-    width:190px;
-    font:14px arial;
-    height:22px;
-    padding-top:3px;
-    margin-left:auto;
-    margin-right:auto;
-    border:1px solid #CACACA;
-    margin-top:14px;
-    color:black;
-    background:#CACACA;
-    text-align:center;
-    cursor:hand;cursor:pointer;
+.nameColorPalette{
+	position:fixed;
+	display:none;
+	right:220px;
+	top:2px;
+	z-index:1000;
 }
+

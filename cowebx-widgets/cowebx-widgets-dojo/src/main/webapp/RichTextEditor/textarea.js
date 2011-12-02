@@ -37,6 +37,7 @@ define([
         this._pastForeColors    =   [];
         this._pastHiliteColors  =   [];
         this._lock              =   false;
+		this._selColor			= 	'black';
         this.cancelKeys         =   {
             27 : 'esc',
             91 : 'meta',
@@ -48,7 +49,7 @@ define([
     var proto = textarea.prototype;
 
     // Rips through all of this.value and blasts proper html equiv into dom
-    proto.render = function(slider) {
+    proto.render = function(noRenderRemote) {
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
         var a = []; var b = []; var c = [];
@@ -58,27 +59,11 @@ define([
         var b = this.value.string.slice(this.value.start,this.value.end).join("");
         var c = this.value.string.slice(this.value.end,this.value.string.length).join("");
 
-        dojo.byId('thisFrame').innerHTML = a+'<span id="selection" class="selection">'+b+'</span>'+c;
+        dojo.byId('thisFrame').innerHTML = a+'<span id="selection" style="border-left:2px solid '+this._selColor+';" class="selection">'+b+'</span>'+c;
         
         //Place remote carets in approriate positions
-        var nl = dojo.query("#thisDiv span,#thisDiv br");
-        var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length));
-        var rc;
-        // for(var x in this.attendees){
-        //             if(this.attendees[x]['start']<this.value.start){
-        //                 rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
-        //             }else if(this.attendees[x]['start']>this.value.end){
-        //                 rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
-        //             }else if(this.attendees[x]['start']==this.value.start){
-        //                 rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
-        //             }else if(this.attendees[x]['start']==this.value.end){
-        //                 rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
-        //             }else if(this.attendees[x]['start']<this.value.end && this.attendees[x]['start']>this.value.start){
-        //                 rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
-        //             }
-        //             //selection
-        //             //nlFixed.slice(this.attendees[x]['start'],this.attendees[x]['end']).forEach(dojo.hitch(this, function(node, index, arr){ dojo.place(node, rc, 'last'); })); 
-        //         }
+		if(!noRenderRemote)
+        	this._renderRemoteCarets();
         
         //Render other stuff
         
@@ -99,20 +84,14 @@ define([
         v.end = v.start;
         
         //Fix all remote carets
-        // var pos = start;
-        // for(var j in this.attendees){
-        //     var s = this.attendees[j].start;
-        //     var e = this.attendees[j].end;
-        //     if(pos < this.attendees[j].end) {
-        //         if(pos >= this.attendees[j].start && this.attendees[j].end != this.attendees[j].start)
-        //             ++s;
-        //         ++e;
-        //     }
-        //     if(pos < this.attendees[j].start)
-        //         ++s;
-        //     this.attendees[j].start = s;
-        //     this.attendees[j].end = e;
-        // }
+        var pos = start;
+        for(var j in this.attendees){
+            var s = this.attendees[j].start;
+            if(pos < this.attendees[j].start)
+                ++s;
+            this.attendees[j].start = s;
+            this.attendees[j].end = s;
+        }
         
         //2. render
         this.insertRender(c);
@@ -139,13 +118,11 @@ define([
                 }
                 
                 //Fix all remote carets
-                // var pos = start;
-                // for(var j in this.attendees){
-                //     if(pos < this.attendees[j].start)
-                //         --this.attendees[j].start;
-                //     if(pos < this.attendees[j].end)
-                //         --this.attendees[j].end;
-                // } 
+                var pos = start;
+                for(var j in this.attendees){
+                    if(pos <= this.attendees[j].start)
+                        --this.attendees[j].start;
+                } 
                 
                 //2. custom render
                 this.deleteRender();
@@ -155,7 +132,7 @@ define([
     };
 
     // Clears current selection, sends caret to DIR ('left' or 'right') & custom render
-    proto.clearSelection = function(dir) {
+    proto.clearSelection = function(dir, noRenderRemote) {
         var v = this.value;
         var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
         var end = (this.value.end>this.value.start) ? this.value.end : this.value.start;
@@ -167,7 +144,7 @@ define([
                 v.start = end;
                 v.end = end;
             }
-            this.render();
+            this.render(noRenderRemote);
         }
     };
     
@@ -317,6 +294,7 @@ define([
 // Custom render functions
 
     proto.insertRender = function(c){
+	    this._destroyRemoteCarets();
         var ch;
         if((c.search('">') != -1)||(c.search("nbsp") != -1)){
             ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
@@ -325,32 +303,37 @@ define([
         }else if(c.search('br') != -1){
             dojo.create('br',{},dojo.byId('selection'),'before');
         }
-        
+		this._renderRemoteCarets();
         this._scrollWith();
     };
     
     proto.deleteRender = function(){
+		this._destroyRemoteCarets();
         dojo.destroy(dojo.byId('selection').previousSibling);
-        
+		this._renderRemoteCarets();
         this._scrollWith();
     };
     
     proto.destroySelRender = function(){
+		this._destroyRemoteCarets();
         dojo.byId('selection').innerHTML = '';
-        
+        this._renderRemoteCarets();
         this._scrollWith();
     };
     
     proto.selectAllRender = function(){
+		this._destroyRemoteCarets();
         dojo.destroy('selection');
         var f = dojo.byId('thisFrame');
         var temp = f.innerHTML+'';
         f.innerHTML = '';
-        dojo.create('span',{id:'selection',innerHTML:temp,'class':'selection'},f,'last');
+        dojo.create('span',{style:'border-left:2px solid '+this._selColor,id:'selection',innerHTML:temp,'class':'selection'},f,'last');
+		this._renderRemoteCarets();
         this._scrollWith();
     };
     
     proto.moveCaretUpRender = function(lineAbove, line, select, nl){
+		this._destroyRemoteCarets();
         var count = this._count(lineAbove);
         var a = dojo.query('#selection span, #selection br');
         var s = dojo.byId('selection');
@@ -403,10 +386,12 @@ define([
                 }
             }
         }
+		this._renderRemoteCarets();
         this._scrollWith();
     };
     
     proto.moveCaretDownRender = function(lineBelow, line, select, nl){
+		this._destroyRemoteCarets();
         var count = this._count(lineBelow);
         var s = dojo.byId('selection');
         var v = this.value;
@@ -473,10 +458,12 @@ define([
                 }
             }
         }
+		this._renderRemoteCarets();
         this._scrollWith();
     };
     
     proto.moveLeftRender = function(select){
+		this._destroyRemoteCarets();
         var s = dojo.byId('selection');
         if(!select && s.previousSibling){
             dojo.place(s.previousSibling, s, 'after');
@@ -484,10 +471,12 @@ define([
             dojo.addClass(s.previousSibling, 'trans'); 
             dojo.place(s.previousSibling, s, 'first');
         }
+		this._renderRemoteCarets();
         this._scrollWith();
     };
     
     proto.moveRightRender = function(select){
+		this._destroyRemoteCarets();
         var s = dojo.byId('selection');
         if(!select && s.nextSibling){
             dojo.place(s.nextSibling, s, 'before');
@@ -495,22 +484,52 @@ define([
             dojo.addClass(s.nextSibling, 'trans');
             dojo.place(s.nextSibling, s, 'last');
         }
+		this._renderRemoteCarets();
         this._scrollWith();
     };
     
     proto.onClickRender = function(endNode){
+		this._destroyRemoteCarets();
         dojo.destroy('selection');
-        dojo.create('span',{id:'selection','class':'selection'},endNode,'after');
+        dojo.create('span',{style:'border-left:2px solid '+this._selColor,id:'selection','class':'selection'},endNode,'after');
+		this._renderRemoteCarets();
     };
     
     proto.onDragRender = function(startNode, nl){
+		this._destroyRemoteCarets();
         dojo.destroy('selection');
-        var a = dojo.create('span',{id:'selection','class':'selection'},startNode,'before');
+        var a = dojo.create('span',{style:'border-left:2px solid '+this._selColor,id:'selection','class':'selection'},startNode,'before');
         nl.place(dojo.byId('selection'));
+		this._renderRemoteCarets();
     };
     
 // Utility functions
     
+	proto._destroyRemoteCarets = function(){
+		var nl = dojo.query('.remoteSelection').forEach(function(node){
+			dojo.destroy(node);
+		});
+	};
+
+	proto._renderRemoteCarets = function(){
+		var nl = dojo.query("#thisDiv span,#thisDiv br");
+        var nlFixed = nl.slice(0, nl.indexOf(dojo.byId('selection'))).concat(nl.slice(nl.indexOf(dojo.byId('selection'))+1,nl.length));
+        var rc;
+        for(var x in this.attendees){
+	        if(this.attendees[x]['start']<this.value.start){
+	            rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+	        }else if(this.attendees[x]['start']>this.value.end){
+	            rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
+	        }else if(this.attendees[x]['start']==this.value.start){
+	            rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']-1],'after');
+	        }else if(this.attendees[x]['start']==this.value.end){
+	            rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+	        }else if(this.attendees[x]['start']<this.value.end && this.attendees[x]['start']>this.value.start){
+	            rc = dojo.create('div',{id:'caret'+x,'class':'remoteSelection',style:'border-color:'+this.attendees[x]['color']},nlFixed[this.attendees[x]['start']],'before');
+	        }   
+		}
+	};
+
     proto._moveToEmptyLine = function(clickHt) {
         // var diff = 100000;
         //         var diff2 = 100000;
@@ -1180,7 +1199,7 @@ define([
             'id':'shareButton',
             'displayButton':false});
         //5. Caret
-        dojo.create('span',{id:'selection','class':'selection'},dojo.byId('thisFrame'),'last');         
+        dojo.create('span',{style:'border-left:2px solid black',id:'selection','class':'selection'},dojo.byId('thisFrame'),'last');         
         //6. Build infoDiv
         var template = '<div id="infoDiv">'
 			+'<div class="collabTitle">Collaborate</div>'
@@ -1268,10 +1287,10 @@ define([
         
         //Color pallettes
         var paletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
-        this._palette = new ColorPalette({style:'position:fixed;display:none;left:255px;z-index:1000;'},paletteNode);
+        this._palette = new ColorPalette({style:'position:fixed;display:none;left:225px;z-index:1000;'},paletteNode);
         dojo.connect(this._palette, 'onChange', this, '_onForeColorChange');
         var bgPaletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
-        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;left:295px;z-index:1000;'},bgPaletteNode);
+        this._bgPalette = new ColorPalette({style:'position:fixed;display:none;left:260px;z-index:1000;'},bgPaletteNode);
         dojo.connect(this._bgPalette, 'onChange', this, '_onHiliteColorChange');
     };
     

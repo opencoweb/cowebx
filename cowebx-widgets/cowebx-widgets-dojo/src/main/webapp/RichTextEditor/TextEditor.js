@@ -137,6 +137,7 @@ define([
     };
     
     proto.runOps = function(){
+		this._textarea._destroyRemoteCarets();
         this.value = this._textarea.value;
         this._updatePOR();
         for(var i=0; i<this.q.length; i++){
@@ -171,6 +172,7 @@ define([
         }
         this._textarea.value = this.value;
         this._moveCaretToPOR();
+		this._textarea._renderRemoteCarets();
     };
     
     proto.onRemoteChange = function(obj){
@@ -191,20 +193,21 @@ define([
     };
     
     proto.onRemoteCaretMove = function(obj){
-        console.log('move');
         this._textarea.attendees[obj.value.site] = {
             start: obj.value.start,
             end: obj.value.end,
             color: this._attendeeList.attendees[obj.value.site]['color']
         };
-        //this._textarea.render();
+        this._textarea._destroyRemoteCarets();
+		this._textarea._renderRemoteCarets();
     };
         
     proto.insertChar = function(c, pos, filter) {
         var t = this._textarea;
         var ch;
+		//Clear selection if inserting in current sel
         if(pos>t.value.start && pos<t.value.end){
-            t.clearSelection();
+            t.clearSelection(null, true);
             this._updatePOR();
         }
         var sel = Math.abs(t.value.start-t.value.end);
@@ -212,8 +215,20 @@ define([
         start = por.start,
         end = por.end;
         var f = (filter == null || undefined) ? [] : filter;
+
+		//update string in memory
         t.value.string = t.value.string.slice(0, pos).concat([c]).concat(t.value.string.slice(pos));
         
+		//Fix all remote carets
+        for(var j in t.attendees){
+            var s = t.attendees[j].start;
+            if(pos < t.attendees[j].start)
+                ++s;
+            t.attendees[j].start = s;
+            t.attendees[j].end = s;
+        }
+
+		//custom DOM render
         if(pos<t.value.start || (pos==t.value.start && sel>0)){
             if((c.search('">') != -1)||(c.search("nbsp") != -1)){
                 ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
@@ -230,6 +245,7 @@ define([
             }
         }
         
+		//Update start / end in mem
         if(pos < por.end) {
             if(pos >= por.start && por.end != por.start)
                 ++start;
@@ -244,14 +260,24 @@ define([
     };
   
     proto.deleteChar = function(pos) {
+		//clear selection if pos is within current sel
         var t = this._textarea;
         if(pos>=t.value.start && pos<=t.value.end){
-            t.clearSelection();
+            t.clearSelection(null, true);
             this._updatePOR();
         }
         var sel = Math.abs(this._por.start-this._por.end);
+
+		//adjust string in memory
         t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
         
+		//Fix all remote carets
+        for(var j in t.attendees){
+            if(pos < t.attendees[j].start)
+                --t.attendees[j].start;
+        }
+		
+		//custom render
         if(pos<t.value.start){
             if(dojo.byId('thisFrame').childNodes[pos])
                 dojo.destroy(dojo.byId('thisFrame').childNodes[pos]);
@@ -259,7 +285,8 @@ define([
             if(dojo.byId('thisFrame').childNodes[pos+1-sel])
                 dojo.destroy(dojo.byId('thisFrame').childNodes[pos+1-sel]);
         }
-
+		
+		//adjust start / end in memory
         if(pos < this._por.start)
             --this._por.start;
         if(pos < this._por.end)
@@ -271,7 +298,7 @@ define([
     proto.updateChar = function(c, pos, filter) {
         var t = this._textarea;
         if(pos>=t.value.start && pos<=t.value.end){
-            t.clearSelection();
+            t.clearSelection(null, true);
             this._updatePOR();
         }
         var sel = Math.abs(this._por.start-this._por.end);
@@ -331,12 +358,19 @@ define([
     };
     
     proto.onStateRequest = function(token){
+		var carets = dojo.clone(this._textarea.attendees);
+		carets[this._attendeeList.site] = {
+            start: this._textarea.value.start,
+            end: this._textarea.value.end,
+            color: this._attendeeList.attendees[this._attendeeList.site]['color']
+        };
         var state = {
             value: this._textarea.value,
             oldSnapshot: this.oldSnapshot,
             history : this._textarea.slider.history,
             title: this._textarea.title,
-            attendees: this._attendeeList.attendees
+            attendees: this._attendeeList.attendees,
+			carets: carets
         };
         this.collab.sendStateResponse(state,token);
     };
@@ -360,6 +394,9 @@ define([
             };
             this._attendeeList.onRemoteUserJoin(o);
         }
+		this._textarea.attendees = obj.carets;
+		console.log(obj.carets);
+		this._textarea._renderRemoteCarets();
     };
     
     proto._moveCaretToPOR = function() {
