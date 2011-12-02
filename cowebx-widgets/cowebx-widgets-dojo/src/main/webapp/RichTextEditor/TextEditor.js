@@ -139,7 +139,7 @@ define([
     proto.runOps = function(){
 		this._textarea._destroyRemoteCarets();
         this.value = this._textarea.value;
-        this._updatePOR();
+        //this._updatePOR();
         for(var i=0; i<this.q.length; i++){
             if(this.q[i].type == 'insert'){
                 this.insertChar(this.q[i].value['char'], this.q[i].position, this.q[i].value['filter']);
@@ -171,7 +171,7 @@ define([
                 }
         }
         this._textarea.value = this.value;
-        this._moveCaretToPOR();
+        //this._moveCaretToPOR();
 		this._textarea._renderRemoteCarets();
     };
     
@@ -203,6 +203,7 @@ define([
     };
         
     proto.insertChar = function(c, pos, filter) {
+		this._updatePOR();
         var t = this._textarea;
         var ch;
 		//Clear selection if inserting in current sel
@@ -257,9 +258,11 @@ define([
         por.end = end;
         this._prevPor.start = this._por.start;
         this._prevPor.end = this._por.end;
+		this._moveCaretToPOR();
     };
   
     proto.deleteChar = function(pos) {
+		this._updatePOR();
 		//clear selection if pos is within current sel
         var t = this._textarea;
         if(pos>=t.value.start && pos<=t.value.end){
@@ -293,9 +296,11 @@ define([
             --this._por.end;
         this._prevPor.start = this._por.start;
         this._prevPor.end = this._por.end;
+		this._moveCaretToPOR();
     };
         
     proto.updateChar = function(c, pos, filter) {
+		this._updatePOR();
         var t = this._textarea;
         if(pos>=t.value.start && pos<=t.value.end){
             t.clearSelection(null, true);
@@ -326,6 +331,7 @@ define([
         
         this._prevPor.start = this._por.start;
         this._prevPor.end = this._por.end;
+		this._moveCaretToPOR();
     };
 
     proto.insertString = function(string, pos) {
@@ -406,6 +412,7 @@ define([
     };
 
     proto._updatePOR = function() {
+		
         this._por.start = this._textarea.value.start;
         this._por.end = this._textarea.value.end;
         
@@ -413,6 +420,7 @@ define([
             this.min = this._por.start;
         if(this._por.end > this.max)
             this.max = this._por.end;
+		
     };
     
     proto._forcePOR = function() {
