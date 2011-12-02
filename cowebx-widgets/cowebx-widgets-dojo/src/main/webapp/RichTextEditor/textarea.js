@@ -623,10 +623,12 @@ define([
                 this._delete();
             }
             
+			var prevScrollTop = dojo.byId('divHolder').scrollTop;
             setTimeout(dojo.hitch(this, function(){
                 dojo.disconnect(this._c);
                 dojo.destroy(this._hidden);
                 dojo.byId('thisDiv').focus();
+				dojo.byId('divHolder').scrollTop = prevScrollTop;
             }), 100);
             
         });  
