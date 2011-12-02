@@ -1145,15 +1145,7 @@ define([
         dojo.connect(dojo.byId('thisDiv'), 'onkeypress', this, '_onKeyPress');
         dojo.connect(dojo.byId('thisDiv'), 'onkeydown', this, '_listenForKeyCombo');   
         dojo.connect(dojo.byId('url'),'onclick',this,function(e){ this._selectElementContents(e.target) });   
-        dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
-            dojo.publish("shareClick", [{}]);
-        });
-        dojo.subscribe("hideAll", dojo.hitch(this, function(message){ this._hidePalette(); }));
-        document.onkeydown = function(e){
-            if (e.which == 8)
-    			return false;
-        };
-         
+        dojo.subscribe("hideAll", dojo.hitch(this, function(message){ this._hidePalette(); }));        
         this.collab = coweb.initCollab({id : this.id});
         this.collab.subscribeSync('editorStyle', this, '_onRemoteStyle');
         this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
@@ -1191,10 +1183,9 @@ define([
         dojo.create('span',{id:'selection','class':'selection'},dojo.byId('thisFrame'),'last');         
         //6. Build infoDiv
         var template = '<div id="infoDiv">'
-			+'<div class="collabTitle">Share or Save</div>'
+			+'<div class="collabTitle">Collaborate</div>'
 			+'<div id="url"></div>'
-			+'<div class="collabSubTitle">Copy url to friends to collaborate</div>'
-			+'<div id="saveButton">save document</div></div>';
+			+'<div class="collabSubTitle">Copy url to friends to collaborate</div>';
 	    dojo.byId('attendeeListContainer').innerHTML =  dojo.byId('attendeeListContainer').innerHTML+template;   
 	    dojo.byId('url').innerHTML = window.location;
     };
@@ -1304,8 +1295,6 @@ define([
             this.collab.sendSync('editorTitle', {'title':e.target.value}, null);   
         });
         dojo.connect(title, 'onkeypress', this, function(e){
-            if(e.keyCode == 8)
-                dojo.attr(e.target, 'value', '');
             if(e.keyCode == 13)
                 e.target.blur();
         });

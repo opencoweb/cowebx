@@ -342,15 +342,13 @@ body{
 
 #url{
     width:180px;
-    overflow:hidden;
     font:14px arial;
-    height:15px;
-    white-space: nowrap;
+    min-height:15px;
     margin-left:auto;
     margin-right:auto;
     border:1px solid #CACACA;
     outline:0px solid transparent;
-    margin-top:5px;
+    margin-top:18px;
     padding:5px;
 }
 

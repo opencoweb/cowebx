@@ -72,10 +72,10 @@ define([
                     this.collab.sendSync('attendeeListName', {'name':e.target.value,'site':site}, null);
                 }
             });
-            dojo.connect(b, 'onkeypress', this, function(e){
-                if(e.keyCode == 8)
-                    e.target.value = '';
-            });
+	        dojo.connect(b, 'onkeypress', this, function(e){
+	            if(e.keyCode == 13)
+	                e.target.blur();
+	        });
         }else{
             dojo.attr(a, 'innerHTML', name);
             var color = dojo.create('div',{'class':'attendeeColor'},a,'first');
