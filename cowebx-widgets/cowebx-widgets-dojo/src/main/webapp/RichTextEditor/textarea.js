@@ -666,10 +666,12 @@ define([
                 this._pause(100);
                 this._delete();
             }
+			var prevScrollTop = dojo.byId('divHolder').scrollTop;
             setTimeout(dojo.hitch(this, function(){
                 dojo.disconnect(this._c);
                 dojo.destroy(this._hidden);
                 dojo.byId('thisDiv').focus();
+				dojo.byId('divHolder').scrollTop = prevScrollTop;
             }), 100);
         });
         
@@ -1296,7 +1298,6 @@ define([
     
     proto._buildFooter = function(){
         var footerNode = dojo.create('div',{'class':'footer gradient'},dojo.byId('tContainer'),'last');
-        var div = dojo.create('div',{'class':'footerDiv',id:'footerDiv'},footerNode,'first');
         
         //1. Title box & image
         var title = dojo.create('input',{'class':'title',value:'Untitled Document',type:'text'},footerNode,'first');
