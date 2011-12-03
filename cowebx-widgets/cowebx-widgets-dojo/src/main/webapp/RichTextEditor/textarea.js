@@ -178,7 +178,7 @@ define([
     // Move caret up one line & custom render
     proto.moveCaretUp = function(select) {
         //1. Populate obj rep'ing current line and lineAbove
-        this._lineHeight = 18;
+        this._lineHeight = 17;
         var i=0;
         var top = Math.round(dojo.byId('selection').offsetTop-this._lineHeight);
         var lineAbove = {};
@@ -216,7 +216,7 @@ define([
     // Move caret down one line & custom render
     proto.moveCaretDown = function(select) {
         //1. populate obj rep'ing curr line and lineBelow
-        this._lineHeight = 18;
+        this._lineHeight = 17;
         var i=0;
         var top = Math.round(dojo.byId('selection').offsetTop+dojo.byId('selection').offsetHeight);
         var lineBelow = {};
