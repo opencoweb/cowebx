@@ -24,7 +24,7 @@ define([
         this._util          =   new ld({});
         this.oldSnapshot    =   this.snapshot();
         this.newSnapshot    =   '';
-        this.interval       =   10;             //Broadcast interval in ms
+        this.interval       =   100;             //Broadcast interval in ms
         this.t              =   null;           //Handle for timeouts
         this.q              =   [];             //Queue for incoming ops when paused
         this.min            =   0;              //Min caret pos in iteration loop
@@ -401,7 +401,6 @@ define([
             this._attendeeList.onRemoteUserJoin(o);
         }
 		this._textarea.attendees = obj.carets;
-		console.log(obj.carets);
 		this._textarea._renderRemoteCarets();
     };
     

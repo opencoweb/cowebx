@@ -141,7 +141,8 @@ define([
 	};
 	
 	proto._hidePalette = function(){
-		dojo.style(this._colorPalette.domNode, 'display', 'none');
+		if(this._colorPalette)
+			dojo.style(this._colorPalette.domNode, 'display', 'none');
 		this._forecolor = false;
 	};
     

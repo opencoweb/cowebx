@@ -349,3 +349,14 @@ body{
 	z-index:1000;
 }
 
+.spinnerContainer{
+	position:absolute;
+	top:40%;
+	width:100%;
+	text-align:center;
+}
+
+.spinner{
+	
+}
+

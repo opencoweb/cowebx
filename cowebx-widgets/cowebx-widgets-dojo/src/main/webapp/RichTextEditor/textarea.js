@@ -31,7 +31,7 @@ define([
         this.value              =   {start:0,end:0,string:[]};
         this.attendees          =   {};
         this.title              =   'Untitled Document';
-        this.newSpace           =   '<span>&nbsp; </span>';
+        this.newSpace           =   '<span style="">&nbsp; </span>';
         this.prevValue          =   [];
         this.filters            =   [];
         this._pastForeColors    =   [];
@@ -43,7 +43,8 @@ define([
             91 : 'meta',
             18 : 'option',
             17 : 'control',
-            16 : 'shift'
+            16 : 'shift',
+			
         };
     };
     var proto = textarea.prototype;
@@ -592,24 +593,15 @@ define([
         this._c = dojo.connect(this._hidden, 'onkeydown', this,function(e){
             //Paste
             if(e.which == 86){
+				var spinner = this._createSpinner();
                 this.t = setTimeout(dojo.hitch(this, function(){
-                    var text = this._hidden.value;
-                    for(var i=0; i<text.length-1; i++){
-                        if(text[i]==' '){
-                            this.insert(this.newSpace, true);
-                        }else if(text[i]=='^'){
-                            this.insert('<br>',true);
-                        }else{
-                            this.insert('<span style="">'+text[i]+'</span>',true);
-                        }
-                    }
-                    if(text[text.length-1]==' '){
-                        this.insert(this.newSpace);
-                    }else if(text[text.length-1]=='^'){
-                        this.insert('<br>');
-                    }else{
-                        this.insert('<span style="">'+text[text.length-1]+'</span>');
-                    }
+					var text = this._hidden.value;
+					var temp = this._fixPaste(text);
+					var fixedText = temp.replace(/`/g,'');
+					var fixedArray = temp.split("`");
+					fixedArray = fixedArray.slice(0,fixedArray.length-1);
+					this._paste(fixedText, fixedArray);
+					dojo.destroy(spinner);
                 }), 100);
             //selectAll
             }else if(e.which == 65){
@@ -638,24 +630,15 @@ define([
         this._c = dojo.connect(this._hidden, 'onkeypress', this,function(e){
             //Paste
             if(e.which == 118){
+				var spinner = this._createSpinner();
                 this.t = setTimeout(dojo.hitch(this, function(){
                     var text = this._hidden.value;
-                    for(var i=0; i<text.length-1; i++){
-                        if(text[i]==' '){
-                            this.insert(this.newSpace, true);
-                        }else if(text[i]=='^'){
-                            this.insert('<br>',true);
-                        }else{
-                            this.insert('<span style="">'+text[i]+'</span>',true);
-                        }
-                    }
-                    if(text[text.length-1]==' '){
-                        this.insert(this.newSpace);
-                    }else if(text[text.length-1]=='^'){
-                        this.insert('<br>');
-                    }else{
-                        this.insert('<span style="">'+text[text.length-1]+'</span>');
-                    }
+					var temp = this._fixPaste(text);
+					var fixedText = temp.replace(/`/g,'');
+					var fixedArray = temp.split("`");
+					fixedArray = fixedArray.slice(0,fixedArray.length-1);
+					this._paste(fixedText, fixedArray);
+					dojo.destroy(spinner);
                 }), 100);
             //selectAll
             }else if((e.which == 97) || (e.which == 65)){
@@ -678,6 +661,41 @@ define([
         });
         
     };
+
+	proto._paste = function(text, arr) {
+		var start = (this.value.start<this.value.end) ? this.value.start : this.value.end;
+        var end = (this.value.end>=this.value.start) ? this.value.end : this.value.start;
+        var v = this.value;
+        if(start != end)
+            this.destroySelection();
+        
+        //1. Change string in memory
+		for(var i=arr.length-1; i>=0; i--){
+			v.string = v.string.slice(0,start).concat([arr[i]]).concat(v.string.slice(start,v.string.length));
+	        v.start = v.start+1;
+	        v.end = v.start;
+		}
+        
+        //Fix all remote carets
+        var pos = start;
+        for(var j in this.attendees){
+            var s = this.attendees[j].start;
+            if(pos < this.attendees[j].start)
+                s=s+arr.length;
+            this.attendees[j].start = s;
+            this.attendees[j].end = s;
+        }
+        
+        //2. render
+		this.render();
+        this._lock = false;
+	};
+	
+	proto._createSpinner = function() {
+		var container = dojo.create('div',{'class':'spinnerContainer'},'tContainer','last');
+		var spinner = dojo.create('img',{src:'../lib/cowebx/dojo/RichTextEditor/images/spinner.gif','class':'spinner'},container);
+		return container;
+	};
     
     proto._loadTemplate = function(url) {
        var e = document.createElement("link");
@@ -690,6 +708,14 @@ define([
     
     proto._replaceBR = function(string){
         var s = string.replace(new RegExp("<br>", 'g'),'^');
+        return s;
+    };
+
+	proto._fixPaste = function(string){
+		var s = string.replace(/ /g,"_");
+		s = s.replace(/[^\^_]/g,'<span style="">$&</span>`');
+		s = s.replace(/\^/g,"<br>`");
+		s = s.replace(/_/g,this.newSpace+"`");
         return s;
     };
     
@@ -846,7 +872,9 @@ define([
             this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
         }
         this._lastOp = 'bold';
+		var prevScrollTop = dojo.byId('divHolder').scrollTop;
         dojo.byId('thisDiv').focus();
+		dojo.byId('divHolder').scrollTop = prevScrollTop;
         this.render();
     };
     
@@ -891,7 +919,9 @@ define([
             this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
         }
         this._lastOp = 'italic';
+		var prevScrollTop = dojo.byId('divHolder').scrollTop;
         dojo.byId('thisDiv').focus();
+		dojo.byId('divHolder').scrollTop = prevScrollTop;
         this.render();
     };
     
@@ -936,7 +966,9 @@ define([
             this.collab.sendSync('editorStyle', {'string':this.value.string}, null);
         }
         this._lastOp = 'underline';
+		var prevScrollTop = dojo.byId('divHolder').scrollTop;
         dojo.byId('thisDiv').focus();
+		dojo.byId('divHolder').scrollTop = prevScrollTop;
         this.render();
     };
     
@@ -984,7 +1016,9 @@ define([
         }
 
         this._pastForeColors.push(color);
+		var prevScrollTop = dojo.byId('divHolder').scrollTop;
         dojo.byId('thisDiv').focus();
+		dojo.byId('divHolder').scrollTop = prevScrollTop;
         this._hidePalette();
         this.render();
     };
@@ -1033,7 +1067,9 @@ define([
         }
 
         this._pastHiliteColors.push(color);
+		var prevScrollTop = dojo.byId('divHolder').scrollTop;
         dojo.byId('thisDiv').focus();
+		dojo.byId('divHolder').scrollTop = prevScrollTop;
         this._hidePalette();
         this.render();
     };
@@ -1084,6 +1120,8 @@ define([
             //INSERT CHAR
             if(this.cancelKeys[e.keyCode] != undefined){ }else{
                 switch(e.charCode){
+					case 94:
+						break;
                     case 32:
                         this.insert(this.newSpace);
                         break;
