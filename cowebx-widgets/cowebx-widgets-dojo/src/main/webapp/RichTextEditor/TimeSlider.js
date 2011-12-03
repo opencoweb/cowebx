@@ -11,12 +11,12 @@ define([
         //1. Process args
         this.domNode            =   args.domNode;
         this.id                 =   args.id;
-        this.parent             =   args.parent;
-        this.history            =   [];
-        this.sliderShowing      =   false;
-        this.index              =   null;
-        this._textarea          =   args.textarea;
-        this._i                 =   null;
+        // this.parent             =   args.parent;
+        // this.history            =   [];
+        // this.sliderShowing      =   false;
+        // this.index              =   null;
+        // this._textarea          =   args.textarea;
+        // this._i                 =   null;
         
         //2. Connect stuff
         this.build(args.domNode);
@@ -46,7 +46,7 @@ define([
         //dojo.connect(play, 'onclick', this, 'play'); 
         var reset = dojo.create('a',{'class':'sliderButton',innerHTML:'Revert'},this._buttonCell);
         dojo.connect(reset, 'onclick', this, 'reset');
-        this.history.push(dojo.clone(this._textarea.value));
+        //this.history.push(dojo.clone(this._textarea.value));
     };
     
     proto.reset = function(){

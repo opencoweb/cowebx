@@ -7,14 +7,12 @@ define([
     'dijit/ToolbarSeparator',
     'dijit/Dialog',
     'dijit/ColorPalette',
-    './TimeSlider', 
     './ShareButton'
-], function(dojo, dijit, coweb, Toolbar, ToggleButton, Separator, Dialog, ColorPalette, Slider, ShareButton) {
+], function(dojo, dijit, coweb, Toolbar, ToggleButton, Separator, Dialog, ColorPalette, ShareButton) {
     var textarea = function(args){
         if(!args.domNode || !args.id || !args.parent)
             throw new Error("Textarea: missing arg");
         //1. Process args
-        this.noSlider       =   (!args.noSlider) ? false : args.noSlider;
         this.domNode        =   args.domNode;
         this.id             =   args.id;
         this.parent         =   args.parent;
@@ -32,7 +30,7 @@ define([
         this.attendees          =   {};
         this.title              =   'Untitled Document';
         this.newSpace           =   '<span style="">&nbsp; </span>';
-        this.prevValue          =   [];
+        this.history	        =   [];
         this.filters            =   [];
         this._pastForeColors    =   [];
         this._pastHiliteColors  =   [];
@@ -820,14 +818,18 @@ define([
         });
     };
     
-    proto._onSliderClick = function(){
-        dojo.publish("sliderToggle", [{}]);
-    };
-    
     proto._onRemoteTitle = function(obj){
         this.title = obj.value.title;
         this._title.value = this.title;
     };
+
+	proto._onUndoClick = function(){
+		
+	};
+	
+	proto._onRedoClick = function(){
+		
+	};
     
 //Style events
     
@@ -1232,9 +1234,6 @@ define([
         this._buildFooter();
         this._buildConfirmDialog();
         //4. Slider & ShareButton
-        var node = dojo.create('div',{'class':'slider',id:'sliderHolder'},dijit.byId('tToolbar').domNode,'after');
-        var holder = dojo.create('div',{'style':'width:100%;height:100%'},node);
-        this.slider = new Slider({'domNode':holder,textarea:this,'id':'slider','parent':this.parent});
         var button = new ShareButton({
             'domNode':dijit.byId('tToolbar').domNode,
             'listenTo':this.parent,
@@ -1256,6 +1255,22 @@ define([
         var toolbar = new Toolbar({id:'tToolbar'},toolbarNode);
         dojo.attr(toolbar.domNode, 'class', 'gradient header');
         
+		//1. Undo / redo button
+		dojo.forEach(["Undo", "Redo"], dojo.hitch(this, function(label) {
+            var button = new ToggleButton({
+                label: label,
+                showLabel: false,
+				disabled: true,
+                iconClass: "dijitEditorIcon dijitEditorIcon" + label
+            });
+            this[label] = button;
+            toolbar.addChild(button);
+            dojo.connect(button, 'onClick', this, '_on'+label+'Click');
+            dojo.attr(this[label].domNode, 'style', 'border-bottom:3px solid black');
+        }));
+        var sep = new Separator({});
+        toolbar.addChild(sep);
+
         //1. Home button
         var home = new ToggleButton({
             label: '<img style="width:18px;height:18;" src="../lib/cowebx/dojo/RichTextEditor/images/home.png"/>',
@@ -1312,20 +1327,6 @@ define([
         }));
         var sep = new Separator({});
         toolbar.addChild(sep);
-        
-        //5. Slider
-        if(!this.noSlider || this.noSlider == false){
-            var button = new ToggleButton({
-                label: '<span style="font-family:Arial;font-size:14px;"><img src="../lib/cowebx/dojo/RichTextEditor/images/history.png" style="height:20px;width:20px;margin-right:3px"/>History</span>',
-                showLabel: true,
-                id: 'sliderButton'
-            });
-            toolbar.addChild(button);
-            this.sliderButton = button;
-            dojo.connect(button, 'onClick', this, '_onSliderClick');
-            dojo.attr(button.domNode, 'style', 'border-bottom:3px solid black');
-            dojo.style(button.domNode, 'float', 'right');
-        }
         
         //Color pallettes
         var paletteNode = dojo.create('div',{style:'width:100%;'},toolbar.domNode,'after');
