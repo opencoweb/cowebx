@@ -373,7 +373,6 @@ define([
         var state = {
             value: this._textarea.value,
             oldSnapshot: this.oldSnapshot,
-            history : this._textarea.slider.history,
             title: this._textarea.title,
             attendees: this._attendeeList.attendees,
 			carets: carets
@@ -389,7 +388,6 @@ define([
         this._textarea.value.start = 0;
         this._textarea.value.end = 0;
         this._textarea.render();
-        this._textarea.slider.history = obj.history;
         for(var i in obj.attendees){
             var o = {
                 value: {
