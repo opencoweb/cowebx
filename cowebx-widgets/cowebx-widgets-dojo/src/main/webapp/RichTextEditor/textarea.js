@@ -530,32 +530,32 @@ define([
 	};
 
     proto._moveToEmptyLine = function(clickHt) {
-        var diff = 100000;
-        var diff2 = 100000;
-        var to = null;
-        var from = null;
-        dojo.query('#lineNumbers span').forEach(dojo.hitch(this, function(node, index, arr){
-            if(node.innerHTML == 1 && dojo.attr(node, 'num')){
-                if(Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop)) < diff){
-                    diff = Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop));
-                    to = parseInt(dojo.attr(node, 'num'));
-                }
-                if(Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top) < diff2){
-                    diff2 = Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top);
-                    from = parseInt(dojo.attr(node, 'num'));
-                }
-            }
-        }));
-        this._lock = true;
-        this._lineIndex = 10000;
-
-        if(from <= to){
-            for(var i=0; i<to-from; i++)
-                this.moveCaretDown();
-        }else{
-            for(var i=0; i<from-to; i++)
-                this.moveCaretUp();
-        }
+        // var diff = 100000;
+        // var diff2 = 100000;
+        // var to = null;
+        // var from = null;
+        // dojo.query('#lineNumbers span').forEach(dojo.hitch(this, function(node, index, arr){
+        //     if(node.innerHTML == 1 && dojo.attr(node, 'num')){
+        //         if(Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop)) < diff){
+        //             diff = Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop));
+        //             to = parseInt(dojo.attr(node, 'num'));
+        //         }
+        //         if(Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top) < diff2){
+        //             diff2 = Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top);
+        //             from = parseInt(dojo.attr(node, 'num'));
+        //         }
+        //     }
+        // }));
+        // this._lock = true;
+        // this._lineIndex = 10000;
+        // 
+        // if(from <= to){
+        //     for(var i=0; i<to-from; i++)
+        //         this.moveCaretDown();
+        // }else{
+        //     for(var i=0; i<from-to; i++)
+        //         this.moveCaretUp();
+        // }
     };
     
     proto._scrollWith = function(){
@@ -617,7 +617,7 @@ define([
             setTimeout(dojo.hitch(this, function(){
                 dojo.disconnect(this._c);
                 dojo.destroy(this._hidden);
-                dojo.byId('thisDiv').focus();
+                dojo.byId('catch').focus();
 				dojo.byId('divHolder').scrollTop = prevScrollTop;
             }), 100);
             
@@ -653,7 +653,7 @@ define([
             setTimeout(dojo.hitch(this, function(){
                 dojo.disconnect(this._c);
                 dojo.destroy(this._hidden);
-                dojo.byId('thisDiv').focus();
+                dojo.byId('catch').focus();
 				dojo.byId('divHolder').scrollTop = prevScrollTop;
             }), 100);
         });
@@ -875,7 +875,7 @@ define([
         }
         this._lastOp = 'bold';
 		var prevScrollTop = dojo.byId('divHolder').scrollTop;
-        dojo.byId('thisDiv').focus();
+        dojo.byId('catch').focus();
 		dojo.byId('divHolder').scrollTop = prevScrollTop;
         this.render();
     };
@@ -922,7 +922,7 @@ define([
         }
         this._lastOp = 'italic';
 		var prevScrollTop = dojo.byId('divHolder').scrollTop;
-        dojo.byId('thisDiv').focus();
+        dojo.byId('catch').focus();
 		dojo.byId('divHolder').scrollTop = prevScrollTop;
         this.render();
     };
@@ -969,7 +969,7 @@ define([
         }
         this._lastOp = 'underline';
 		var prevScrollTop = dojo.byId('divHolder').scrollTop;
-        dojo.byId('thisDiv').focus();
+        dojo.byId('catch').focus();
 		dojo.byId('divHolder').scrollTop = prevScrollTop;
         this.render();
     };
@@ -1019,7 +1019,7 @@ define([
 
         this._pastForeColors.push(color);
 		var prevScrollTop = dojo.byId('divHolder').scrollTop;
-        dojo.byId('thisDiv').focus();
+        dojo.byId('catch').focus();
 		dojo.byId('divHolder').scrollTop = prevScrollTop;
         this._hidePalette();
         this.render();
@@ -1070,7 +1070,7 @@ define([
 
         this._pastHiliteColors.push(color);
 		var prevScrollTop = dojo.byId('divHolder').scrollTop;
-        dojo.byId('thisDiv').focus();
+        dojo.byId('catch').focus();
 		dojo.byId('divHolder').scrollTop = prevScrollTop;
         this._hidePalette();
         this.render();
@@ -1182,6 +1182,8 @@ define([
                 this.onClickRender(endNode);
             }
         }
+
+		dojo.byId('catch').focus();
     };
     
     proto._onFocus = function(e){
@@ -1201,12 +1203,12 @@ define([
     
     proto._connect = function(){
         dojo.connect(window, 'resize', this, '_onResize');
+		dojo.connect(dojo.byId('catch'), 'onkeypress', this, '_onKeyPress');
         dojo.connect(dojo.byId('thisDiv'), 'onmousedown', this, '_onMouseDown');
         dojo.connect(dojo.byId('thisDiv'), 'onmouseup', this, '_onclick');
         dojo.connect(dojo.byId('thisDiv'), 'onfocus', this, '_onFocus');
-        dojo.connect(dojo.byId('thisDiv'), 'onblur', this, '_onBlur');
-        dojo.connect(dojo.byId('thisDiv'), 'onkeypress', this, '_onKeyPress');
-        dojo.connect(dojo.byId('thisDiv'), 'onkeydown', this, '_listenForKeyCombo');   
+        dojo.connect(dojo.byId('thisDiv'), 'onblur', this, '_onBlur');		
+        dojo.connect(dojo.byId('catch'), 'onkeydown', this, '_listenForKeyCombo');
         dojo.connect(dojo.byId('url'),'onclick',this,function(e){ this._selectElementContents(e.target) });   
         dojo.subscribe("hideAll", dojo.hitch(this, function(message){ this._hidePalette(); }));        
         this.collab = coweb.initCollab({id : this.id});
@@ -1248,6 +1250,9 @@ define([
 			+'<div class="collabSubTitle">Copy url to friends to collaborate</div>';
 	    dojo.byId('attendeeListContainer').innerHTML =  dojo.byId('attendeeListContainer').innerHTML+template;   
 	    dojo.byId('url').innerHTML = window.location;
+	
+		//7. Float invisible textarea 
+		dojo.create('textarea',{id:'catch',style:'width:1px;height:1px;position:fixed;top:0;left:0'},document.body);
     };
     
     proto._buildToolbar = function(){
