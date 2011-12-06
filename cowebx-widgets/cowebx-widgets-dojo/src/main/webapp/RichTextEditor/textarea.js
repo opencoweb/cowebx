@@ -535,7 +535,6 @@ define([
 		var f = dojo.byId('thisFrame');
 		var topLimit = f.offsetTop+dojo.style('thisFrame','paddingTop')-dojo.byId('divHolder').scrollTop+2;
 		var bottomLimit = f.offsetTop+f.offsetHeight-dojo.byId('divHolder').scrollTop-2;
-		console.log(dojo.byId('selection').offsetTop)
 		if((clickHt>topLimit) && (clickHt<bottomLimit)){
 			if(clickHt < (dojo.byId('selection').offsetTop-dojo.byId('divHolder').scrollTop)){
 				while(Math.ceil(Math.abs((dojo.byId('selection').offsetTop-dojo.byId('divHolder').scrollTop) - (clickHt-8))) > 9){
@@ -1247,7 +1246,7 @@ define([
 	    dojo.byId('url').innerHTML = window.location;
 	
 		//7. Float invisible textarea 
-		dojo.create('textarea',{id:'catch',style:'width:1px;height:1px;position:fixed;top:0;left:0'},document.body);
+		dojo.create('textarea',{id:'catch',style:'width:1px;height:1px;position:fixed;top:0;left:0;opacity:0;'},document.body);
     };
     
     proto._buildToolbar = function(){
