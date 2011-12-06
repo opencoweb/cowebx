@@ -530,32 +530,23 @@ define([
 	};
 
     proto._moveToEmptyLine = function(clickHt) {
-        // var diff = 100000;
-        // var diff2 = 100000;
-        // var to = null;
-        // var from = null;
-        // dojo.query('#lineNumbers span').forEach(dojo.hitch(this, function(node, index, arr){
-        //     if(node.innerHTML == 1 && dojo.attr(node, 'num')){
-        //         if(Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop)) < diff){
-        //             diff = Math.abs(clickHt - (this._findPos(node).top-dojo.byId('divHolder').scrollTop));
-        //             to = parseInt(dojo.attr(node, 'num'));
-        //         }
-        //         if(Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top) < diff2){
-        //             diff2 = Math.abs(this._findPos(node).top - this._findPos(dojo.byId('selection')).top);
-        //             from = parseInt(dojo.attr(node, 'num'));
-        //         }
-        //     }
-        // }));
-        // this._lock = true;
-        // this._lineIndex = 10000;
-        // 
-        // if(from <= to){
-        //     for(var i=0; i<to-from; i++)
-        //         this.moveCaretDown();
-        // }else{
-        //     for(var i=0; i<from-to; i++)
-        //         this.moveCaretUp();
-        // }
+		this._lock = true;
+        this._lineIndex = 10000;
+		var f = dojo.byId('thisFrame');
+		var topLimit = f.offsetTop+dojo.style('thisFrame','paddingTop')-dojo.byId('divHolder').scrollTop+2;
+		var bottomLimit = f.offsetTop+f.offsetHeight-dojo.byId('divHolder').scrollTop-2;
+		console.log(dojo.byId('selection').offsetTop)
+		if((clickHt>topLimit) && (clickHt<bottomLimit)){
+			if(clickHt < (dojo.byId('selection').offsetTop-dojo.byId('divHolder').scrollTop)){
+				while(Math.ceil(Math.abs((dojo.byId('selection').offsetTop-dojo.byId('divHolder').scrollTop) - (clickHt-8))) > 9){
+					this.moveCaretUp();
+				}
+			}else{
+				while(Math.ceil(Math.abs((dojo.byId('selection').offsetTop-dojo.byId('divHolder').scrollTop) - (clickHt-8))) > 9){
+					this.moveCaretDown();
+				}
+			}	
+		}
     };
     
     proto._scrollWith = function(){
@@ -1147,6 +1138,10 @@ define([
             //1. Get start and end node for for click+drag
             var start = (range.startOffset == 0) ? range.startContainer.parentNode : range.startContainer.parentNode.nextSibling;
             var end = (range.endOffset == 0) ? range.endContainer.parentNode : range.endContainer.parentNode.nextSibling;
+			if(!start)
+				start = range.startContainer.childNodes[range.startOffset];
+			if(!end)
+				end = range.endContainer.childNodes[range.endOffset];
             if(start.id == 'selection')
                 start = start.nextSibling;
             if(end && end.id == 'selection')
