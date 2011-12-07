@@ -11,8 +11,8 @@ define([
     './ShareButton',
     'dijit/layout/ContentPane',
     'dijit/layout/BorderContainer',
-    './rangy/rangy-core',
-    './rangy/uncompressed/rangy-selectionsaverestore'
+	'./rangy/uncompressed/rangy-core',
+	'./rangy//uncompressed/rangy-selectionsaverestore'
 ], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton){
 
 	return dojo.declare("TextEditor", [_Widget, _TemplatedMixin, _Contained], {
@@ -20,38 +20,41 @@ define([
 		templateString: template,
 		
         postCreate: function(){
-            window.foo = this;
-            
 			//1. Process args
-	        this.id = 'TextEditor';
-	        this.go = true;
-
+            window.foo			= this;
+            this.id 			= 'TextEditor';
+	        this.go 			= true;
+	
 	        //2. Build stuff
 	        dojo.create('textarea', {style:'width:100%;height:100%;' }, dojo.byId('divContainer'));
-	        this._attendeeList = new AttendeeList({domNode:dojo.byId('innerList'), id:'_attendeeList'});
-            this.util = new ld({});
-	        nicEditors.allTextAreas();
-            this._textarea = dojo.query('.nicEdit-main')[0];
-            this._toolbar = dojo.query('.nicEdit-panel')[0];
-            this._shareButton = new ShareButton({
+			nicEditors.allTextAreas();    
+            this._textarea 		= dojo.query('.nicEdit-main')[0];
+            this._toolbar 		= dojo.query('.nicEdit-panel')[0];
+			this._buildToolbar();                
+			this._footer		= this._buildFooter();
+	        this._attendeeList 	= new AttendeeList({domNode:dojo.byId('innerList'), id:'_attendeeList'});
+            this.util 			= new ld({});
+            this._shareButton 	= new ShareButton({
                 'domNode':dojo.byId('infoDiv'),
                 'listenTo':this._textarea,
                 'id':'shareButton',
                 'displayButton':false
             });
-            this.style();
             
             //3. parameters
-            this.oldSnapshot = this.snapshot();
-            this.newSnapshot = null;
-            this.t = null;
-            this.q = [];
-            this.value = '';
-            this.interval = 1500;
+            this.oldSnapshot 	= this.snapshot();
+            this.newSnapshot 	= null;
+            this.t 				= null;
+            this.q 				= [];
+            this.value 			= '';
+            this.interval 		= 100;
+			this.title          = 'Untitled Document';
 
-            //4. connect
+            //4. Style / connect
+			this.style();
             this.connect();
    
+			//5. kick things off
             if(this.go == true)
                this.listenInit();
 		},
@@ -78,8 +81,6 @@ define([
 	                var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
 	            //Send syncs
 	            if(syncs){
-	                syncs = this.fix(syncs);
-	                console.log(syncs);
 	                var s = '';
 	                for(var i=0; i<syncs.length; i++){
 	                    if(syncs[i] != undefined){
@@ -120,7 +121,6 @@ define([
 	    },
 
 	    runOps : function(){
-	        console.log(this.q);
             var sel = rangy.saveSelection();
             this.value = this._textarea.innerHTML;
 	        for(var i=0; i<this.q.length; i++){
@@ -151,29 +151,32 @@ define([
 	    },
 	    
 	    fixPos: function(pos){
-	        var start = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_1">');
+			var search1 = '<span style="line-height: 0; display: none;" id="1sel';
+			var search1a = '<span id="1sel';
+			var search2 = '<span style="line-height: 0; display: none;" id="2sel';
+			var search2a = '<span id="2sel';
+			
+	        var start = this.value.search(search1);
 	        if(start == -1)
-	            var start = this.value.search('<span id="selectionBoundary_1" style="line-height: 0; display: none;">');
-	        
+	            var start = this.value.search(search1a);
 	        if(start != -1){
-	            var end = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_2">﻿')-78;
+	            var end = this.value.search(search2)-78;
     	        if(end == -79)
-    	            var end = this.value.search('<span id="selectionBoundary_2" style="line-height: 0; display: none;">')-78;   
+    	            var end = this.value.search(search2a)-78;   
                 if(pos>=end){
     	            pos = pos + 156;
     	        }else if(pos>start && pos<end){
     	            pos = pos + 78;
     	        } 
 	        }else if(start == -1){
-	            var end = this.value.search('<span style="line-height: 0; display: none;" id="selectionBoundary_2">﻿');
+	            var end = this.value.search(search2);
     	        if(end == -1)
-    	            var end = this.value.search('<span id="selectionBoundary_2" style="line-height: 0; display: none;">');
+    	            var end = this.value.search(search2a);
     	        if(end != -1){
     	            if(pos>=end)
         	            pos = pos + 78;
     	        }
 	        }
-	        
 	        return pos;
 	    },
 	    
@@ -184,66 +187,26 @@ define([
 	    hasIncompleteTags : function(arr){
             var openCount = 0;
             var closeCount = 0;
+			var ampCount = 0;
+			var semiCount = 0;
             for(var i=0; i<arr.length; i++){
                 if(arr[i].value == '<')
                     openCount++;
-                if(arr[i].value == '>')
+                else if(arr[i].value == '>')
                     closeCount++;
+				else if(arr[i].value == '&')
+					ampCount++;
+				else if(arr[i].value == ';')
+					semiCount++;
             }
-            return !(openCount == closeCount);
-	    },
-	    
-	    fix: function(arr){
-	        var temp = dojo.clone(arr);
-            for(var i=0; i<arr.length; i++){
-                if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3]&&arr[i+4]&&arr[i+5])&&(arr[i].ch=='&'&&arr[i+1].ch=='n'&&arr[i+2].ch=='b'&&arr[i+3].ch=='s'&&arr[i+4].ch=='p'&&arr[i+5].ch==';')){
-                    temp[i].ch = '&nbsp;';
-                    delete temp[i+1];
-                    delete temp[i+2];
-                    delete temp[i+3];
-                    delete temp[i+4];
-                    delete temp[i+5];
-                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3]&&arr[i+4])&&(arr[i].ch=='&'&&arr[i+1].ch=='n'&&arr[i+2].ch=='s'&&arr[i+3].ch=='p'&&arr[i+4].ch==';')){
-                    temp[i].ch = '&nbsp;';
-                    delete temp[i+1];
-                    delete temp[i+2];
-                    delete temp[i+3];
-                    delete temp[i+4];
-                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='b'&&arr[i+2].ch=='r'&&arr[i+3].ch=='>')){
-                    temp[i].ch = '<br>';
-                    delete temp[i+1];
-                    delete temp[i+2];
-                    delete temp[i+3];
-                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='b'&&arr[i+2].ch=='r'&&arr[i+3].ch=='>')){
-                    temp[i].ch = '<br>';
-                    delete temp[i+1];
-                    delete temp[i+2];
-                    delete temp[i+3];
-                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='u'&&arr[i+2].ch=='l'&&arr[i+3].ch=='>')){
-                    temp[i].ch = '<ul>';
-                    delete temp[i+1];
-                    delete temp[i+2];
-                    delete temp[i+3];
-                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='l'&&arr[i+2].ch=='i'&&arr[i+3].ch=='>')){
-                    temp[i].ch = '<li>';
-                    delete temp[i+1];
-                    delete temp[i+2];
-                    delete temp[i+3];
-                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='/'&&arr[i+2].ch=='u'&&arr[i+3].ch=='l'&&arr[i+4].ch=='>')){
-                    temp[i].ch = '</ul>';
-                    delete temp[i+1];
-                    delete temp[i+2];
-                    delete temp[i+3];
-                    delete temp[i+4];
-                }else if(temp[i]&&(arr[i+1]&&arr[i+2]&&arr[i+3])&&(arr[i].ch=='<'&&arr[i+1].ch=='/'&&arr[i+2].ch=='l'&&arr[i+3].ch=='i'&&arr[i+4].ch=='>')){
-                    temp[i].ch = '</li>';
-                    delete temp[i+1];
-                    delete temp[i+2];
-                    delete temp[i+3];
-                    delete temp[i+4];
-                }
-            }
-            return temp;
+			if(ampCount>0){
+				if(ampCount==semiCount && openCount==closeCount)
+					return false;
+				else
+					return true;
+			}else{
+				return !(openCount==closeCount);
+			}
 	    },
 
 	    snapshot : function(){
@@ -254,6 +217,7 @@ define([
 	        this.collab = coweb.initCollab({id : this.id});  
 	        this.collab.subscribeReady(this,'onCollabReady');
 	        this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
+			this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
 	        this.collab.subscribeStateRequest(this, 'onStateRequest');
 	    	this.collab.subscribeStateResponse(this, 'onStateResponse');
 	        dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
@@ -261,16 +225,17 @@ define([
 	        dojo.connect(dojo.byId('url'),'onclick',this,function(e){ this.selectElementContents(e.target) });
             dojo.connect(dojo.byId('url'),'onblur',this,function(e){ e.target.innerHTML = window.location; });
 	        dojo.connect(window, 'resize', this, 'resize');
-	        dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
-	            dojo.publish("shareClick", [{}]);
-	        });
+	        // dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
+	        //     dojo.publish("shareClick", [{}]);
+	        // });
 	        attendance.subscribeChange(this, 'onUserChange');
 	    },
 
 	    onStateRequest : function(token){
 	        var state = {
 	            snapshot: this.newSnapshot,
-	            attendees: this._attendeeList.attendees
+	            attendees: this._attendeeList.attendees,
+				title: this.title
 	        };
 	        this.collab.sendStateResponse(state,token);
 	    },
@@ -278,7 +243,9 @@ define([
 	    onStateResponse : function(obj){
 	        this._textarea.innerHTML = obj.snapshot;
 	        this.newSnapshot = obj.snapshot;
-	        this.oldSnapshot = obj.snapshot;
+	        this.oldSnapshot = obj.snapshot;    
+			this.title = obj.title;
+			this._title.value = this.title;
 	        for(var i in obj.attendees){
 	            var o = {
 	                value: {
@@ -330,22 +297,101 @@ define([
 	        //dojo.attr(this._textarea, 'innerHTML', 'To begin, just start click and start <strong>typing</strong>...');
 	        this._loadTemplate('../lib/cowebx/dojo/BasicTextareaEditor/TextEditor.css');
 	        dojo.addClass(this._textarea.parentNode, 'textareaContainer');
-	        dojo.style(this._textarea.parentNode, 'border', '1px solid #CACACA');
-            dojo.addClass(this._textarea, 'textarea');
+			dojo.addClass(this._textarea, 'textarea'); 
+			
             dojo.style(this._toolbar.parentNode.parentNode,'width','100%');
-            dojo.style(this._toolbar.parentNode.parentNode,'height','37px');
-            dojo.style(this._toolbar.parentNode,'height','37px');
-            dojo.style(this._toolbar,'height','37px');
-            dojo.style(this._toolbar.parentNode,'width','100%');
+            dojo.style(this._toolbar.parentNode.parentNode,'height','45px');  
+
+            dojo.style(this._toolbar.parentNode,'height','45px');
+			dojo.style(this._toolbar.parentNode,'width','100%');   
+			
+            dojo.style(this._toolbar,'height','45px');
             dojo.style(this._toolbar, 'width','100%');
-            dojo.style(this._toolbar, 'margin','0px');
-            for(var i=0; i<this._toolbar.childNodes.length; i++){
-                dojo.style(this._toolbar.childNodes[i],'margin','5px');
-                //HIDE UNUSED BUTTONS
-                if(i>3)
+            dojo.style(this._toolbar, 'margin','0px'); 
+			dojo.style(this._toolbar, 'background','black'); 
+           	
+			var rulerContainer = dojo.create('div',{'class':'rulerContainer',id:'rulerContainer'},this._toolbar.parentNode,'after');
+			var i = dojo.create('img', {src:'../lib/cowebx/dojo/BasicTextareaEditor/images/ruler.png', 'class':'ruler'}, rulerContainer, 'first');
+			
+            
+            dojo.attr('url','innerHTML',window.location);
+	    },
+	
+		_buildFooter: function(){
+	        var footerNode = dojo.create('div',{'class':'footer gradient'},dojo.byId('divContainer'),'last');
+
+	        //1. Title box & image
+	        var title = dojo.create('input',{'class':'title',value:'Untitled Document',type:'text'},footerNode,'first');
+	        var edit = dojo.create('img',{src:'../lib/cowebx/dojo/RichTextEditor/images/pencil.png','class':'editIcon'},title,'after');
+
+	        //2. Connect
+	        dojo.connect(title, 'onclick', this, function(e){
+	            dojo.style(e.target, 'background', 'white');
+	            e.target.value = '';
+	        });
+	        dojo.connect(title, 'onblur', this, function(e){
+	            this.title = (e.target.value.length > 0) ? e.target.value : this.title;
+	            e.target.value = this.title;
+	            dojo.style(e.target, 'background', '');
+	            this.collab.sendSync('editorTitle', {'title':e.target.value}, null);   
+	        });
+	        dojo.connect(title, 'onkeypress', this, function(e){
+	            if(e.keyCode == 13)
+	                e.target.blur();
+	        });
+	        this._title = title;
+
+	        return footerNode;
+		}, 
+		
+		_buildToolbar: function(){
+			for(var i=0; i<this._toolbar.childNodes.length; i++){    
+				dojo.addClass(this._toolbar.childNodes[i], 'toolbarButton');
+				dojo.style(this._toolbar.childNodes[i].firstChild, 'width', '100%');   
+				dojo.style(this._toolbar.childNodes[i].firstChild, 'height', '100%');
+				dojo.style(this._toolbar.childNodes[i].firstChild, 'borderRadius', '3px');
+				dojo.style(this._toolbar.childNodes[i].firstChild, 'background', 'white');
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild, 'width', '100%');   
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild, 'height', '100%');
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild, 'borderRadius', '3px');
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild, 'background', 'white');
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'width', '100%');   
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'height', '100%');
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'borderRadius', '3px');
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'white'); 
+               	switch(i){
+	            	case 1:                                              
+	                    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/bold.png)');
+						break;
+					case 2:
+					    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/italic.png)');     
+						break;
+					case 3:   
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/underline.png)');
+						break; 
+					case 19:
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/textColor.png)');
+						break; 
+		 			case 20:   
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/hiliteColor.png)');
+						break;      
+	
+				}
+                //TEMPORARY: HIDE UNUSED BUTTONS
+                if(i>3 && i<19)
                     dojo.style(this._toolbar.childNodes[i],'display','none');
             }
-            dojo.attr('url','innerHTML',window.location);
+			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[19],'before');
+			var div = dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
+			var newPage = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/newpage.png);'},this._toolbar,'first');
+			var home = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/home.png);'},this._toolbar,'first');
+			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/save.png);'},this._toolbar,'first') 
+			
+		},
+		
+		_onRemoteTitle: function(obj){
+	        this.title = obj.value.title;
+	        this._title.value = this.title;
 	    },
 	    
 	    cleanup : function() {

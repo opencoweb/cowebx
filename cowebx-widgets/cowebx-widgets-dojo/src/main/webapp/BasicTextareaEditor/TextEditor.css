@@ -29,6 +29,7 @@
 #divContainer{
     height:100%;
     padding:0px;
+	position:relative;
 }
 
 #infoDiv{
@@ -41,14 +42,15 @@
     margin-left:auto !important;
     margin-right:auto !important;
     margin-top:40px !important;
-    padding:60px !important;
+    padding:50px !important;
     background:white !important;
-    width:830px !important;
+    width:720px !important;
     height:100% !important;
+	border:1px solid #EBEBEB !important;
 }
 
 .textarea{
-    width:830px !important;
+    width:720px !important;    
     height:100% !important;
     margin:0px !important;
     outline:0px solid transparent !important;
@@ -68,7 +70,7 @@
     margin-left:auto;
     margin-right:auto;
     border-bottom:1px solid #CACACA;
-    height:28px;
+    height:36px;
 }
 
 .attendeeText{
@@ -124,15 +126,13 @@
 
 #url{
     width:180px;
-    overflow:hidden;
     font:14px arial;
-    height:15px;
-    white-space: nowrap;
+    min-height:15px;
     margin-left:auto;
     margin-right:auto;
     border:1px solid #CACACA;
     outline:0px solid transparent;
-    margin-top:5px;
+    margin-top:20px;
     padding:5px;
 }
 
@@ -140,19 +140,12 @@
     outline:0px solid transparent;
 }
 
-#saveButton{
-    width:190px;
-    font:14px arial;
-    height:22px;
-    padding-top:3px;
-    margin-left:auto;
-    margin-right:auto;
-    border:1px solid #CACACA;
-    margin-top:14px;
-    color:black;
-    background:#CACACA;
-    text-align:center;
-    cursor:hand;cursor:pointer;
+.nameColorPalette{
+	position:fixed;
+	display:none;
+	right:220px;
+	top:2px;
+	z-index:1000;
 }
 
 .gradient {
@@ -225,4 +218,91 @@
     -webkit-transition: background-color .25s linear;
     transition: background-color .25s linear;
     background-color:red;
+}
+
+.footer {
+    width:100%;
+    height:25px;
+    background:#EFEFEF;
+    position:absolute;
+    bottom:0;
+    z-index:100;     
+    border-bottom:1px solid white;
+	background:black;
+}
+
+.title{
+    -moz-border-radius:3px;
+    -webkit-border-radius:3px;
+    font:12px arial;
+    width:150px;
+    color:black;
+    float:left;
+    position:relative;
+    top:4px;
+    background:darkgrey;
+    padding-top:2px;
+    padding-left:5px;
+    margin-left:4px;
+    height:12px;
+    cursor:hand;cursor:pointer;
+    margin-right:5px;
+    overflow:hidden;       
+    border:0px;
+}
+
+.editIcon {
+    width:18px;
+    height:23px;
+}    
+
+.rulerContainer{
+    position:absolute;
+    width:100%;
+    height:30px;
+    background:#EBEBEB;  
+    text-align:center;
+}
+
+.toolbarButton{
+	border-radius:3px;
+	background:white;
+	width:30px;
+	height:30px;
+	margin:7px !important; 
+	margin-left:3px !important;
+	margin-right:3px !important;
+	box-shadow:0 0 2px 2px grey;
+}  
+
+.toolbarButtonCustom{
+	border-radius:3px;
+	background:white;
+	width:30px;
+	height:30px;
+	margin:7px !important;     
+	margin-left:3px !important;
+	margin-right:3px !important;
+	position:relative;
+	top:1px;
+	box-shadow:0px 0px 1px 1px white;  
+	display:inline-block;float:left; 
+	background-position:center;
+	cursor:hand;cursor:pointer;
+}
+
+.toolbarDiv{
+	height:20px;
+	width:2px;
+	display:inline-block;
+	float:left;
+	background:lightgrey;
+	position:relative;
+	top:12px; 
+	margin-left:6px !important;
+	margin-right:6px !important;
+}
+
+.ruler{
+    margin-top:10px;
 }
