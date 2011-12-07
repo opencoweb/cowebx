@@ -2,7 +2,7 @@
     width:100%;
     border-spacing:0px;
     border-collapse:true;
-    background:#EBEBEB;
+    background:lightgrey;
 }
 
 .editorRow{
@@ -15,7 +15,7 @@
     vertical-align:top;
     border-left:1px solid #CACACA;
     background:white;
-    padding:0px;
+    padding:0px; 
 }
 
 #innerList{
@@ -46,7 +46,7 @@
     background:white !important;
     width:720px !important;
     height:100% !important;
-	border:1px solid #EBEBEB !important;
+	border:1px solid #BBBBBB !important;
 }
 
 .textarea{
@@ -98,6 +98,7 @@
     background: grey;
     font-weight:bold;
     color: white;
+	z-index:10;
 }
 
 .userEditIcon{
@@ -227,8 +228,8 @@
     position:absolute;
     bottom:0;
     z-index:100;     
-    border-bottom:1px solid white;
-	background:black;
+    border-top:1px solid #BBBBBB;
+	background:#EFEFEF;
 }
 
 .title{
@@ -239,8 +240,9 @@
     color:black;
     float:left;
     position:relative;
-    top:4px;
-    background:darkgrey;
+    top:5px;
+    background:lightgrey;
+	border:1px solid #AAAAAA;
     padding-top:2px;
     padding-left:5px;
     margin-left:4px;
@@ -248,7 +250,6 @@
     cursor:hand;cursor:pointer;
     margin-right:5px;
     overflow:hidden;       
-    border:0px;
 }
 
 .editIcon {
@@ -260,32 +261,24 @@
     position:absolute;
     width:100%;
     height:30px;
-    background:#EBEBEB;  
+    background: lightgrey;  
     text-align:center;
 }
 
 .toolbarButton{
-	border-radius:3px;
-	background:white;
-	width:30px;
-	height:30px;
-	margin:7px !important; 
-	margin-left:3px !important;
-	margin-right:3px !important;
-	box-shadow:0 0 2px 2px grey;
+	margin-left:1px !important;
+	margin-right:1px !important;   
+	margin-top:4px !important;
+	width:28px !important;
+	height:28px!important;
 }  
 
 .toolbarButtonCustom{
-	border-radius:3px;
-	background:white;
-	width:30px;
-	height:30px;
-	margin:7px !important;     
-	margin-left:3px !important;
-	margin-right:3px !important;
-	position:relative;
-	top:1px;
-	box-shadow:0px 0px 1px 1px white;  
+	margin-left:1px !important;
+	margin-right:1px !important;   
+	margin-top:5px !important;
+	width:28px !important;
+	height:28px!important; 
 	display:inline-block;float:left; 
 	background-position:center;
 	cursor:hand;cursor:pointer;
@@ -293,12 +286,12 @@
 
 .toolbarDiv{
 	height:20px;
-	width:2px;
+	width:1px;
 	display:inline-block;
 	float:left;
 	background:lightgrey;
 	position:relative;
-	top:12px; 
+	top:10px; 
 	margin-left:6px !important;
 	margin-right:6px !important;
 }
