@@ -332,7 +332,6 @@ define([
 	        //2. Connect
 	        dojo.connect(title, 'onclick', this, function(e){
 	            dojo.style(e.target, 'background', 'white');
-	            e.target.value = '';
 	        });
 	        dojo.connect(title, 'onblur', this, function(e){
 	            this.title = (e.target.value.length > 0) ? e.target.value : this.title;
@@ -369,6 +368,25 @@ define([
 					case 3:   
 						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/underline.png)');
 						break; 
+					case 8:   
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/ordered.png)');
+						break;
+					case 9:   
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/unOrdered.png)');
+						break;   
+					case 10:   
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild,'padding','0px !Important');
+						dojo.style(this._toolbar.childNodes[i],'width','91px !Important');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/fontFace.png)');
+						break;
+					case 11:   
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild,'padding','0px !Important');
+						dojo.style(this._toolbar.childNodes[i],'width','91px !Important');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/fontSize.png)');
+						break;
+					case 15:
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/image.png)');
+						break;
 					case 19:
 						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/textColor.png)');
 						break; 
@@ -379,11 +397,14 @@ define([
 				}
 				       
                 //TEMPORARY: HIDE UNUSED BUTTONS
-                if(i>3 && i<19)
-                    dojo.style(this._toolbar.childNodes[i],'display','none');
+                var arr = [4,5,6,7,12,13,14,16,17,18];
+				for(var n in arr){
+					dojo.style(this._toolbar.childNodes[arr[n]], 'display', 'none');
+				}
             }
+			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[8],'before'); 
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[19],'before');  
-			var div = dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
+			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
 			var newPage = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/newpage.png);'},this._toolbar,'first');
 			var home = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/home.png);'},this._toolbar,'first');
 			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/save.png);'},this._toolbar,'first');
