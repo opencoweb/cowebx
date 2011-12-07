@@ -191,15 +191,19 @@
 }
 
 .emailBox{
-    background:lightgrey;
-    font: 10px arial;
-    padding:3px;
+	height:50px;          
+	border:1px solid #BBBBBB;
+    background:white;
+    font: 12px arial;
+	font-weight:bold;
+    padding-top:12px;
     padding-bottom:6px;
+	padding-left:10px;
     z-index:1001;
-    width:255px;
+    width:240px;
     position:absolute;
-    bottom:0px;
-    right:203px;
+    top:37px;
+    left:30px;
 }
 
 .sendButton{

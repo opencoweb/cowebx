@@ -9,11 +9,13 @@ define([
     './ld',
     './AttendeeList',
     './ShareButton',
+    'dijit/Dialog',
+    'dijit/form/ToggleButton',
     'dijit/layout/ContentPane',
     'dijit/layout/BorderContainer',
 	'./rangy/uncompressed/rangy-core',
 	'./rangy//uncompressed/rangy-selectionsaverestore'
-], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton){
+], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton, Dialog, ToggleButton){
 
 	return dojo.declare("TextEditor", [_Widget, _TemplatedMixin, _Contained], {
 	    // widget template
@@ -384,9 +386,78 @@ define([
 			var div = dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
 			var newPage = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/newpage.png);'},this._toolbar,'first');
 			var home = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/home.png);'},this._toolbar,'first');
-			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/save.png);'},this._toolbar,'first')         
+			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/save.png);'},this._toolbar,'first');
+			this._buildConfirmDialog();
+			dojo.connect(newPage, 'onclick', this, 'onNewPageClick');
+			dojo.connect(home, 'onclick', this, 'onHomeClick');
+			dojo.connect(save, 'onclick', this, 'onSaveClick');
+			       
 						         
 		},
+		
+		onSaveClick: function() {
+	         dojo.publish("shareClick", [{}]);
+	    },
+		
+		onHomeClick: function() {
+	        dijit.byId('tDialog').set('content', "You may lose data if you are the only user in the current session. Do you really want to go to Home?");
+	        dijit.byId('tDialog').show();
+	        var one = dojo.connect(dijit.byId('yesButton'),'onClick',this, function(){
+	            window.location = window.location.pathname;
+	        });
+	        var two = dojo.connect(dijit.byId('noButton'),'onClick',this, function(){
+	            dijit.byId('tDialog').hide();
+	            dojo.disconnect(one);
+	            dojo.disconnect(two);
+	        });
+	        var three = dojo.connect(dijit.byId('tDialog'), 'onHide', this, function(){
+	            dojo.disconnect(one);
+	            dojo.disconnect(two);
+	            dojo.disconnect(three);
+	        });
+	    },
+		
+		onNewPageClick: function() {
+	        dijit.byId('tDialog').set('content', "You may lose data if you are the only user in the current session. Do you really want to start a new Document?");
+	        dijit.byId('tDialog').show();
+	        var one = dojo.connect(dijit.byId('yesButton'),'onClick',this, function(){
+	            window.location = window.location.pathname+'?'+'session='+Math.floor(Math.random()*10000001);
+	            dojo.disconnect(one);
+	            dojo.disconnect(two);
+	        });
+	        var two = dojo.connect(dijit.byId('noButton'),'onClick',this, function(){
+	            dijit.byId('tDialog').hide();
+	            dojo.disconnect(one);
+	            dojo.disconnect(two);
+	        });
+	        var three = dojo.connect(dijit.byId('tDialog'), 'onHide', this, function(){
+	            dojo.disconnect(one);
+	            dojo.disconnect(two);
+	            dojo.disconnect(three);
+	        });
+	    },
+	
+		_buildConfirmDialog: function(){
+	        secondDlg = new Dialog({
+	            title: "Are you sure?",
+	            style: "width: 300px;font:12px arial;",
+	            id: 'tDialog'
+	        });
+	        var h = dojo.create('div',{'style':'margin-left:auto;margin-right:auto;width:80px;margin-bottom:5px'},secondDlg.domNode,'last');
+	        var yes = new ToggleButton({
+	            label: '<span style="font-family:Arial;font-size:10px;">Yes</span>',
+	            showLabel: true,
+	            id: 'yesButton'
+	        });
+	        var no = new ToggleButton({
+	            label: '<span style="font-family:Arial;font-size:10px;">No</span>',
+	            showLabel: true,
+	            id: 'noButton'
+	        });
+	        dojo.place(yes.domNode, h, 'last');
+	        dojo.place(no.domNode, h, 'last');
+	        return secondDlg
+	    },
 		
 		_onRemoteTitle: function(obj){
 	        this.title = obj.value.title;
