@@ -360,38 +360,40 @@ define([
 				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'backgroundPosition', 'center');   
                	switch(i){
 	            	case 1:                                              
-	                    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/bold.png)');
+						console.log(this._toolbar.childNodes[i].firstChild.firstChild.firstChild);
+						//dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', '');
+	                    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/bold.png)');
 						break;
 					case 2:
-					    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/italic.png)');     
+					    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/italic.png)');     
 						break;
 					case 3:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/underline.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/underline.png)');
 						break; 
 					case 8:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/ordered.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/ordered.png)');
 						break;
 					case 9:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/unOrdered.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/unOrdered.png)');
 						break;   
 					case 10:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild,'padding','0px !Important');
-						dojo.style(this._toolbar.childNodes[i],'width','91px !Important');
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/fontFace.png)');
+						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
+						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/fontFace.png)');
 						break;
 					case 11:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild,'padding','0px !Important');
-						dojo.style(this._toolbar.childNodes[i],'width','91px !Important');
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/fontSize.png)');
+						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
+						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/fontSize.png)');
 						break;
 					case 15:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/image.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/image.png)');
 						break;
 					case 19:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/textColor.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/textColor.png)');
 						break; 
 					case 20:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background-image', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/hiliteColor.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/hiliteColor.png)');
 						break;      
 				
 				}
