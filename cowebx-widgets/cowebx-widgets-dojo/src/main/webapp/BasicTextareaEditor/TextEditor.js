@@ -81,7 +81,6 @@ define([
 	        if(this.oldSnapshot && this.newSnapshot){
 	            if(this.oldSnapshot != this.newSnapshot)
 	                var syncs = this.syncs.concat(this.util.ld(this.oldSnapshot, this.newSnapshot));
-	            //Send syncs
 	            if(syncs){
 	                var s = '';
 	                for(var i=0; i<syncs.length; i++){
