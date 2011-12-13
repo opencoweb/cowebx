@@ -14,7 +14,7 @@ define([
     'dijit/layout/ContentPane',
     'dijit/layout/BorderContainer',
 	'./rangy/uncompressed/rangy-core',
-	'./rangy//uncompressed/rangy-selectionsaverestore'
+	'./rangy/uncompressed/rangy-selectionsaverestore'
 ], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton, Dialog, ToggleButton){
 
 	return dojo.declare("TextEditor", [_Widget, _TemplatedMixin, _Contained], {
@@ -49,7 +49,7 @@ define([
             this.t 				= null;
             this.q 				= [];
             this.value 			= '';
-            this.interval 		= 100;
+            this.interval		= 1000;
 			this.title          = 'Untitled Document';
 
             //4. Style / connect
@@ -80,7 +80,7 @@ define([
 	        this.newSnapshot = this.snapshot();
 	        if(this.oldSnapshot && this.newSnapshot){
 	            if(this.oldSnapshot != this.newSnapshot)
-	                var syncs = this.util.ld(this.oldSnapshot, this.newSnapshot);
+	                var syncs = this.syncs.concat(this.util.ld(this.oldSnapshot, this.newSnapshot));
 	            //Send syncs
 	            if(syncs){
 	                var s = '';
@@ -95,6 +95,9 @@ define([
 	    },
 
 	    iterateRecv : function() {
+			//Get local typing syncs
+			this.syncs = [];
+			this.syncs = this.util.ld(this.newSnapshot, this.snapshot());
 	        this.collab.resumeSync();
 	        this.collab.pauseSync();
 	        if(this.q.length != 0 && !this.hasIncompleteTags(this.q)){
@@ -123,7 +126,8 @@ define([
 	    },
 
 	    runOps : function(){
-            var sel = rangy.saveSelection();
+			console.log(this.q);
+            //var sel = rangy.saveSelection();
             this.value = this._textarea.innerHTML;
 	        for(var i=0; i<this.q.length; i++){
 	            if(this.q[i].type == 'insert')
@@ -134,7 +138,7 @@ define([
 	                this.updateChar(this.q[i].value, this.q[i].position);
 	        }
 	        this._textarea.innerHTML = this.value;
-            rangy.restoreSelection(sel);
+            //rangy.restoreSelection(sel);
 	    },
 
 	    insertChar : function(c, pos) {
@@ -243,6 +247,7 @@ define([
 	    },
 
 	    onStateResponse : function(obj){
+			this._textarea.innerHTML = '';
 	        this._textarea.innerHTML = obj.snapshot;
 	        this.newSnapshot = obj.snapshot;
 	        this.oldSnapshot = obj.snapshot;    
