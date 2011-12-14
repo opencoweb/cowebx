@@ -280,12 +280,18 @@
 .toolbarButtonCustom{
 	margin-left:1px !important;
 	margin-right:1px !important;   
-	margin-top:5px !important;
+	margin-top:4px !important;
 	width:28px !important;
 	height:28px!important; 
 	display:inline-block;float:left; 
 	background-position:center;
 	cursor:hand;cursor:pointer;
+	border:1px solid transparent !important;
+	background-repeat:no-repeat;
+}
+
+.toolbarButtonCustom:hover{
+	border:1px solid #444444 !important;
 }
 
 .toolbarDiv{

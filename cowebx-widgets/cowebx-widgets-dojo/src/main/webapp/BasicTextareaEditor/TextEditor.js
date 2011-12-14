@@ -411,15 +411,18 @@ define([
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[8],'before'); 
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[19],'before');  
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
+			var redo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/redo.png);'},this._toolbar,'first');
+			var undo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/undo.png);'},this._toolbar,'first');
+			dojo.connect(redo, 'onclick', this, function(){ document.execCommand('redo',"",""); });
+			dojo.connect(undo, 'onclick', this, function(){ document.execCommand('undo',"",""); });
+			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
 			var newPage = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/newpage.png);'},this._toolbar,'first');
 			var home = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/home.png);'},this._toolbar,'first');
 			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/save.png);'},this._toolbar,'first');
-			this._buildConfirmDialog();
 			dojo.connect(newPage, 'onclick', this, 'onNewPageClick');
 			dojo.connect(home, 'onclick', this, 'onHomeClick');
 			dojo.connect(save, 'onclick', this, 'onSaveClick');
-			       
-						         
+			this._buildConfirmDialog();		         
 		},
 		
 		onSaveClick: function() {
