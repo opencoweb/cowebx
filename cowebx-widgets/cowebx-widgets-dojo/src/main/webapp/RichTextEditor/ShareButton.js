@@ -28,26 +28,26 @@ define(['dojo'], function(dojo) {
         //Build email box
         this.emailBox = dojo.create('div',{innerHTML:'email to send to:<br>','class':'emailBox',style:'display:none;',id:'sendBox'},this.shareButton,'after');
         this.emailInput = dojo.create('input',{type:'text',id:'sendInput'},this.emailBox,'last');
-        dojo.connect(this.emailInput, 'onkeypress', this, function(e){
-            if(e.keyCode == 8)
-                e.target.value = '';
-        });
         
         //Build send button
-        this.sendButton = dojo.create('a',{innerHTML:'send', 'class':'sendButton'}, this.emailInput, 'after');
+        this.sendButton = dojo.create('a',{innerHTML:'send', 'class':'sendButton', id:'sendButton'}, this.emailInput, 'after');
+        this.closeButton = dojo.create('a',{innerHTML:'close', 'class':'sendButton', id:'sendButton'}, this.sendButton, 'after');
         dojo.connect(this.sendButton, 'onclick', this, 'send');
+        dojo.connect(this.closeButton, 'onclick', this, '_hide');
     };
 
     proto.toggle = function(e) {
         if(this.shareShowing == false){
             this.shareShowing = true;
-            dojo.style('sendBox','display','block')
+            dojo.style('sendBox','display','block');
+            this.emailInput.focus();
         }else{
             this._hide();
         }
     };
     
     proto.send = function(e) {
+        console.log('send');
         var email = dojo.byId('sendInput').value;
         if(email != ''){
             var username = 'Username=paboucho';
@@ -81,7 +81,7 @@ define(['dojo'], function(dojo) {
         var date = new Date();
         var title = '<strong><span style="font-size:14px">OpenCoweb Document</span><br><br>';
         var time = 'Shared at:<br></strong>'+date+'<br><br>';
-        var doc = '<strong>Document:<br></strong>'+this.listenTo._getCleanValueAttr();
+        var doc = '<strong>Document:<br></strong>'+this.listenTo.innerHTML;
         return title+time+doc;
     };
     

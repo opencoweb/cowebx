@@ -1,462 +1,504 @@
 define([
     'dojo',
-    'coweb/main',
-    './ld', 
-    './textarea',
+	"dijit/_Widget",
+	"dijit/_TemplatedMixin",
+	"dijit/_Contained",
+	"dojo/text!./TextEditor.html",
+	'coweb/main',
+	'coweb/ext/attendance',
+    './ld',
     './AttendeeList',
-    'coweb/ext/attendance'
-], function(dojo,coweb,ld,textarea,AttendeeList,attendance) {
-    var TextEditor = function(args){
-        if(!args.id)
-            throw new Error('TextEditor: missing id argument'); 
-        //1. Process args
-        this.id = args.id;                      //Id for collab
-        this.go = (!args.go) ? true : args.go;  //Start iteration cycle automatically
-                
-        //2. Connect things
-        this._connectSyncs();
-        
-        //3. properties
-        this._por           =   {start : 0, end: 0};
-        this._container     =   dojo.create('div',{'class':'container'},args.domNode);
-        this._textarea      =   new textarea({domNode:this._container,'id':'_textarea',parent:this});
-        this._attendeeList  =   new AttendeeList({domNode:dojo.byId('attendeeListContainer'), id:'_attendeeList', _textarea:this._textarea});
-        this._util          =   new ld({});
-        this.oldSnapshot    =   this.snapshot();
-        this.newSnapshot    =   '';
-        this.interval       =   100;             //Broadcast interval in ms
-        this.t              =   null;           //Handle for timeouts
-        this.q              =   [];             //Queue for incoming ops when paused
-        this.min            =   0;              //Min caret pos in iteration loop
-        this.max            =   0;              //Max caret pos in iteration loop
-        this.on             =   true;           //Turn on/off outgoing syncs
-        this.value          =   '';
-        this._prevPor = {start : 0, end: 0};
-        
-        
-        if(this.go == true)
-            this.listenInit();
-    };
-    var proto = TextEditor.prototype;
-    
-    proto.onCollabReady = function(obj){
-        this._site = obj.site;
-        this.collab.pauseSync();
-    };
+    './ShareButton',
+    'dijit/Dialog',
+    'dijit/form/ToggleButton',
+    'dijit/layout/ContentPane',
+    'dijit/layout/BorderContainer',
+	'./rangy/uncompressed/rangy-core',
+	'./rangy/uncompressed/rangy-selectionsaverestore'
+], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton, Dialog, ToggleButton){
 
-    proto.listenInit = function(){
-        this.collab.pauseSync();
-        this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
-    };
-    
-    proto.iterate = function() { 
-        this.iterateSend();
-        this.iterateRecv();
-    };
-    
-    proto.iterateSend = function() {
-        if(this.on==true){
-            this.newSnapshot = this.snapshot();
-            var oldLength = this.oldSnapshot.length;
-            var newLength = this.newSnapshot.length;
-            var syncs = null;
-            var caretInfo = null;
-            if((this._por.start != this._prevPor.start) || (this._por.end != this._prevPor.end)){
-                caretInfo = {'start':this._por.start,'end':this._por.end,'site':this._site};
-                this._prevPor.start = this._por.start;
-                this._prevPor.end = this._por.end;
-            }
+	return dojo.declare("TextEditor", [_Widget, _TemplatedMixin, _Contained], {
+	    // widget template
+		templateString: template,
+		
+        postCreate: function(){
+			//1. Process args
+            window.foo			= this;
+            this.id 			= 'TextEditor';
+	        this.go 			= true;
+	
+	        //2. Build stuff
+	        dojo.create('textarea', {style:'width:100%;height:100%;' }, dojo.byId('divContainer'));
+			nicEditors.allTextAreas();    
+            this._textarea 		= dojo.query('.nicEdit-main')[0];
+            this._toolbar 		= dojo.query('.nicEdit-panel')[0];
+			this._buildToolbar();                
+			this._footer		= this._buildFooter();
+	        this._attendeeList 	= new AttendeeList({domNode:dojo.byId('innerList'), id:'_attendeeList'});
+            this.util 			= new ld({});
+            this._shareButton 	= new ShareButton({
+                'domNode':dojo.byId('infoDiv'),
+                'listenTo':this._textarea,
+                'id':'shareButton',
+                'displayButton':false
+            });
             
-            if(oldLength < newLength){
-                var mx = this.max+(newLength - oldLength);
-                //Paste optimization
-                if(newLength-oldLength>50){
-                    var text = this.newSnapshot.slice(this.min, mx);
-                    for(var i=0; i<text.length; i++)
-                        this.collab.sendSync('editorUpdate', {'char':text[i],'filter':[],'caretInfo':caretInfo}, 'insert', i+this.min);
-                }else{
-                    syncs = this._util.ld(this.oldSnapshot.slice(this.min, this.max), this.newSnapshot.slice(this.min, mx));
-                    if(syncs){
-                        for(var i=0; i<syncs.length; i++){
-                            if(this._textarea._paste){
-                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
-                            }else{
-                                this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
-                            }
-                        }
-                    }
-                }
-            }else if(newLength < oldLength){
-                var mx = this.max+(oldLength-newLength);
-                var mn = (this.min-1 > -1) ? this.min-1 : 0;
-                syncs = this._util.ld(this.oldSnapshot.slice(mn, mx), this.newSnapshot.slice(mn, this.max));
-                if(syncs){
-                    for(var i=0; i<syncs.length; i++){
-                        if(this._textarea._paste){
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
-                        }else{
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+mn);
-                        }
-                    }
-                }
-            }else if(newLength == oldLength){
-                if(this.oldSnapshot != this.newSnapshot)
-                    syncs = this._util.ld(this.oldSnapshot.slice(this.min, this.max), this.newSnapshot.slice(this.min, this.max));
-                if(syncs){
-                    for(var i=0; i<syncs.length; i++){
-                        if(this._textarea._paste){
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':[],'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
-                        }else{
-                            this.collab.sendSync('editorUpdate', {'char':syncs[i].ch,'filter':this._textarea.filters,'caretInfo':caretInfo}, syncs[i].ty, syncs[i].pos+this.min);
-                        }
-                    }
-                }
-            }
+            //3. parameters
+            this.oldSnapshot 	= this.snapshot();
+            this.newSnapshot 	= null;
+            this.t 				= null;
+            this.q 				= [];
+            this.value 			= '';
+            this.interval		= 1000;
+			this.title          = 'Untitled Document';
+
+            //4. Style / connect
+			this.style();
+            this.connect();
+   
+			//5. kick things off
+            if(this.go == true)
+               this.listenInit();
+		},
+		
+		onCollabReady : function(){
+	        this.collab.pauseSync();
+	        this.resize();
+	    },
+
+	    listenInit : function(){
+	        this.collab.pauseSync();
+	        this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
+	    },
+
+	    iterate : function() { 
+	        this.iterateSend();
+	        this.iterateRecv();
+	    },
+
+	    iterateSend : function() {
+	        this.newSnapshot = this.snapshot();
+	        if(this.oldSnapshot && this.newSnapshot){
+	            if(this.oldSnapshot != this.newSnapshot)
+	                var syncs = this.syncs.concat(this.util.ld(this.oldSnapshot, this.newSnapshot));
+	            if(syncs){
+	                var s = '';
+	                for(var i=0; i<syncs.length; i++){
+	                    if(syncs[i] != undefined){
+	                       this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
+	                       s = s+syncs[i].ch;
+	                    }
+	                }
+	            }
+	        }
+	    },
+
+	    iterateRecv : function() {
+			//Get local typing syncs
+			this.syncs = [];
+			this.syncs = this.util.ld(this.newSnapshot, this.snapshot());
+	        this.collab.resumeSync();
+	        this.collab.pauseSync();
+	        if(this.q.length != 0 && !this.hasIncompleteTags(this.q)){
+	            this.runOps();
+	            this.q = [];
+	        }
+	        this.oldSnapshot = this.snapshot();
+	        this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
+	    },
+
+	    onRemoteChange : function(obj){
+	        this.q.push(obj);
+	    },
+
+	    onUserChange : function(params) {
+	        //Break if empty object
+	        if(!params.users[0])
+	            return;
+	        if(params.type == "join"){
+	            //Locally create a new listItem for the user
+	            this._attendeeList.onLocalUserJoin(params.users);
+	        }else if(params.type == "leave"){
+	            //Locally delete listItem for the user
+	            this._attendeeList.onUserLeave(params.users);
+	        }
+	    },
+
+	    runOps : function(){
+			console.log(this.q);
+            //var sel = rangy.saveSelection();
+            this.value = this._textarea.innerHTML;
+	        for(var i=0; i<this.q.length; i++){
+	            if(this.q[i].type == 'insert')
+	                this.insertChar(this.q[i].value, this.q[i].position);
+	            if(this.q[i].type == 'delete')
+	                this.deleteChar(this.q[i].position);
+	            if(this.q[i].type == 'update')
+	                this.updateChar(this.q[i].value, this.q[i].position);
+	        }
+	        this._textarea.innerHTML = this.value;
+            //rangy.restoreSelection(sel);
+	    },
+
+	    insertChar : function(c, pos) {
+	        var p = this.fixPos(pos);
+	        this.value = this.value.substr(0, p) + c + this.value.substr(p);
+	    },
+
+	    deleteChar : function(pos) {
+            var p = this.fixPos(pos);
+	        this.value = this.value.substr(0, p) + this.value.substr(p+1);
+	    },
+
+	    updateChar : function(c, pos) {
+            var p = this.fixPos(pos);
+	        this.value = this.value.substr(0, p) + c + this.value.substr(p+1);
+	    },
+	    
+	    fixPos: function(pos){
+			var search1 = '<span style="line-height: 0; display: none;" id="1sel';
+			var search1a = '<span id="1sel';
+			var search2 = '<span style="line-height: 0; display: none;" id="2sel';
+			var search2a = '<span id="2sel';
+			
+	        var start = this.value.search(search1);
+	        if(start == -1)
+	            var start = this.value.search(search1a);
+	        if(start != -1){
+	            var end = this.value.search(search2)-78;
+    	        if(end == -79)
+    	            var end = this.value.search(search2a)-78;   
+                if(pos>=end){
+    	            pos = pos + 156;
+    	        }else if(pos>start && pos<end){
+    	            pos = pos + 78;
+    	        } 
+	        }else if(start == -1){
+	            var end = this.value.search(search2);
+    	        if(end == -1)
+    	            var end = this.value.search(search2a);
+    	        if(end != -1){
+    	            if(pos>=end)
+        	            pos = pos + 78;
+    	        }
+	        }
+	        return pos;
+	    },
+	    
+	    clearSelection: function(){
             
-            //Remote Carets
-            if(!syncs && caretInfo){
-                this.collab.sendSync('editorCaret', caretInfo, null);
+	    },
+	    
+	    hasIncompleteTags : function(arr){
+            var openCount = 0;
+            var closeCount = 0;
+			var ampCount = 0;
+			var semiCount = 0;
+            for(var i=0; i<arr.length; i++){
+                if(arr[i].value == '<')
+                    openCount++;
+                else if(arr[i].value == '>')
+                    closeCount++;
+				else if(arr[i].value == '&')
+					ampCount++;
+				else if(arr[i].value == ';')
+					semiCount++;
             }
-        }
-    };
-    
-    proto.iterateRecv = function() {
-        if(this.on == true)
-            this.collab.resumeSync();
-        this.collab.pauseSync();
-        if(this.q.length != 0){
-            this.runOps();
+			if(ampCount>0){
+				if(ampCount==semiCount && openCount==closeCount)
+					return false;
+				else
+					return true;
+			}else{
+				return !(openCount==closeCount);
+			}
+	    },
+
+	    snapshot : function(){
+	        return this._getValue();
+	    },
+	    
+	    connect : function(){
+	        this.collab = coweb.initCollab({id : this.id});  
+	        this.collab.subscribeReady(this,'onCollabReady');
+	        this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
+			this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
+	        this.collab.subscribeStateRequest(this, 'onStateRequest');
+	    	this.collab.subscribeStateResponse(this, 'onStateResponse');
+	        dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
+	        dojo.connect(this._textarea, 'onblur', this, '_onBlur');
+	        dojo.connect(dojo.byId('url'),'onclick',this,function(e){ this.selectElementContents(e.target) });
+            dojo.connect(dojo.byId('url'),'onblur',this,function(e){ e.target.innerHTML = window.location; });
+	        dojo.connect(window, 'resize', this, 'resize');
+	        // dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
+	        //     dojo.publish("shareClick", [{}]);
+	        // });
+	        attendance.subscribeChange(this, 'onUserChange');
+	    },
+
+	    onStateRequest : function(token){
+	        var state = {
+	            snapshot: this.newSnapshot,
+	            attendees: this._attendeeList.attendees,
+				title: this.title
+	        };
+	        this.collab.sendStateResponse(state,token);
+	    },
+
+	    onStateResponse : function(obj){
+			this._textarea.innerHTML = '';
+	        this._textarea.innerHTML = obj.snapshot;
+	        this.newSnapshot = obj.snapshot;
+	        this.oldSnapshot = obj.snapshot;    
+			this.title = obj.title;
+			this._title.value = this.title;
+	        for(var i in obj.attendees){
+	            var o = {
+	                value: {
+	                    'site':i,
+	                    'name':obj.attendees[i]['name'],
+	                    'color':obj.attendees[i]['color']
+	                }
+	            };
+	            this._attendeeList.onRemoteUserJoin(o);
+	        }
+	    },
+ 
+	    _getValue : function() {
+	        return this._textarea.innerHTML;
+	    },
+
+	    _onFocus : function(event) {
+	        this._focused = true;
+	    },
+
+	    _onBlur : function(event) {
+	        this._focused = false;
+	    },
+
+	    selectElementContents: function(el){
+            var range = document.createRange();
+            range.selectNodeContents(el);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        },
+         
+	    resize: function(){
+	        dojo.style(dojo.byId('editorTable'),'height',dojo.byId('editorTable').parentNode.offsetHeight+'px');
+	        dojo.style(dojo.byId('innerList'),'height',(dojo.byId('editorTable').parentNode.offsetHeight-dojo.byId('infoDiv').offsetHeight)+'px');
+	        dojo.style(dojo.byId('divContainer'),'height',dojo.byId('editorTable').parentNode.offsetHeight+'px');
+	    },
+
+	    _loadTemplate : function(url) {
+	        var e = document.createElement("link");
+	        e.href = url;
+	        e.type = "text/css";
+	        e.rel = "stylesheet";
+	        e.media = "screen";
+	        document.getElementsByTagName("head")[0].appendChild(e);
+	    },
+	    
+	    style: function(){
+	        //dojo.attr(this._textarea, 'innerHTML', 'To begin, just start click and start <strong>typing</strong>...');
+	        this._loadTemplate('../lib/cowebx/dojo/BasicTextareaEditor/TextEditor.css');
+	        dojo.addClass(this._textarea.parentNode, 'textareaContainer');
+			dojo.addClass(this._textarea, 'textarea'); 
+			
+            dojo.style(this._toolbar.parentNode.parentNode,'width','100%');
+            dojo.style(this._toolbar.parentNode.parentNode,'height','37px'); 
+			dojo.style(this._toolbar.parentNode.parentNode,'border','0px');  
+
+            dojo.style(this._toolbar.parentNode,'height','37px');
+			dojo.style(this._toolbar.parentNode,'border','0px'); 
+			dojo.style(this._toolbar.parentNode,'borderBottom', '1px solid #BBBBBB')   
+			
+            dojo.style(this._toolbar,'height','37px');
+            dojo.style(this._toolbar, 'width','100%');
+            dojo.style(this._toolbar, 'margin','0px');
+			dojo.style(this._toolbar, 'borderRight', '0px')
+			dojo.style(this._toolbar, 'padding-left','30px'); 
+           	
+			var rulerContainer = dojo.create('div',{'class':'rulerContainer',id:'rulerContainer'},this._toolbar.parentNode,'after');
+			var i = dojo.create('img', {src:'../lib/cowebx/dojo/BasicTextareaEditor/images/ruler.png', 'class':'ruler'}, rulerContainer, 'first');
+			
             
-            dojo.publish("editorHistory", [{save:dojo.clone(this._textarea.value)}]);
-        }
-        this.q = [];
-        this.oldSnapshot = this.snapshot();
-        this._forcePOR();
-        
-        this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
-    };
-    
-    proto.runOps = function(){
-		this._textarea._destroyRemoteCarets();
-        this.value = this._textarea.value;
-        //this._updatePOR();
-        for(var i=0; i<this.q.length; i++){
-            if(this.q[i].type == 'insert'){
-                this.insertChar(this.q[i].value['char'], this.q[i].position, this.q[i].value['filter']);
-                if(this.q[i].value['caretInfo'] != null){
-                    this._textarea.attendees[this.q[i].value['caretInfo'].site] = {
-                        start: this.q[i].value['caretInfo'].start,
-                        end: this.q[i].value['caretInfo'].end,
-                        color: this._attendeeList.attendees[this.q[i].value['caretInfo'].site]['color']
-                    };
-                }
-            }
-            if(this.q[i].type == 'delete')
-                this.deleteChar(this.q[i].position);
-                if(this.q[i].value['caretInfo'] != null){
-                    this._textarea.attendees[this.q[i].value['caretInfo'].site] = {
-                        start: this.q[i].value['caretInfo'].start,
-                        end: this.q[i].value['caretInfo'].end,
-                        color: this._attendeeList.attendees[this.q[i].value['caretInfo'].site]['color']
-                    };
-                }
-            if(this.q[i].type == 'update')
-                this.updateChar(this.q[i].value['char'], this.q[i].position, this.q[i].value['filter']);
-                if(this.q[i].value['caretInfo'] != null){
-                    this._textarea.attendees[this.q[i].value['caretInfo'].site] = {
-                        start: this.q[i].value['caretInfo'].start,
-                        end: this.q[i].value['caretInfo'].end,
-                        color: this._attendeeList.attendees[this.q[i].value['caretInfo'].site]['color']
-                    };
-                }
-        }
-        this._textarea.value = this.value;
-        //this._moveCaretToPOR();
-		this._textarea._renderRemoteCarets();
-    };
-    
-    proto.onRemoteChange = function(obj){
-        this.q.push(obj);
-    };
-    
-    proto.onUserChange = function(params) {
-        //Break if empty object
-		if(!params.users[0])
-			return;
-		if(params.type == "join"){
-			//Locally create a new listItem for the user
-			this._attendeeList.onLocalUserJoin(params.users);
-		}else if(params.type == "leave"){
-			//Locally delete listItem for the user
-			this._attendeeList.onUserLeave(params.users);
-		}
-    };
-    
-    proto.onRemoteCaretMove = function(obj){
-        this._textarea.attendees[obj.value.site] = {
-            start: obj.value.start,
-            end: obj.value.end,
-            color: this._attendeeList.attendees[obj.value.site]['color']
-        };
-        this._textarea._destroyRemoteCarets();
-		this._textarea._renderRemoteCarets();
-    };
-        
-    proto.insertChar = function(c, pos, filter) {
-		this._updatePOR();
-        var t = this._textarea;
-        var ch;
-		//Clear selection if inserting in current sel
-        if(pos>t.value.start && pos<t.value.end){
-            t.clearSelection(null, true);
-            this._updatePOR();
-        }
-        var sel = Math.abs(t.value.start-t.value.end);
-        por = this._por,
-        start = por.start,
-        end = por.end;
-        var f = (filter == null || undefined) ? [] : filter;
+            dojo.attr('url','innerHTML',window.location);
+	    },
+	
+		_buildFooter: function(){
+	        var footerNode = dojo.create('div',{'class':'footer gradient'},dojo.byId('divContainer'),'last');
 
-		//update string in memory
-        t.value.string = t.value.string.slice(0, pos).concat([c]).concat(t.value.string.slice(pos));
-        
-		//Fix all remote carets
-        for(var j in t.attendees){
-            var s = t.attendees[j].start;
-            if(pos < t.attendees[j].start)
-                ++s;
-            t.attendees[j].start = s;
-            t.attendees[j].end = s;
-        }
+	        //1. Title box & image
+	        var title = dojo.create('input',{'class':'title',value:'Untitled Document',type:'text'},footerNode,'first');
+	        var edit = dojo.create('img',{src:'../lib/cowebx/dojo/RichTextEditor/images/pencil.png','class':'editIcon'},title,'after');
 
-		//custom DOM render
-        if(pos<t.value.start || (pos==t.value.start && sel>0)){
-            if((c.search('">') != -1)||(c.search("nbsp") != -1)){
-                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
-                dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos],'before');
-            }else if(c.search('br') != -1){
-                dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos],'before');
-            }
-        }else{
-            if((c.search('">') != -1)||(c.search("nbsp") != -1)){
-                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
-                dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos-sel],'after');
-            }else if(c.search('br') != -1){
-                dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos-sel],'after');
-            }
-        }
-        
-		//Update start / end in mem
-        if(pos < por.end) {
-            if(pos >= por.start && por.end != por.start)
-                ++start;
-            ++end;
-        }
-        if(pos < por.start)
-            ++start;
-        por.start = start;
-        por.end = end;
-        this._prevPor.start = this._por.start;
-        this._prevPor.end = this._por.end;
-		this._moveCaretToPOR();
-    };
-  
-    proto.deleteChar = function(pos) {
-		this._updatePOR();
-		//clear selection if pos is within current sel
-        var t = this._textarea;
-        if(pos>=t.value.start && pos<=t.value.end){
-            t.clearSelection(null, true);
-            this._updatePOR();
-        }
-        var sel = Math.abs(this._por.start-this._por.end);
+	        //2. Connect
+	        dojo.connect(title, 'onclick', this, function(e){
+	            dojo.style(e.target, 'background', 'white');
+	        });
+	        dojo.connect(title, 'onblur', this, function(e){
+	            this.title = (e.target.value.length > 0) ? e.target.value : this.title;
+	            e.target.value = this.title;
+	            dojo.style(e.target, 'background', '');
+	            this.collab.sendSync('editorTitle', {'title':e.target.value}, null);   
+	        });
+	        dojo.connect(title, 'onkeypress', this, function(e){
+	            if(e.keyCode == 13)
+	                e.target.blur();
+	        });
+	        this._title = title;
 
-		//adjust string in memory
-        t.value.string = t.value.string.slice(0, pos).concat(t.value.string.slice(pos+1));
-        
-		//Fix all remote carets
-        for(var j in t.attendees){
-            if(pos < t.attendees[j].start)
-                --t.attendees[j].start;
-        }
+	        return footerNode;
+		}, 
 		
-		//custom render
-        if(pos<t.value.start){
-            if(dojo.byId('thisFrame').childNodes[pos])
-                dojo.destroy(dojo.byId('thisFrame').childNodes[pos]);
-        }else{
-            if(dojo.byId('thisFrame').childNodes[pos+1-sel])
-                dojo.destroy(dojo.byId('thisFrame').childNodes[pos+1-sel]);
-        }
-		
-		//adjust start / end in memory
-        if(pos < this._por.start)
-            --this._por.start;
-        if(pos < this._por.end)
-            --this._por.end;
-        this._prevPor.start = this._por.start;
-        this._prevPor.end = this._por.end;
-		this._moveCaretToPOR();
-    };
-        
-    proto.updateChar = function(c, pos, filter) {
-		this._updatePOR();
-        var t = this._textarea;
-        if(pos>=t.value.start && pos<=t.value.end){
-            t.clearSelection(null, true);
-            this._updatePOR();
-        }
-        var sel = Math.abs(this._por.start-this._por.end);
-        var f = (filter == null || undefined) ? [] : filter;
-        t.value.string = t.value.string.slice(0, pos).concat([c]).concat(t.value.string.slice(pos+1));
-        
-        var ch;
-        if(pos<t.value.start){
-            dojo.destroy(dojo.byId('thisFrame').childNodes[pos]);
-            if((c.search('">') != -1)||(c.search("nbsp") != -1)){
-                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
-                dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos-1],'after');
-            }else if(c.search('br') != -1){
-                dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos-1],'after');
+		_buildToolbar: function(){
+			for(var i=0; i<this._toolbar.childNodes.length; i++){    
+				dojo.addClass(this._toolbar.childNodes[i], 'toolbarButton');
+				dojo.style(this._toolbar.childNodes[i].firstChild, 'width', '100%');   
+				dojo.style(this._toolbar.childNodes[i].firstChild, 'height', '100%');
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild, 'width', '100%');   
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild, 'height', '100%');
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'width', '100%');   
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'height', '100%');
+				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'backgroundPosition', 'center');   
+               	switch(i){
+	            	case 1:                                              
+						console.log(this._toolbar.childNodes[i].firstChild.firstChild.firstChild);
+						//dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', '');
+	                    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/bold.png)');
+						break;
+					case 2:
+					    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/italic.png)');     
+						break;
+					case 3:   
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/underline.png)');
+						break; 
+					case 8:   
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/ordered.png)');
+						break;
+					case 9:   
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/unOrdered.png)');
+						break;   
+					case 10:   
+						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
+						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/fontFace.png)');
+						break;
+					case 11:   
+						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
+						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/fontSize.png)');
+						break;
+					case 15:
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/image.png)');
+						break;
+					case 19:
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/textColor.png)');
+						break; 
+					case 20:   
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/hiliteColor.png)');
+						break;      
+				
+				}
+				       
+                //TEMPORARY: HIDE UNUSED BUTTONS
+                var arr = [4,5,6,7,12,13,14,16,17,18];
+				for(var n in arr){
+					dojo.style(this._toolbar.childNodes[arr[n]], 'display', 'none');
+				}
             }
-        }else{
-            dojo.destroy(dojo.byId('thisFrame').childNodes[pos+1-sel]);
-            if((c.search('">') != -1)||(c.search("nbsp") != -1)){
-                ch = (c.search("nbsp") == -1) ? c.substring(c.search('">')+2,c.search('">')+3) : '&nbsp; ';
-                dojo.create('span',{innerHTML:ch,style:f.join("")},dojo.byId('thisFrame').childNodes[pos-sel],'after');
-            }else if(c.search('br') != -1){
-                dojo.create('br',{},dojo.byId('thisFrame').childNodes[pos-sel],'after');
-            }
-        }
-        
-        this._prevPor.start = this._por.start;
-        this._prevPor.end = this._por.end;
-		this._moveCaretToPOR();
-    };
-
-    proto.insertString = function(string, pos) {
-        var x = pos;
-        for(var i=0; i<string.length; i++){
-            this.insertChar(string[i], x);
-            x++;
-        }
-    };
-    
-    proto.deleteString = function(start, end) {
-        for(var i=start; i<end; i++)
-            this.deleteChar(i);
-    };
-    
-    proto.snapshot = function(){
-        return this._getValueAttr();
-    };
-    
-    proto.setPOR = function(pos){
-        this._por.start = pos;
-        this._por.end = pos;
-    };
-    
-    proto.cleanup = function() {
-        if(this.t != null){
-            clearTimeout(this.t);
-            this. t = null;
-        }
-    };
-    
-    proto.onStateRequest = function(token){
-		var carets = dojo.clone(this._textarea.attendees);
-		carets[this._attendeeList.site] = {
-            start: this._textarea.value.start,
-            end: this._textarea.value.end,
-            color: this._attendeeList.attendees[this._attendeeList.site]['color']
-        };
-        var state = {
-            value: this._textarea.value,
-            oldSnapshot: this.oldSnapshot,
-            title: this._textarea.title,
-            attendees: this._attendeeList.attendees,
-			carets: carets
-        };
-        this.collab.sendStateResponse(state,token);
-    };
-    
-    proto.onStateResponse = function(obj){
-        this.oldSnapshot = obj.oldSnapshot;
-        this._textarea.value = obj.value;
-        this._textarea.title = obj.title;
-        this._textarea._title.value = this._textarea.title;
-        this._textarea.value.start = 0;
-        this._textarea.value.end = 0;
-        this._textarea.render();
-        for(var i in obj.attendees){
-            var o = {
-                value: {
-                    'site':i,
-                    'name':obj.attendees[i]['name'],
-                    'color':obj.attendees[i]['color']
-                }
-            };
-            this._attendeeList.onRemoteUserJoin(o);
-        }
-		this._textarea.attendees = obj.carets;
-		this._textarea._renderRemoteCarets();
-    };
-    
-    proto._moveCaretToPOR = function() {
-        this._textarea.value.start = this._por.start;
-        this._textarea.value.end = this._por.end;
-        
-    };
-
-    proto._updatePOR = function() {
+			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[8],'before'); 
+			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[19],'before');  
+			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
+			var redo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/redo.png);'},this._toolbar,'first');
+			var undo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/undo.png);'},this._toolbar,'first');
+			dojo.connect(redo, 'onclick', this, function(){ document.execCommand('redo',"",""); });
+			dojo.connect(undo, 'onclick', this, function(){ document.execCommand('undo',"",""); });
+			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
+			var newPage = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/newpage.png);'},this._toolbar,'first');
+			var home = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/home.png);'},this._toolbar,'first');
+			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/save.png);'},this._toolbar,'first');
+			dojo.connect(newPage, 'onclick', this, 'onNewPageClick');
+			dojo.connect(home, 'onclick', this, 'onHomeClick');
+			dojo.connect(save, 'onclick', this, 'onSaveClick');
+			this._buildConfirmDialog();		         
+		},
 		
-        this._por.start = this._textarea.value.start;
-        this._por.end = this._textarea.value.end;
-        
-        if(this._por.start < this.min)
-            this.min = this._por.start;
-        if(this._por.end > this.max)
-            this.max = this._por.end;
+		onSaveClick: function() {
+	         dojo.publish("shareClick", [{}]);
+	    },
 		
-    };
-    
-    proto._forcePOR = function() {
-        this._por.start = this._textarea.value.start;
-        this._por.end = this._textarea.value.end;
-        this.min = this._por.start;
-        this.max = this._por.end;
-    };
-    
-    proto._connectSyncs = function(){
-        this.collab = coweb.initCollab({id : this.id});  
-        this.collab.subscribeReady(this,'onCollabReady');
-        this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
-        this.collab.subscribeSync('editorCaret', this, 'onRemoteCaretMove');
-        this.collab.subscribeStateRequest(this, 'onStateRequest');
-    	this.collab.subscribeStateResponse(this, 'onStateResponse');
-    	dojo.connect(dojo.byId('thisDiv'), 'onkeypress', this, '_updatePOR');
-    	dojo.connect(dojo.byId('thiDiv'), 'onmouseup', this, '_forcePOR');
-    	//AttendeeList connects
-    	attendance.subscribeChange(this, 'onUserChange');
-    };
-
-    proto._getValueAttr = function() {
-        return this._textarea.getValue();
-    };
-    
-    proto._getCleanValueAttr = function(){
-        var value = this._getValueAttr();
-        var s = [];
-        for(var i=0; i<value.length; i++){
-            if(value[i]=='^'){
-                s.push('<br>');
-            }else{
-                s.push(value[i]);
-            }
-        }
-        var string = s.join("");
-        return string;
-    };
-    
-    return TextEditor;
+		onHomeClick: function() {
+	        dijit.byId('tDialog').set('content', "You may lose data if you are the only user in the current session. Do you really want to go to Home?");
+	        dijit.byId('tDialog').show();
+	        var one = dojo.connect(dijit.byId('yesButton'),'onClick',this, function(){
+	            window.location = window.location.pathname;
+	        });
+	        var two = dojo.connect(dijit.byId('noButton'),'onClick',this, function(){
+	            dijit.byId('tDialog').hide();
+	            dojo.disconnect(one);
+	            dojo.disconnect(two);
+	        });
+	        var three = dojo.connect(dijit.byId('tDialog'), 'onHide', this, function(){
+	            dojo.disconnect(one);
+	            dojo.disconnect(two);
+	            dojo.disconnect(three);
+	        });
+	    },
+		
+		onNewPageClick: function() {
+	        dijit.byId('tDialog').set('content', "You may lose data if you are the only user in the current session. Do you really want to start a new Document?");
+	        dijit.byId('tDialog').show();
+	        var one = dojo.connect(dijit.byId('yesButton'),'onClick',this, function(){
+	            window.location = window.location.pathname+'?'+'session='+Math.floor(Math.random()*10000001);
+	            dojo.disconnect(one);
+	            dojo.disconnect(two);
+	        });
+	        var two = dojo.connect(dijit.byId('noButton'),'onClick',this, function(){
+	            dijit.byId('tDialog').hide();
+	            dojo.disconnect(one);
+	            dojo.disconnect(two);
+	        });
+	        var three = dojo.connect(dijit.byId('tDialog'), 'onHide', this, function(){
+	            dojo.disconnect(one);
+	            dojo.disconnect(two);
+	            dojo.disconnect(three);
+	        });
+	    },
+	
+		_buildConfirmDialog: function(){
+	        secondDlg = new Dialog({
+	            title: "Are you sure?",
+	            style: "width: 300px;font:12px arial;",
+	            id: 'tDialog'
+	        });
+	        var h = dojo.create('div',{'style':'margin-left:auto;margin-right:auto;width:80px;margin-bottom:5px'},secondDlg.domNode,'last');
+	        var yes = new ToggleButton({
+	            label: '<span style="font-family:Arial;font-size:10px;">Yes</span>',
+	            showLabel: true,
+	            id: 'yesButton'
+	        });
+	        var no = new ToggleButton({
+	            label: '<span style="font-family:Arial;font-size:10px;">No</span>',
+	            showLabel: true,
+	            id: 'noButton'
+	        });
+	        dojo.place(yes.domNode, h, 'last');
+	        dojo.place(no.domNode, h, 'last');
+	        return secondDlg
+	    },
+		
+		_onRemoteTitle: function(obj){
+	        this.title = obj.value.title;
+	        this._title.value = this.title;
+	    },
+	    
+	    cleanup : function() {
+	        if(this.t != null){
+	            clearTimeout(this.t);
+	            this. t = null;
+	        }
+	    }
+	});
 });
