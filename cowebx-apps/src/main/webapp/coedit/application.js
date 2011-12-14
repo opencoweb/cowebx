@@ -22,10 +22,9 @@ define(
 		
 		var app = {
 			init: function(){
-			    //1. Create the editor
-                var textEditor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor',go:true});
-                
-			    //2. Generate session or enter session
+			    dojo.parser.parse();
+
+			    //1. Generate session or enter session
  			    if(this.aquireUrlParams('session') == null){
  			        dojo.style('splash','display','block');
        			    dojo.connect(dojo.byId('newDoc'),'onclick',this,function(){

@@ -301,7 +301,7 @@ define([
 	    
 	    style: function(){
 	        //dojo.attr(this._textarea, 'innerHTML', 'To begin, just start click and start <strong>typing</strong>...');
-	        this._loadTemplate('../lib/cowebx/dojo/BasicTextareaEditor/TextEditor.css');
+	        this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
 	        dojo.addClass(this._textarea.parentNode, 'textareaContainer');
 			dojo.addClass(this._textarea, 'textarea'); 
 			
@@ -320,7 +320,7 @@ define([
 			dojo.style(this._toolbar, 'padding-left','30px'); 
            	
 			var rulerContainer = dojo.create('div',{'class':'rulerContainer',id:'rulerContainer'},this._toolbar.parentNode,'after');
-			var i = dojo.create('img', {src:'../lib/cowebx/dojo/BasicTextareaEditor/images/ruler.png', 'class':'ruler'}, rulerContainer, 'first');
+			var i = dojo.create('img', {src:'../lib/cowebx/dojo/RichTextEditor/images/ruler.png', 'class':'ruler'}, rulerContainer, 'first');
 			
             
             dojo.attr('url','innerHTML',window.location);
@@ -366,38 +366,38 @@ define([
 	            	case 1:                                              
 						console.log(this._toolbar.childNodes[i].firstChild.firstChild.firstChild);
 						//dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', '');
-	                    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/bold.png)');
+	                    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/bold.png)');
 						break;
 					case 2:
-					    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/italic.png)');     
+					    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/italic.png)');     
 						break;
 					case 3:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/underline.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/underline.png)');
 						break; 
 					case 8:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/ordered.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/ordered.png)');
 						break;
 					case 9:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/unOrdered.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/unOrdered.png)');
 						break;   
 					case 10:   
 						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
 						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/fontFace.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/fontFace.png)');
 						break;
 					case 11:   
 						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
 						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/fontSize.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/fontSize.png)');
 						break;
 					case 15:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/image.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/image.png)');
 						break;
 					case 19:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/textColor.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/textColor.png)');
 						break; 
 					case 20:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/BasicTextareaEditor/images/hiliteColor.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/hiliteColor.png)');
 						break;      
 				
 				}
@@ -411,14 +411,14 @@ define([
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[8],'before'); 
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[19],'before');  
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
-			var redo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/redo.png);'},this._toolbar,'first');
-			var undo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/undo.png);'},this._toolbar,'first');
+			var redo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/RichTextEditor/images/redo.png);'},this._toolbar,'first');
+			var undo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/RichTextEditor/images/undo.png);'},this._toolbar,'first');
 			dojo.connect(redo, 'onclick', this, function(){ document.execCommand('redo',"",""); });
 			dojo.connect(undo, 'onclick', this, function(){ document.execCommand('undo',"",""); });
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
-			var newPage = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/newpage.png);'},this._toolbar,'first');
-			var home = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/home.png);'},this._toolbar,'first');
-			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/BasicTextareaEditor/images/save.png);'},this._toolbar,'first');
+			var newPage = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/RichTextEditor/images/newpage.png);'},this._toolbar,'first');
+			var home = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/RichTextEditor/images/home.png);'},this._toolbar,'first');
+			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/RichTextEditor/images/save.png);'},this._toolbar,'first');
 			dojo.connect(newPage, 'onclick', this, 'onNewPageClick');
 			dojo.connect(home, 'onclick', this, 'onHomeClick');
 			dojo.connect(save, 'onclick', this, 'onSaveClick');
