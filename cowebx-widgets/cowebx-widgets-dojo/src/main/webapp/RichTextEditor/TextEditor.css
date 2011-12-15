@@ -58,7 +58,7 @@
 }
 
 .textarea:focus{
-    width:830px !important;
+    width:720px !important;   
     height:100% !important;
     margin:0px !important;
     outline:0px solid transparent !important;

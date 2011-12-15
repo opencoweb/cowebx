@@ -12,9 +12,7 @@ define([
     'dijit/Dialog',
     'dijit/form/ToggleButton',
     'dijit/layout/ContentPane',
-    'dijit/layout/BorderContainer',
-	'./rangy/uncompressed/rangy-core',
-	'./rangy/uncompressed/rangy-selectionsaverestore'
+    'dijit/layout/BorderContainer'
 ], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton, Dialog, ToggleButton){
 
 	return dojo.declare("TextEditor", [_Widget, _TemplatedMixin, _Contained], {
@@ -23,7 +21,6 @@ define([
 		
         postCreate: function(){
 			//1. Process args
-            window.foo			= this;
             this.id 			= 'TextEditor';
 	        this.go 			= true;
 	
@@ -49,7 +46,7 @@ define([
             this.t 				= null;
             this.q 				= [];
             this.value 			= '';
-            this.interval		= 1000;
+            this.interval		= 100;
 			this.title          = 'Untitled Document';
 
             //4. Style / connect
@@ -125,8 +122,7 @@ define([
 	    },
 
 	    runOps : function(){
-			console.log(this.q);
-            //var sel = rangy.saveSelection();
+            this.sel = rangy.saveSelection();
             this.value = this._textarea.innerHTML;
 	        for(var i=0; i<this.q.length; i++){
 	            if(this.q[i].type == 'insert')
@@ -137,7 +133,8 @@ define([
 	                this.updateChar(this.q[i].value, this.q[i].position);
 	        }
 	        this._textarea.innerHTML = this.value;
-            //rangy.restoreSelection(sel);
+			if(this.sel)
+            	rangy.restoreSelection(this.sel);
 	    },
 
 	    insertChar : function(c, pos) {
@@ -171,7 +168,11 @@ define([
                 if(pos>=end){
     	            pos = pos + 156;
     	        }else if(pos>start && pos<end){
-    	            pos = pos + 78;
+					pos = pos + 78;
+					// this.clearSelection();
+					// 					this.value = this.value.substr(0,start) + this.value.substr(start+78);
+					// 					this.value = this.value.substr(0,end) + this.value.substr(end+78);
+					// 					this.sel = null
     	        } 
 	        }else if(start == -1){
 	            var end = this.value.search(search2);
@@ -186,8 +187,24 @@ define([
 	    },
 	    
 	    clearSelection: function(){
-            
+			this._skipRestore = true;
+            var sel, range;
+		    if (window.getSelection) {
+		        sel = window.getSelection();
+		        if (sel.rangeCount) {
+		            range = sel.getRangeAt(0);
+		            sel.collapse(range.startContainer, range.startOffset);
+		        }
+		    } else if ( (sel = document.selection) && sel.type == "Text") {
+		        range = sel.createRange();
+		        range.collapse(true);
+		        range.select();
+		    }
 	    },
+	
+		inSelection: function(pos){
+			
+		},
 	    
 	    hasIncompleteTags : function(arr){
             var openCount = 0;
@@ -364,8 +381,6 @@ define([
 				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'backgroundPosition', 'center');   
                	switch(i){
 	            	case 1:                                              
-						console.log(this._toolbar.childNodes[i].firstChild.firstChild.firstChild);
-						//dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', '');
 	                    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/bold.png)');
 						break;
 					case 2:
@@ -383,12 +398,12 @@ define([
 					case 10:   
 						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
 						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/fontFace.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/fontSize.png)');
 						break;
 					case 11:   
 						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
 						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/fontSize.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/fontFace.png)');
 						break;
 					case 15:
 						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/image.png)');
