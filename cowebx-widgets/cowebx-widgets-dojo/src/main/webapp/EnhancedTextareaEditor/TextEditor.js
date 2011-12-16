@@ -86,7 +86,7 @@ define([
         if(oldLength < newLength){
             var mx = this.max+(newLength - oldLength);
             if(this.oldSnapshot != this.newSnapshot)
-                var syncs = this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx));
+                var syncs = this.syncs.concat(this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx)));
             //console.log('old = '+this.oldSnapshot.substring(this.min, this.max));
             //console.log('new = '+this.newSnapshot.substring(this.min, mx));
             
@@ -101,7 +101,7 @@ define([
             var mx = this.max+(oldLength-newLength);
             var mn = (this.min-1 > -1) ? this.min-1 : 0;
             if(this.oldSnapshot != this.newSnapshot)
-                var syncs = this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max));
+                var syncs = this.syncs.concat(this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max)));
             //console.log('old = '+this.oldSnapshot.substring(mn, mx));
             //console.log('new = '+this.newSnapshot.substring(mn, this.max));
             
@@ -115,6 +115,8 @@ define([
     };
     
     proto.iterateRecv = function() {
+		this.syncs = [];
+		this.syncs = this.util.ld(this.newSnapshot, this.snapshot());
         this.collab.resumeSync();
         this.collab.pauseSync();
         if(this.q.length != 0)
