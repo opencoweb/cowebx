@@ -21,6 +21,7 @@ define([
 		
         postCreate: function(){
 			//1. Process args
+			window.foo			= this;
             this.id 			= 'TextEditor';
 	        this.go 			= true;
 	
@@ -79,11 +80,10 @@ define([
 	            if(this.oldSnapshot != this.newSnapshot)
 	                var syncs = this.syncs.concat(this.util.ld(this.oldSnapshot, this.newSnapshot));
 	            if(syncs){
-	                var s = '';
+					console.log(syncs);
 	                for(var i=0; i<syncs.length; i++){
 	                    if(syncs[i] != undefined){
 	                       this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
-	                       s = s+syncs[i].ch;
 	                    }
 	                }
 	            }
@@ -158,21 +158,25 @@ define([
 			var search2 = '<span style="line-height: 0; display: none;" id="2sel';
 			var search2a = '<span id="2sel';
 			
+			var markerLength = (dojo.isWebKit) ? 78 : 77;
+			
+			// get start index
 	        var start = this.value.search(search1);
 	        if(start == -1)
 	            var start = this.value.search(search1a);
 	        if(start != -1){
-	            var end = this.value.search(search2)-78;
-    	        if(end == -79)
-    	            var end = this.value.search(search2a)-78;   
+				// get end index and adjust
+	            var end = this.value.search(search2);
+    	        if(end == -1)
+    	            var end = this.value.search(search2a);   
+				end = end - markerLength;
+				
                 if(pos>=end){
-    	            pos = pos + 156;
-    	        }else if(pos>start && pos<end){
-					pos = pos + 78;
-					// this.clearSelection();
-					// 					this.value = this.value.substr(0,start) + this.value.substr(start+78);
-					// 					this.value = this.value.substr(0,end) + this.value.substr(end+78);
-					// 					this.sel = null
+    	            pos = pos + (2*markerLength);
+    	        }else if(pos>=start && pos<end){
+					this.clearSelection();
+					this.value = this.value.substr(0,start) + this.value.substr(start+markerLength);
+					this.sel = rangy.saveSelection();
     	        } 
 	        }else if(start == -1){
 	            var end = this.value.search(search2);
@@ -180,7 +184,7 @@ define([
     	            var end = this.value.search(search2a);
     	        if(end != -1){
     	            if(pos>=end)
-        	            pos = pos + 78;
+        	            pos = pos + markerLength;
     	        }
 	        }
 	        return pos;
@@ -201,10 +205,6 @@ define([
 		        range.select();
 		    }
 	    },
-	
-		inSelection: function(pos){
-			
-		},
 	    
 	    hasIncompleteTags : function(arr){
             var openCount = 0;

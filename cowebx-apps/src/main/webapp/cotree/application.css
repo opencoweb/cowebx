@@ -1,0 +1,201 @@
+/*
+ * Cooperative tree styles.
+ *
+ * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+ * 
+ */
+
+@import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit/themes/claro/document.css";
+@import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit/themes/claro/claro.css";
+@import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojo/resources/dnd.css";
+html, body {
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.dojoDndItemSelected,.dojoDndItemAnchor{
+	background-color: #D8EDFF !important;
+}
+
+body {
+    background: url("images/testsBodyBg.gif") repeat-x scroll left top #FFFFFF;
+    padding: 2em;
+}
+h1.testTitle {
+    font-size: 2em;
+    margin: 0 0 1em;
+}
+.plusIcon, .plusBlockIcon {
+    background-image: url("images/plus.gif");
+    background-position: center center;
+    background-repeat: no-repeat;
+    height: 18px;
+    width: 18px;
+}
+.plusBlockIcon {
+    display: block !important;
+}
+.noteIcon {
+    background-image: url("images/note.gif");
+    background-position: center center;
+    background-repeat: no-repeat;
+    height: 18px;
+    width: 18px;
+}
+.flatScreenIcon {
+    background-image: url("images/flatScreen.gif");
+    background-repeat: no-repeat;
+    height: 32px;
+    width: 32px;
+}
+.dijitTestNodeDialog {
+    background-color: #FFFFFF !important;
+    border: 1px solid #000000;
+    color: #000000 !important;
+    display: block;
+    padding: 5px;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    visibility: hidden;
+    width: 200px;
+}
+.dijitTestNodeDialog table {
+    background-color: #FFFFFF !important;
+}
+.dijitTestNodeDialog td {
+    padding: 3px;
+}
+.dijitTestNodeShowing {
+    visibility: visible;
+}
+body .customFolderOpenedIcon, body .customFolderClosedIcon {
+    background-image: url("../images/folderIcons.png");
+    background-position: -44px 50%;
+    background-repeat: no-repeat;
+    height: 18px;
+    width: 18px;
+}
+.dj_ie6 .customFolderOpenedIcon, .dj_ie6 .customFolderClosedIcon {
+    background-image: url("../images/folderIcons.gif");
+}
+.customFolderClosedIcon {
+    background-position: -154px 50%;
+}
+#testMatrix {
+    text-align: center;
+    width: 100%;
+}
+#testMatrix tr > td {
+    text-align: left;
+}
+#testMatrix tr.top {
+    background: none repeat scroll 0 0 blue;
+    color: #FFFFFF;
+}
+#testMatrix tr.top th {
+    padding: 6px;
+}
+#testMatrix tr.tests {
+    background: none repeat scroll 0 0 #666666;
+    color: #FFFFFF;
+    padding: 3px 6px;
+}
+#testMatrix tr.tests th {
+    text-align: center;
+}
+#testMatrix tr.spacer {
+    background: none repeat scroll 0 0 #DEDEDE;
+    color: #666666;
+}
+#testMatrix tr.spacer td {
+    padding: 6px;
+}
+#testMatrix tr.testRow td {
+    text-align: center;
+}
+#testMatrix tr.testRow td.label {
+    padding-left: 15px;
+    text-align: left;
+}
+#testMatrix tr.alt {
+    background: none repeat scroll 0 0 #EDEDED;
+}
+
+.dojoxGrid table {
+  margin: 0;
+}
+
+.dojoDndItemSelected, .dojoDndItemAnchor {
+    background-color: #D8EDFF !important;
+}
+
+.myFolder {
+    background: none repeat scroll 0 0 blue;
+    height: 16px;
+    width: 16px;
+}
+.myItem {
+    background: none repeat scroll 0 0 green;
+    height: 16px;
+    width: 16px;
+}
+
+.container {
+    background: none repeat scroll 0 0 #FFFFFF;
+    border: 3px solid #CCCCCC;
+    border-radius: 8pt 8pt 8pt 8pt;
+    cursor: default;
+    padding: 1em 3em;
+}
+.dojoDndContainerOver {
+    border: 3px solid #AAAAAA;
+}
+.dojoDndTargetDisabled {
+    background: none repeat scroll 0 0 #EEEEEE;
+}
+.dojoDndItem {
+    padding: 3px;
+}
+.dj_ff2 .dojoDndItem {
+    -moz-user-select: none;
+}
+.dojoDndItemOver {
+    background: none repeat scroll 0 0 #EDEDED;
+    cursor: pointer;
+}
+.dojoDndItemSelected {
+    background: none repeat scroll 0 0 #CCCCFF;
+    color: #444444;
+}
+.dojoDndItemAnchor {
+    background: none repeat scroll 0 0 #CCCCFF;
+    color: black;
+}
+.dojoDndItemOver .dojoDndItemSelected {
+    background: none repeat scroll 0 0 #EDEDED;
+}
+.dojoDndItemOver .dojoDndItemAnchor {
+    background: none repeat scroll 0 0 #EDEDED;
+}
+.dojoDndItemBefore {
+    border-top: 2px solid #336699;
+}
+.dojoDndItemAfter {
+    border-bottom: 2px solid #336699;
+}
+.dojoDndAvatar {
+    border: 2px solid #CCCCCC;
+    border-radius: 8pt 8pt 8pt 8pt;
+    font-size: 75%;
+}
+.dojoDndAvatarHeader {
+    background: none repeat scroll 0 0 #AAAAAA;
+}
+.dojoDndAvatarItem {
+    background: none repeat scroll 0 0 #FFFFFF;
+    border-bottom: 1px solid #666666;
+}
