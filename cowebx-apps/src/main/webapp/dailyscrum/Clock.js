@@ -1,3 +1,9 @@
+//
+// Collaborative clock 
+//
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+//
+
 define([
     'dojo',
     'coweb/main',

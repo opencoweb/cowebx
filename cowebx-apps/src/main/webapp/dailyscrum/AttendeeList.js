@@ -1,3 +1,9 @@
+//
+// Attendee List with collab using coweb attendance api
+//
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+//
+
 define([
     'dojo',
     'dijit/registry',

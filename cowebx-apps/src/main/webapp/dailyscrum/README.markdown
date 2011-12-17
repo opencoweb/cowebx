@@ -7,13 +7,10 @@ This is a demo application that allows for collaborative scrum meetings via the 
 ##Quick Start
 
 1. If you haven't already, follow [these instructions](http://opencoweb.org/ocwdocs/tutorial/install.html) to deploy a Coweb instance.
-2. Clone the CowebX repository:
-
-```console
-$ git clone git@github.com:opencoweb/cowebx
-```
-3. Start a coweb server instance.
-4. Visit the app in your browser, with the following optional url parameters for meeting control:
+2. After installing either the Java server of Python server in the step above, make sure to deploy the [cowebx demos](http://opencoweb.org/ocwdocs/tutorial/install.html#deploying-the-cowebx-demos-optional).
+3. Start the coweb server instance as instructed in the installation guide above.
+4. Visit the app in your browser, which my default is located at [http://localhost:8080/cowebx-apps/dailyscrum/index.html](http://localhost:8080/cowebx-apps/daiilyscrum/index.html).
+5. You can use the following optional url parameters for meeting control:
 	* ```length``` : n integer (or float), sets the total meeting time in minutes
 	* ```invites``` : filename.json string, specifies server-side JSON file of invites, allows for phone-only users to be counted, with the following format:
 

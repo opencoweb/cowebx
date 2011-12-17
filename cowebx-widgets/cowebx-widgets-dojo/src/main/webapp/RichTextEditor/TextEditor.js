@@ -80,7 +80,6 @@ define([
 	            if(this.oldSnapshot != this.newSnapshot)
 	                var syncs = this.syncs.concat(this.util.ld(this.oldSnapshot, this.newSnapshot));
 	            if(syncs){
-					console.log(syncs);
 	                for(var i=0; i<syncs.length; i++){
 	                    if(syncs[i] != undefined){
 	                       this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);

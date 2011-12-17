@@ -1,3 +1,9 @@
+//
+// Google map with collab control
+//
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+//
+
 define([
     'dojo',
 	"dojo/_base/declare", // declare
