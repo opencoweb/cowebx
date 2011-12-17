@@ -283,6 +283,10 @@ define([
 	    _getValue : function() {
 	        return this._textarea.innerHTML;
 	    },
+	
+		getValue : function() {
+	        return this._textarea.innerHTML;
+	    },
 
 	    _onFocus : function(event) {
 	        this._focused = true;

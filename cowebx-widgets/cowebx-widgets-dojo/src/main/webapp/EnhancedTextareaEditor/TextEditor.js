@@ -416,6 +416,10 @@ define([
 		this.hilitecolor = false;
 		this.forecolor = false;
 	};
+	
+	proto.getValue = function(){
+		return this._textarea.value;
+	};
     
     return TextEditor;
 });

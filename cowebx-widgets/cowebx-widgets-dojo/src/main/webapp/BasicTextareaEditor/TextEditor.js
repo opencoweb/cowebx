@@ -251,5 +251,9 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this.oldSnapshot = obj.snapshot;
     };
 
+	proto.getValue = function(){
+		return this._textarea.value;
+	};
+
     return TextEditor;
 });
