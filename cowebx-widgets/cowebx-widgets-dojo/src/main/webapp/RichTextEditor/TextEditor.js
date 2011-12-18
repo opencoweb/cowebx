@@ -49,6 +49,8 @@ define([
             this.value 			= '';
             this.interval		= 100;
 			this.title          = 'Untitled Document';
+			this._POR			=	{start:0, end:0};
+			this._prevPOR		=	{start:0, end:0};
 
             //4. Style / connect
 			this.style();
@@ -80,9 +82,11 @@ define([
 	            if(this.oldSnapshot != this.newSnapshot)
 	                var syncs = this.syncs.concat(this.util.ld(this.oldSnapshot, this.newSnapshot));
 	            if(syncs){
+					var s = '';
 	                for(var i=0; i<syncs.length; i++){
 	                    if(syncs[i] != undefined){
-	                       this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
+	                       	this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
+							s = s+syncs[i].ty+' '+syncs[i].ch+' '+syncs[i].pos+'\n';
 	                    }
 	                }
 	            }
@@ -131,6 +135,7 @@ define([
 	            if(this.q[i].type == 'update')
 	                this.updateChar(this.q[i].value, this.q[i].position);
 	        }
+			console.log('BOOM: ',this.value);
 	        this._textarea.innerHTML = this.value;
 			if(this.sel)
             	rangy.restoreSelection(this.sel);
@@ -517,6 +522,7 @@ define([
 	            clearTimeout(this.t);
 	            this. t = null;
 	        }
-	    }
+	    },
+	
 	});
 });
