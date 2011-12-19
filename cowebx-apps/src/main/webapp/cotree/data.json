@@ -1,34 +1,62 @@
 {
-	identifier: 'uid',
+	identifier: 'id',
 	label: 'name',
 	items: [
 		{ 
-			uid: '0', 
-			name:'Foods', 
+			id: '0', 
+			name:'Person', 
 			children: [
 				{ 
-					uid: '1', 
-					name:'Fruits', 
+					id: '1', 
+					name:'firstname', 
 					children:[
 						{ 
-							uid: '4', 
-							name:'Citrus', 
-							children:[ 
-								{
-									uid: 'def',
-									name:'foobar'
-								}
-							] 
+							id: '2', 
+							name:'Happy'
 						}
 					] 
 				},
-				{ 
-					uid: '2', 
-					name:'Vegetables'
+				{
+					id: '3',
+					name: 'lastname',
+					children:[
+						{
+							id:'4',
+							name: 'Slappy'
+						}
+					]
 				},
-				{ 
-					uid: '3', 
-					name:'Cereals'
+				{
+					id: '5',
+					name: 'address',
+					children:[
+						{
+							id: '6',
+							name: 'home',
+							children: [
+								{
+									id: '7',
+									name: 'street',
+									children: [
+										{
+											id:'8',
+											name:'Foobar Drive'
+										}
+									]
+								},
+								{
+									id: '9',
+									name: 'city',
+									children: [
+										{
+											id: '10',
+											name: 'New Orleans'
+										}
+									]
+								}
+							]
+						}
+					]
 				}
 			]
 		}

@@ -7,6 +7,7 @@
 
 @import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit/themes/claro/document.css";
 @import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit/themes/claro/claro.css";
+
 html, body {
     margin: 0px;
     padding: 0px;
@@ -15,72 +16,66 @@ html, body {
     height: 100%;
 }
 
-#tableContainer {
-	width:600px;
+#appContainer {
+	width:500px;
 	height: 600px;
 	padding:10px;
 	background:grey;
 	border-radius:10px;
-	
 	top: 50%;
 	margin-top: -309px;
 	left: 50%;
-	margin-left: -315px;
+	margin-left: -260px;
 	position:absolute;
+	display:inline-block;
 }
 
 #treeContainer {
 	background:white;
 	border-radius:5px;
-	width:50%;
+	width:480px;
 	vertical-align:top;
 	padding:10px;
-}
-
-#renameLabel {
-	width:230px;
-	border-radius:5px;
-	border:0px;
-	height:40px;
-	font:26px arial;
-	margin-bottom:5px;
-	color:lightgrey;
+	height:580px;
 }
 
 #label {
-	width:230px;
+	width:150px;
 	border-radius:5px;
 	border:0px;
-	height:40px;
-	font:26px arial;
-	margin-bottom:5px;
+	height:30px;
+	font:12px arial;
 	color:lightgrey;
-}
-
-#buttonContainer {
-	text-align:center;
-	vertical-align:top;
-}
-
-#table{
-	width:100%;
-	height:100%;
-}
-
-#delete{
-	margin:0px !important;
+	display:inline-block;
+	position:relative;
+	top:2px;
 }
 
 #add{
-	margin:0px !important;
+	display:inline-block;
+	margin:0px;
 }
 
-#holder{
-	width:260px;
-	background:lightgrey;
-	border-radius:5px;
+#triggerContainer{
+	position:absolute;
+	left:50%;
+	margin-left:195px;
+	top:50%;
+	margin-top:-283px;
+}
+
+#buttonContainer{
+	padding:10px;
+	padding-right:5px;
+	border-top-right-radius:5px;
+	border-bottom-right-radius:5px;
+	text-align:center;
+	background:grey;
 	display:inline-block;
-	padding-top:10px;
-	padding-bottom:10px;
-	margin-top:10px;
+	position:absolute;
+	left:50%;
+	margin-left:260px;
+	padding-left:0px;
+	top:50%;
+	margin-top:-290px;
 }

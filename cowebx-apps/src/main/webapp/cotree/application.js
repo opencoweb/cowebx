@@ -5,6 +5,13 @@
 // 
 //
 
+// # Concurrent ops
+// # ==============
+// # 1. insert new address in last pos	:	op=insert, topic=5, value={newAddressObj}, pos=1
+// # 2. update home address city 		:	op=update, topic=10, value='San Fransico', pos=0
+// # 3. update home address title		: 	op=update, topic=6, value='work', pos=0
+// # 4. delete home address				: 	op=delete, topic=5, value=null, pos=0
+
 define([
 	'dojo',
 	'dijit/dijit',
@@ -96,18 +103,13 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 
 		_buildButtons: function(){
 			//Add
-			var a = crisp.create({innerHTML:'add',domNode:dojo.byId('add'),width:"220px",bgColor:'green'});
-			dojo.style(a, 'margin', '0px');
+			var trigger = crisp.create({innerHTML:"+",domNode:dojo.byId('addTrigger'),bgColor:'green',width:'30px',height:'30px'});
+			var a = crisp.create({innerHTML:'add',domNode:dojo.byId('add'),fontSize:'10px',height:"20px",bgColor:'green'});
 			dojo.connect(a, 'onclick', this, '_addNode');
 			
 			//Remove
-			var d = crisp.create({innerHTML:'delete',domNode:dojo.byId('delete'),bgColor:'red',width:'250px'});
+			var d = crisp.create({innerHTML:'-',domNode:dojo.byId('delete'),bgColor:'red',width:'30px',height:'30px'});
 			dojo.connect(d, 'onclick', this, '_deleteNode');
-			
-			//Rename
-			var r = crisp.create({innerHTML:'rename',domNode:dojo.byId('rename'),width:"220px",bgColor:'blue'});
-			dojo.style(r, 'margin', '0px');
-			dojo.connect(r, 'onclick', this, '_renameNode');
 			
 			//Connect UI events
 			dojo.connect(dojo.byId('label'),'onfocus',this,function(e){
@@ -181,6 +183,7 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 			dojo.xhrGet({
 				url: 'data.json',
 				handleAs: 'json',
+				preventCache: true,
 				sync:true,
 				load: dojo.hitch(this,function(data){
 					this.data = data;
