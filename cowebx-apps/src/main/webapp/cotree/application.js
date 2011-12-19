@@ -103,36 +103,24 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 
 		_buildButtons: function(){
 			//Add
-			var trigger = crisp.create({innerHTML:"+",domNode:dojo.byId('addTrigger'),bgColor:'green',width:'30px',height:'30px'});
-			var a = crisp.create({innerHTML:'add',domNode:dojo.byId('add'),fontSize:'10px',height:"20px",bgColor:'green'});
-			dojo.connect(a, 'onclick', this, '_addNode');
+			dojo.connect(dojo.byId('add'), 'onclick', this, '_addNode');
 			
 			//Remove
-			var d = crisp.create({innerHTML:'-',domNode:dojo.byId('delete'),bgColor:'red',width:'30px',height:'30px'});
-			dojo.connect(d, 'onclick', this, '_deleteNode');
+			dojo.connect(dojo.byId('delete'), 'onclick', this, '_deleteNode');
 			
-			//Connect UI events
-			dojo.connect(dojo.byId('label'),'onfocus',this,function(e){
-				dojo.style(e.target,'color','black');
-				if(e.target.value == 'Node label...')
-					e.target.value = '';
-			});
-			
-			dojo.connect(dojo.byId('label'),'onblur',this,function(e){
-				if(e.target.value == ''){
-					dojo.style(e.target,'color','lightgrey');
-					e.target.value = 'Node label...';
-				}	
-			});
+			dojo.subscribe("thisTree", dojo.hitch(this, function(message) {
+			    dojo.style('buttonContainer','top',(this.tree.selectedNode.containerNode.offsetTop-20)+'px');
+				dojo.style('buttonContainer','display','inline-block');
+			}));
 		},
 
-		_addNode: function(){
+		_addNode: function(e){
 			//currently selected item
 			var selectedItem = this.tree.selectedItem;
 			//if a parent node is selected and label is entered...
-			if((selectedItem != null) && (dojo.byId('label').value != ('Node label...' || '')) ){
+			if((selectedItem != null)){
 				//add a new node
-				var newNode = this.store.newItem({ id: this.globalID.toString(), name:dojo.byId('label').value});
+				var newNode = this.store.newItem({ id: this.globalID.toString(), name:'New node...'});
 				var parentID = selectedItem.id[0];
 				//update parent node's children in store & save
 				var children = selectedItem.children;
@@ -145,18 +133,16 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 				this.onLocalAddNode({
 					id: this.globalID.toString(),
 					parentID: parentID,
-					value: dojo.byId('label').value
+					value: 'New node...'
 				});
 				//housekeeping
 				this.globalID++;
-				dojo.style('label', 'color', 'lightgrey');
-				dojo.byId('label').value = 'Node label...';
 			}else{
 				alert("To add a node, select a parent node in the tree and enter a label.");
 			}
 		},
 		
-		_deleteNode: function(){
+		_deleteNode: function(e){
 			if(this.tree.selectedNode != null){
 				//currently selected item
 				var targetItem = this.tree.selectedItem;
@@ -170,13 +156,11 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 					id: targetItem.id[0],
 					parentID: parentItem.id[0]
 				});
+				//housekeeping
+				dojo.style('buttonContainer','display','none');
 			}else{
 				alert("You must select a node to delete.");
 			}
-		},
-		
-		_renameNode: function(){
-			
 		},
 		
 		_getData: function(){
@@ -189,7 +173,8 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 					this.data = data;
 				})
 			});
-		}
+		},
+		
 	};
 	
 	dojo.ready(function() {

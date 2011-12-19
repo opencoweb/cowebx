@@ -22,12 +22,9 @@ html, body {
 	padding:10px;
 	background:grey;
 	border-radius:10px;
-	top: 50%;
-	margin-top: -309px;
-	left: 50%;
-	margin-left: -260px;
-	position:absolute;
-	display:inline-block;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:30px;
 }
 
 #treeContainer {
@@ -37,6 +34,30 @@ html, body {
 	vertical-align:top;
 	padding:10px;
 	height:580px;
+}
+
+#add{
+	background:green;
+	color:white;
+	width:15px;
+	height:15px;
+	line-height:14px;
+	text-align:center;
+	border-radius:3px;
+	cursor:hand;cursor:pointer;
+	display:inline-block;
+}
+
+#delete{
+	background:red;
+	color:white;
+	width:15px;
+	height:15px;
+	line-height:14px;
+	text-align:center;
+	border-radius:3px;
+	cursor:hand;cursor:pointer;
+	display:inline-block;
 }
 
 #label {
@@ -49,11 +70,7 @@ html, body {
 	display:inline-block;
 	position:relative;
 	top:2px;
-}
-
-#add{
-	display:inline-block;
-	margin:0px;
+	padding-left:5px;
 }
 
 #triggerContainer{
@@ -65,17 +82,9 @@ html, body {
 }
 
 #buttonContainer{
-	padding:10px;
-	padding-right:5px;
-	border-top-right-radius:5px;
-	border-bottom-right-radius:5px;
-	text-align:center;
-	background:grey;
-	display:inline-block;
-	position:absolute;
+	width:40px;
+	position:fixed;
 	left:50%;
-	margin-left:260px;
-	padding-left:0px;
-	top:50%;
-	margin-top:-290px;
+	margin-left:200px;
+	display:none;
 }
