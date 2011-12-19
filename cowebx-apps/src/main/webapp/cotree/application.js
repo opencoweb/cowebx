@@ -46,6 +46,7 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button, InlineEditBox
 			}));
 			
 			dojo.connect(window,'resize',this,'_resize');
+			this._resize();
 		},
 		
 		// local add callback
