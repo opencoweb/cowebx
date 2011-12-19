@@ -1,0 +1,95 @@
+Let's take our classic example.
+
+Person : [
+{
+	"uid" : 1,
+	"firstname" : "Happy",
+	"lastname" : "Slappy",
+	"foobar" : {
+		"uid": 6,
+		"foo" : "bar"
+	},
+	"Address" : [
+		{
+			"uid" , 2,
+			"city" : "New Orleans",
+			"state" : "LA",
+			"zip" : "70002",
+			"geo" : {
+				"uid" : 3,
+				"long" : "37.2",
+				"lat" : "32.4"
+			}
+		}, 
+		{
+			"uid" : 4,
+			"city" : "Denver",
+			"state" : "CO",
+			"zip" : "12345",
+			"geo" : {
+				"uid" : "5",
+				"long" : "34",
+				"lat" : "37"
+			}
+		}
+	]
+}
+]
+
+
+Data Structure 1 is responsible for maintaining an objects properties / leaf nodes. Notice how this is a flat structure and does not contain any children.
+
+structure : [
+	"1" : {
+		firstname : "Happy"
+		lastname " "Slappy"
+	},
+	"2" : {
+		"city" : "New Orleans",
+		"state: "LA",
+		"zip": "70002"
+	},
+	"3" : {
+		"long" : "37.2",
+		"lat" : "32.4"
+	},
+	"4" : {
+		"city" : "Denver",
+		"state" : "CO",
+		"zip" : "12345"
+	},
+	"5" : {
+		"long" : "34",
+		"lat" : "37"
+	}
+]
+
+Data Structure 2 is responsible for the structure of the tree.
+
+structure : [
+	root: [1],
+	"1" : {parent : root, children: [6, 2, 4]},
+	"2" : {parent : 1, children: [3]},
+	"3" : {parent : 2, children: []},
+	"4" : {parent : 1, children: [5]},
+	"5" : {parent: 4, []},
+	"6" : {parent: 1, children: []}
+]
+
+For OT, each UID has a topic.  The topics are NOT hierarchal.   Inserts and deletes are performed on the parent node topic utilizing position to maintain order.  For example, let's insert a new address on person 1.
+
+Insert: topic=change.1-structure, position: 2, value = {new address}
+
+We specified position 2 which would be the end of the address list, So we create a new UID for the address object, "6", and insert the object into our first structure.  We then add "6" to position 2 of 1's child list.
+
+Updates are done on the actual node itself and are only performed on the properties.  For example, let's change the city for address 2.
+
+Update: topic=change.2-update, position: 0, value = {city: "Foo"}
+
+Here we only need to update the value of city in our first structure as the structure of the tree does not change with updates.
+
+We have to distinguish inserting / deleting a child node from updating the values of a parent, therefore inserts and deletes will have "structure" tagged to the end of the topic name.  Updates will have "update" tagged to the end of the topic name.  For example if an insert is performed on change.nodeA at the same time is update is occuring on a property of nodeA (change.nodeA) then the op engine will treat these as a collision.  We don't want this to happen as updating an objects property should have no effect on inserting or deleting one of it's children.
+
+This is the basics of the algorithm.  We should walk through scenarios with the BPM team.  I doubt they are going to be happy with the 2 data structure model but I don't think we have a choice.
+
+Burbns
