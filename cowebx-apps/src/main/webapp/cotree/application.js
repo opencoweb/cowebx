@@ -21,9 +21,10 @@ define([
 	'dijit/tree/dndSource',
 	'dijit/Menu',
 	'dijit/form/Button',
+	'dijit/InlineEditBox',
 	'dojo/dnd/common',
-	'dojo/dnd/Source'],
-function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
+	'dojo/dnd/Source',],
+function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button, InlineEditBox) {
 	var app = {
 		init: function(){
 			this.dndOps 	= [];
@@ -33,7 +34,7 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 			this._buildButtons();	
 					
 			this.store 		= new Store({data:this.data});
-			this.model 		= new Model({store:this.store, query:{id:"0"}});
+			this.model 		= new Model({store:this.store, query:{id:"root"}});
 			this.tree 		= this._buildTree();
 			
 			dojo.subscribe("/dnd/drop", dojo.hitch(this, function(obj){
@@ -44,10 +45,7 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 				this.dndOps = [];
 			}));
 			
-			// debug
-			// dojo.connect(window,'onkeypress',this,function(e){
-			// 	console.log(this.tree);
-			// });
+			dojo.connect(window,'resize',this,'_resize');
 		},
 		
 		// local add callback
@@ -180,6 +178,11 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 				})
 			});
 		},
+		
+		_resize: function(){
+			dojo.style('appContainer','height',(document.body.offsetHeight-100)+'px')
+			dojo.style('treeContainer','height',(document.body.offsetHeight-120)+'px')
+		}
 		
 	};
 	

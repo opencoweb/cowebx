@@ -8,17 +8,25 @@
 @import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit/themes/claro/document.css";
 @import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit/themes/claro/claro.css";
 
-html, body {
-    margin: 0px;
+html{
+	margin: 0px;
     padding: 0px;
-    overflow: hidden;
     width: 100%;
     height: 100%;
 }
 
+body {
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    height: 100%;
+	overflow:hidden;
+	background:url('http://download.dojotoolkit.org/release-1.7.1/dojo-release-1.7.1/dijit/tests/images/testsBodyBg.gif') repeat-x;
+}
+
 #appContainer {
 	width:500px;
-	height: 600px;
+	height: 100%;
 	padding:10px;
 	background:grey;
 	border-radius:10px;
@@ -33,7 +41,8 @@ html, body {
 	width:480px;
 	vertical-align:top;
 	padding:10px;
-	height:580px;
+	height:100%;
+	overflow-y:auto;
 }
 
 #add{
