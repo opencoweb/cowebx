@@ -21,6 +21,12 @@ html, body {
 	padding:10px;
 	background:grey;
 	border-radius:10px;
+	
+	top: 50%;
+	margin-top: -309px;
+	left: 50%;
+	margin-left: -315px;
+	position:absolute;
 }
 
 #treeContainer {
@@ -31,8 +37,18 @@ html, body {
 	padding:10px;
 }
 
+#renameLabel {
+	width:230px;
+	border-radius:5px;
+	border:0px;
+	height:40px;
+	font:26px arial;
+	margin-bottom:5px;
+	color:lightgrey;
+}
+
 #label {
-	width:260px;
+	width:230px;
 	border-radius:5px;
 	border:0px;
 	height:40px;
@@ -52,5 +68,19 @@ html, body {
 }
 
 #delete{
-	margin-top:50px;
+	margin:0px !important;
+}
+
+#add{
+	margin:0px !important;
+}
+
+#holder{
+	width:260px;
+	background:lightgrey;
+	border-radius:5px;
+	display:inline-block;
+	padding-top:10px;
+	padding-bottom:10px;
+	margin-top:10px;
 }
