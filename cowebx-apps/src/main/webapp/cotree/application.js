@@ -37,10 +37,17 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 			this.tree 		= this._buildTree();
 			
 			dojo.subscribe("/dnd/drop", dojo.hitch(this, function(obj){
+				dojo.style('buttonContainer','top',(this.tree.selectedNode.contentNode.offsetTop)+'px');
+				dojo.style('buttonContainer','display','inline-block');
 				var ops = this.dndOps[this.dndOps.length-1];
 				this.onLocalMoveNode(ops);
 				this.dndOps = [];
 			}));
+			
+			// debug
+			// dojo.connect(window,'onkeypress',this,function(e){
+			// 	console.log(this.tree);
+			// });
 		},
 		
 		// local add callback
@@ -50,7 +57,7 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		//	   value	: value of added node
 		// }
 		onLocalAddNode: function(obj){
-
+			
 		},
 
 		// local delete callback
@@ -104,12 +111,11 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		_buildButtons: function(){
 			//Add
 			dojo.connect(dojo.byId('add'), 'onclick', this, '_addNode');
-			
 			//Remove
 			dojo.connect(dojo.byId('delete'), 'onclick', this, '_deleteNode');
-			
+			//Connect button movement
 			dojo.subscribe("thisTree", dojo.hitch(this, function(message) {
-			    dojo.style('buttonContainer','top',(this.tree.selectedNode.containerNode.offsetTop-20)+'px');
+			    dojo.style('buttonContainer','top',(this.tree.selectedNode.contentNode.offsetTop)+'px');
 				dojo.style('buttonContainer','display','inline-block');
 			}));
 		},
