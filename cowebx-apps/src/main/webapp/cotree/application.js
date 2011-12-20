@@ -21,10 +21,9 @@ define([
 	'dijit/tree/dndSource',
 	'dijit/Menu',
 	'dijit/form/Button',
-	'dijit/InlineEditBox',
 	'dojo/dnd/common',
 	'dojo/dnd/Source',],
-function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button, InlineEditBox) {
+function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 	var app = {
 		init: function(){
 			this.dndOps 	= [];
@@ -37,16 +36,20 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button, InlineEditBox
 			this.model 		= new Model({store:this.store, query:{id:"root"}});
 			this.tree 		= this._buildTree();
 			
-			dojo.subscribe("/dnd/drop", dojo.hitch(this, function(obj){
-				dojo.style('buttonContainer','top',(this.tree.selectedNode.contentNode.offsetTop)+'px');
-				dojo.style('buttonContainer','display','inline-block');
-				var ops = this.dndOps[this.dndOps.length-1];
-				this.onLocalMoveNode(ops);
-				this.dndOps = [];
-			}));
-			
+			dojo.subscribe("/dnd/drop", dojo.hitch(this, '_dnd'));
 			dojo.connect(window,'resize',this,'_resize');
 			this._resize();
+			
+			dojo.connect(this.tree,'onOpen',this,function(){
+			
+				
+			});
+			dojo.connect(this.tree,'onClose',this,function(){
+			
+				
+			});
+			
+			console.log(this.tree);
 		},
 		
 		// local add callback
@@ -94,6 +97,7 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button, InlineEditBox
 				dndController:dndSource,
 				openOnDblClick: true,
 				autoExpand: true,
+				onClick: dojo.hitch(this, '_click'),
 				checkItemAcceptance: dojo.hitch(this, function(target, src, pos){
 					this.dndOps.push({
 						target: target,
@@ -112,11 +116,6 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button, InlineEditBox
 			dojo.connect(dojo.byId('add'), 'onclick', this, '_addNode');
 			//Remove
 			dojo.connect(dojo.byId('delete'), 'onclick', this, '_deleteNode');
-			//Connect button movement
-			dojo.subscribe("thisTree", dojo.hitch(this, function(message) {
-			    dojo.style('buttonContainer','top',(this.tree.selectedNode.contentNode.offsetTop)+'px');
-				dojo.style('buttonContainer','display','inline-block');
-			}));
 		},
 
 		_addNode: function(e){
@@ -131,7 +130,7 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button, InlineEditBox
 				var children = selectedItem.children;
 				if(children == undefined)
 					children = [];
-				children.push(newNode);
+				children = [newNode].concat(children);
 				this.store.setValue(selectedItem,'children',children);
 				this.store.save();
 				//trigger callback
@@ -149,6 +148,9 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button, InlineEditBox
 		
 		_deleteNode: function(e){
 			if(this.tree.selectedNode != null){
+				//Move buttons out and hide them
+				dojo.place('buttonContainer',document.body,'last');
+				dojo.style('buttonContainer','display','none');
 				//currently selected item
 				var targetItem = this.tree.selectedItem;
 				//parent of currently selected item
@@ -162,10 +164,16 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button, InlineEditBox
 					parentID: parentItem.id[0]
 				});
 				//housekeeping
-				dojo.style('buttonContainer','display','none');
+				
 			}else{
 				alert("You must select a node to delete.");
 			}
+		},
+		
+		_dnd: function(){
+			var ops = this.dndOps[this.dndOps.length-1];
+			this.onLocalMoveNode(ops);
+			this.dndOps = [];
 		},
 		
 		_getData: function(){
@@ -181,8 +189,14 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button, InlineEditBox
 		},
 		
 		_resize: function(){
-			dojo.style('appContainer','height',(document.body.offsetHeight-100)+'px')
-			dojo.style('treeContainer','height',(document.body.offsetHeight-120)+'px')
+			dojo.style('appContainer','height',(document.body.offsetHeight-100)+'px');
+			dojo.style('treeContainer','height',(document.body.offsetHeight-120)+'px');
+		},
+		
+		_click: function(){
+			var node = dojo.query('.dijitTreeRowSelected');
+			dojo.place('buttonContainer',node[0],'last');
+			dojo.style('buttonContainer','display','inline-block');
 		}
 		
 	};

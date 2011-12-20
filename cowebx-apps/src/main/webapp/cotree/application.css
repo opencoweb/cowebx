@@ -16,12 +16,18 @@ html{
 }
 
 body {
+	z-index:10;
     margin: 0px;
     padding: 0px;
     width: 100%;
     height: 100%;
 	overflow:hidden;
 	background:url('http://download.dojotoolkit.org/release-1.7.1/dojo-release-1.7.1/dijit/tests/images/testsBodyBg.gif') repeat-x;
+	text-align:center;
+}
+
+#infoContainer{
+	display:inline-block;
 }
 
 #appContainer {
@@ -33,6 +39,8 @@ body {
 	margin-left:auto;
 	margin-right:auto;
 	margin-top:30px;
+	display:inline-block;
+	text-align:left;
 }
 
 #treeContainer {
@@ -43,6 +51,14 @@ body {
 	padding:10px;
 	height:100%;
 	overflow-y:auto;
+}
+
+#buttonContainer{
+	width:40px;
+	display:inline-block;
+	float:right;
+	position:relative;
+	top:-17px;
 }
 
 #add{
@@ -67,33 +83,4 @@ body {
 	border-radius:3px;
 	cursor:hand;cursor:pointer;
 	display:inline-block;
-}
-
-#label {
-	width:150px;
-	border-radius:5px;
-	border:0px;
-	height:30px;
-	font:12px arial;
-	color:lightgrey;
-	display:inline-block;
-	position:relative;
-	top:2px;
-	padding-left:5px;
-}
-
-#triggerContainer{
-	position:absolute;
-	left:50%;
-	margin-left:195px;
-	top:50%;
-	margin-top:-283px;
-}
-
-#buttonContainer{
-	width:40px;
-	position:fixed;
-	left:50%;
-	margin-left:200px;
-	display:none;
 }
