@@ -59,6 +59,7 @@ body {
 	float:right;
 	position:relative;
 	top:-17px;
+	display:none;
 }
 
 #add{

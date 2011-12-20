@@ -14,6 +14,7 @@
 
 define([
 	'dojo',
+	'coweb/main',
 	'dijit/dijit',
 	'dojo/data/ItemFileWriteStore',
 	'dijit/Tree',
@@ -23,7 +24,7 @@ define([
 	'dijit/form/Button',
 	'dojo/dnd/common',
 	'dojo/dnd/Source',],
-function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
+function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 	var app = {
 		init: function(){
 			this.dndOps 	= [];
@@ -36,49 +37,81 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 			this.model 		= new Model({store:this.store, query:{id:"root"}});
 			this.tree 		= this._buildTree();
 			
+			this.collab = coweb.initCollab({id:'foobar'});
+			this.collab.subscribeSync('change.*', this, 'onRemoteChange');
+			
 			dojo.subscribe("/dnd/drop", dojo.hitch(this, '_dnd'));
 			dojo.connect(window,'resize',this,'_resize');
 			this._resize();
 			
-			dojo.connect(this.tree,'onOpen',this,function(){
-			
-				
-			});
-			dojo.connect(this.tree,'onClose',this,function(){
-			
-				
-			});
-			
-			console.log(this.tree);
+			var sess = coweb.initSession();
+		    sess.prepare();
 		},
 		
-		// local add callback
-		// obj : {
-	 	//     id		: id of added node
-		//     parentID	: id of added node's parent
-		//	   value	: value of added node
-		// }
 		onLocalAddNode: function(obj){
+			// send sync with topic corresponding to parent id
+			this.collab.sendSync('change.'+obj.parentID, obj, 'insert', obj.pos);
+		},
+		
+		onRemoteAddNode: function(obj){
+			//add a new item to store
+			var newItem = this.store.newItem({ id: obj.value.id, name:obj.value.value});
+			var parentID = obj.value.parentID;
+
+			//get parent item TODO: OPTIMIZE
+			var selectedItem = this._getItemById(obj.value.parentID);
 			
+			if(selectedItem){
+				//update parent node's children in store & save
+				var children = selectedItem.children;
+				if(children == undefined)
+					children = [];
+				children = [newItem].concat(children);
+				this.store.setValue(selectedItem,'children',children);
+				this.store.save();
+
+				//housekeeping
+				this.globalID++;
+			}else{
+				throw new Error("Cotree: couldn't find parent node");
+			}
 		},
 
-		// local delete callback
-		// obj : {
-	 	//     id		: id of deleted node
-		//     parentID	: id of deleted node's parent
-		// }
 		onLocalDeleteNode: function(obj){
-
+			// send sync with topic corresponding to parent id
+			this.collab.sendSync('change.'+obj.parentID, obj, 'delete', obj.pos);
+		},
+		
+		onRemoteDeleteNode: function(obj){
+			
+			// //Move buttons out and hide them
+			var prevParent = dojo.byId('buttonContainer').parentNode;
+			console.log(prevParent);
+			dojo.place('buttonContainer',document.body,'last');
+			dojo.style('buttonContainer','display','none');
+			
+			//currently selected item
+			var targetItem = this._getItemById(obj.value.id);
+			//delete item from store & save
+			this.store.deleteItem(targetItem);
+			this.store.save();
 		},
 
-		// local dnd callback
-		// obj : {
-		//     target	: node that's being moved 
-		//	   src		: ref node
-		//	   pos		: either 'before', 'after', or 'over'
-		// }
-		onLocalMoveNode: function(obj){
+		onLocalUpdateNode: function(obj){
 			
+		},
+		
+		onRemoteUpdateNode: function(){
+			
+		},
+		
+		onRemoteChange: function(obj){
+			if(obj.type == 'insert')
+				this.onRemoteAddNode(obj);
+			else if(obj.type == 'delete')
+				this.onRemoteDeleteNode(obj);
+			else if(obj.type == 'update')
+				this.onRemoteUpdateNode(obj);
 		},
 		
 		_refreshTree: function(){
@@ -124,20 +157,21 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 			//if a parent node is selected and label is entered...
 			if((selectedItem != null)){
 				//add a new node
-				var newNode = this.store.newItem({ id: this.globalID.toString(), name:'New node...'});
+				var newItem = this.store.newItem({ id: this.globalID.toString(), name:'New node...'});
 				var parentID = selectedItem.id[0];
 				//update parent node's children in store & save
 				var children = selectedItem.children;
 				if(children == undefined)
 					children = [];
-				children = [newNode].concat(children);
+				children = [newItem].concat(children);
 				this.store.setValue(selectedItem,'children',children);
 				this.store.save();
 				//trigger callback
 				this.onLocalAddNode({
 					id: this.globalID.toString(),
 					parentID: parentID,
-					value: 'New node...'
+					value: 'New node...',
+					pos: 0
 				});
 				//housekeeping
 				this.globalID++;
@@ -155,16 +189,21 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 				var targetItem = this.tree.selectedItem;
 				//parent of currently selected item
 				var parentItem = this.tree.selectedNode.getParent().item;
+				//get pos
+				var pos;
+				for(var i=0; i<parentItem.children.length; i++){
+					if(parentItem.children[i].id[0] == targetItem.id[0])
+						pos = i;
+				}
 				//delete item from store & save
 				this.store.deleteItem(targetItem);
 				this.store.save();
 				//trigger callback
 				this.onLocalDeleteNode({
 					id: targetItem.id[0],
-					parentID: parentItem.id[0]
+					parentID: parentItem.id[0],
+					pos:pos
 				});
-				//housekeeping
-				
 			}else{
 				alert("You must select a node to delete.");
 			}
@@ -172,7 +211,7 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		
 		_dnd: function(){
 			var ops = this.dndOps[this.dndOps.length-1];
-			this.onLocalMoveNode(ops);
+			this.onLocalUpdateNode(ops);
 			this.dndOps = [];
 		},
 		
@@ -186,6 +225,14 @@ function(dojo, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 					this.data = data;
 				})
 			});
+		},
+		
+		_getItemById: function(id){
+			for(var i=0; i<this.store._arrayOfAllItems.length; i++){
+				if(this.store._arrayOfAllItems[i] && this.store._arrayOfAllItems[i].id[0] == id)
+					selectedItem = this.store._arrayOfAllItems[i];
+			}
+			return selectedItem;
 		},
 		
 		_resize: function(){
