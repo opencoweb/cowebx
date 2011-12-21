@@ -17,7 +17,7 @@ define([
 	'coweb/main',
 	'dijit/dijit',
 	'dojo/data/ItemFileWriteStore',
-	'dijit/Tree',
+	'./dijit/Tree',
 	'dijit/tree/TreeStoreModel',
 	'dijit/tree/dndSource',
 	'dijit/Menu',
@@ -54,14 +54,14 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		},
 		
 		onRemoteAddNode: function(obj){
-			//add a new item to store
-			var newItem = this.store.newItem({ id: obj.value.id, name:obj.value.value});
-			var parentID = obj.value.parentID;
-
 			//get parent item TODO: OPTIMIZE
 			var selectedItem = this._getItemById(obj.value.parentID);
 			
 			if(selectedItem){
+				//add a new item to store
+				var newItem = this.store.newItem({ id: obj.value.id, name:obj.value.value});
+				var parentID = obj.value.parentID;
+				
 				//update parent node's children in store & save
 				var children = selectedItem.children;
 				if(children == undefined)
@@ -83,10 +83,10 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		},
 		
 		onRemoteDeleteNode: function(obj){
-			
-			// //Move buttons out and hide them
-			var prevParent = dojo.byId('buttonContainer').parentNode;
-			console.log(prevParent);
+			//1. remove node focus temporarily & save ref
+			if(this.tree.selectedItem)
+				var prevSelectedItemId = this.tree.selectedItem.id[0];
+			this.tree.attr('selectedItem','_null');
 			dojo.place('buttonContainer',document.body,'last');
 			dojo.style('buttonContainer','display','none');
 			
@@ -95,13 +95,17 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 			//delete item from store & save
 			this.store.deleteItem(targetItem);
 			this.store.save();
+			
+			// show buttons if node in-tact
+			this.tree.attr('selectedItem',prevSelectedItemId);
+			this._click();
 		},
 
-		onLocalUpdateNode: function(obj){
-			
+		onLocalMoveNode: function(obj){
+			console.log(obj);
 		},
 		
-		onRemoteUpdateNode: function(){
+		onRemoteMoveNode: function(){
 			
 		},
 		
@@ -111,7 +115,7 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 			else if(obj.type == 'delete')
 				this.onRemoteDeleteNode(obj);
 			else if(obj.type == 'update')
-				this.onRemoteUpdateNode(obj);
+				this.onRemoteMoveNode(obj);
 		},
 		
 		_refreshTree: function(){
@@ -211,7 +215,7 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		
 		_dnd: function(){
 			var ops = this.dndOps[this.dndOps.length-1];
-			this.onLocalUpdateNode(ops);
+			this.onLocalMoveNode(ops);
 			this.dndOps = [];
 		},
 		
@@ -242,8 +246,10 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		
 		_click: function(){
 			var node = dojo.query('.dijitTreeRowSelected');
-			dojo.place('buttonContainer',node[0],'last');
-			dojo.style('buttonContainer','display','inline-block');
+			if(node[0]){
+				dojo.place('buttonContainer',node[0],'last');
+				dojo.style('buttonContainer','display','inline-block');
+			}
 		}
 		
 	};

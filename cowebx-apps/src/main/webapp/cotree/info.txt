@@ -1,0 +1,15 @@
+insert new node:
+	1. Uses topic of parent item so order can be preserved
+	2. Makes a new item, adds this item to store
+	3. Updates parent item's children by adding new item
+	
+delete node:
+	1. Uses topic of parent item so order can be preserved
+	2. Deletes target item from the store
+	3. Updates parent item's children by removing item
+   *3. Leaves all child items in store
+
+move node:
+	We have two operations here: 
+		1. Modify current parent item's children by removing target item (but leave target item in store)
+		2. Modify new parent item's children by adding target item
