@@ -283,8 +283,8 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		},
 		
 		_resize: function(){
-			dojo.style('appContainer','height',(document.body.offsetHeight-100)+'px');
-			dojo.style('treeContainer','height',(document.body.offsetHeight-120)+'px');
+			dojo.style('appContainer','height',(document.body.offsetHeight-190)+'px');
+			dojo.style('treeContainer','height',(document.body.offsetHeight-210)+'px');
 		},
 		
 		_click: function(){
