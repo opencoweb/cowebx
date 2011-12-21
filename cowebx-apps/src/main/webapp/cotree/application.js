@@ -49,6 +49,7 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		},
 		
 		onLocalAddNode: function(obj){
+			obj['force'] = true;
 			// send sync with topic corresponding to parent id
 			this.collab.sendSync('change.'+obj.parentID, obj, 'insert', obj.pos);
 		},
@@ -78,6 +79,7 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		},
 
 		onLocalDeleteNode: function(obj){
+			obj['force'] = true;
 			// send sync with topic corresponding to parent id
 			this.collab.sendSync('change.'+obj.parentID, obj, 'delete', obj.pos);
 		},
@@ -102,19 +104,44 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		},
 
 		onLocalMoveNode: function(obj){
-			console.log(obj);
+			// send sync with topic corresponding to parent id
+			this.collab.sendSync('change.'+obj.prevParentID, obj, 'delete', obj.prevPos);
+			this.collab.sendSync('change.'+obj.prevParentID, obj, 'insert', obj.newPos);
 		},
 		
-		onRemoteMoveNode: function(){
-			
+		onRemoteMoveNode: function(obj){
+			if(obj.type == 'delete'){
+				//get parent item's children
+				var prevParent = this._getItemById(obj.value.prevParentID);
+				var children = prevParent.children;
+				//remove targetItem from children
+				children.splice(obj.value.prevPos, 1);
+				//Update store
+				this.store.setValue(prevParent,'children',children);
+				this.store.save();
+			}else if(obj.type == 'insert'){
+				//get parent item's children
+				var newItem = this._getItemById(obj.value.targetID);
+				var newParent = this._getItemById(obj.value.newParentID);
+				var children = newParent.children;
+				//add targetItem to children in proper pos
+				if(children == undefined)
+					children = [];
+				children = children.slice(0,obj.value.newPos).concat([newItem].concat(children.slice(obj.value.newPos)));
+				//Update store
+				this.store.setValue(newParent,'children',children);
+				this.store.save();
+			}
 		},
 		
 		onRemoteChange: function(obj){
-			if(obj.type == 'insert')
+			if(obj.type == 'insert' && obj.value['force'])
 				this.onRemoteAddNode(obj);
-			else if(obj.type == 'delete')
+			else if(obj.type == 'delete' && obj.value['force'])
 				this.onRemoteDeleteNode(obj);
-			else if(obj.type == 'update')
+			else if(obj.type == 'delete')
+				this.onRemoteMoveNode(obj);
+			else if(obj.type == 'insert')
 				this.onRemoteMoveNode(obj);
 		},
 		
@@ -136,10 +163,18 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 				autoExpand: true,
 				onClick: dojo.hitch(this, '_click'),
 				checkItemAcceptance: dojo.hitch(this, function(target, src, pos){
+					var targetID = this.tree.selectedNode.item.id[0];
+					var prevChildren = this.tree.selectedNode.getParent().item.children;
+					var pos;
+					for(var i=0; i<prevChildren.length; i++){
+						if(prevChildren[i].id[0] == targetID)
+							pos = i;
+					}
+					
 					this.dndOps.push({
-						target: target,
-						src: src,
-						pos: pos
+						targetID: targetID,
+						prevParentID: this.tree.selectedNode.getParent().item.id[0],
+						prevPos: pos
 					});
 					return true;
 				})
@@ -215,6 +250,14 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 		
 		_dnd: function(){
 			var ops = this.dndOps[this.dndOps.length-1];
+			var newChildren = this.tree.selectedNode.getParent().item.children;
+			var pos;
+			for(var i=0; i<newChildren.length; i++){
+				if(newChildren[i].id[0] == ops['targetID'])
+					pos = i;
+			}
+			ops['newPos'] = pos;
+			ops['newParentID'] = this.tree.selectedNode.getParent().item.id[0];
 			this.onLocalMoveNode(ops);
 			this.dndOps = [];
 		},
