@@ -5,13 +5,6 @@
 // 
 //
 
-// # Concurrent ops
-// # ==============
-// # 1. insert new address in last pos	:	op=insert, topic=5, value={newAddressObj}, pos=1
-// # 2. update home address city 		:	op=update, topic=10, value='San Fransico', pos=0
-// # 3. update home address title		: 	op=update, topic=6, value='work', pos=0
-// # 4. delete home address				: 	op=delete, topic=5, value=null, pos=0
-
 define([
 	'dojo',
 	'coweb/main',
