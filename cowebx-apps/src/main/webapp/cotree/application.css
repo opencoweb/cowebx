@@ -85,7 +85,7 @@ body {
 }
 
 #buttonContainer{
-	width:40px;
+	width:60px;
 	display:inline-block;
 	float:right;
 	position:relative;
@@ -94,7 +94,7 @@ body {
 }
 
 #add{
-	background:green;
+	background:#99CC66;
 	color:white;
 	width:15px;
 	height:15px;
@@ -103,10 +103,44 @@ body {
 	border-radius:3px;
 	cursor:hand;cursor:pointer;
 	display:inline-block;
+	position:relative;
+	border:1px solid grey;
+	top:-6px;
+}
+
+#add:hover{
+	background:green;
+	border: 1px solid black;
+}
+
+#editImg{
+	width:12px;
+	height:auto;
+	position:relative;
+	top:-3px;
+}
+
+#edit{
+	background:#FFFF99;
+	width:15px;
+	height:15px;
+	text-align:center;
+	border-radius:3px;
+	cursor:hand;cursor:pointer;
+	display:inline-block;
+	overflow:hidden;
+	border:1px solid grey;
+	position:relative;
+	top:-1px;
+}
+
+#edit:hover{
+	background:#FFFF00;
+	border: 1px solid black;
 }
 
 #delete{
-	background:red;
+	background:#FF6666;
 	color:white;
 	width:15px;
 	height:15px;
@@ -115,4 +149,13 @@ body {
 	border-radius:3px;
 	cursor:hand;cursor:pointer;
 	display:inline-block;
+	position:relative;
+	top:-6px;
+	border:1px solid grey;
+	left:-1px;
+}
+
+#delete:hover{
+	background:red;
+	border: 1px solid black;
 }

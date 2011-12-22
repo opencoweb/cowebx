@@ -23,8 +23,10 @@ define([
 	'dijit/Menu',
 	'dijit/form/Button',
 	'dojo/dnd/common',
-	'dojo/dnd/Source',],
-function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
+	'dojo/dnd/Source',
+	'dijit/Dialog',
+	'dijit/form/TextBox'],
+function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog, TextBox) {
 	var app = {
 		init: function(){
 			this.dndOps 	= [];
@@ -42,6 +44,10 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 			
 			dojo.subscribe("/dnd/drop", dojo.hitch(this, '_dnd'));
 			dojo.connect(window,'resize',this,'_resize');
+			dojo.connect(dijit.byId('addDialog'),'isValid',this,'_addNode');
+			dojo.connect(dijit.byId('addDialog'),'hide',this,'_hideDialog');
+			dojo.connect(dijit.byId('editDialog'),'isValid',this,'_editNode');
+			dojo.connect(dijit.byId('editDialog'),'hide',this,'_hideDialog');
 			this._resize();
 			
 			var sess = coweb.initSession();
@@ -134,6 +140,17 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 			}
 		},
 		
+		onLocalUpdateNode: function(obj){
+			this.collab.sendSync('change.'+obj.id, obj, 'update', 0);
+		},
+		
+		onRemoteUpdateNode: function(obj){
+			var targetItem = this._getItemById(obj.value.id)
+			var name = obj.value.name;
+			this.store.setValue(targetItem,'name',name);
+			this.store.save();
+		},
+		
 		onRemoteChange: function(obj){
 			if(obj.type == 'insert' && obj.value['force'])
 				this.onRemoteAddNode(obj);
@@ -143,6 +160,8 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 				this.onRemoteMoveNode(obj);
 			else if(obj.type == 'insert')
 				this.onRemoteMoveNode(obj);
+			else if(obj.type == 'update')
+				this.onRemoteUpdateNode(obj);
 		},
 		
 		_refreshTree: function(){
@@ -185,38 +204,42 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 
 		_buildButtons: function(){
 			//Add
-			dojo.connect(dojo.byId('add'), 'onclick', this, '_addNode');
+			dojo.connect(dojo.byId('add'), 'onclick', dijit.byId("addDialog"), 'show');
 			//Remove
 			dojo.connect(dojo.byId('delete'), 'onclick', this, '_deleteNode');
+			//Edit
+			dojo.connect(dojo.byId('edit'), 'onclick', dijit.byId("editDialog"), 'show');
 		},
 
 		_addNode: function(e){
 			//currently selected item
 			var selectedItem = this.tree.selectedItem;
-			//if a parent node is selected and label is entered...
-			if((selectedItem != null)){
-				//add a new node
-				var newItem = this.store.newItem({ id: this.globalID.toString(), name:'New node...'});
-				var parentID = selectedItem.id[0];
-				//update parent node's children in store & save
-				var children = selectedItem.children;
-				if(children == undefined)
-					children = [];
-				children = [newItem].concat(children);
-				this.store.setValue(selectedItem,'children',children);
-				this.store.save();
-				//trigger callback
-				this.onLocalAddNode({
-					id: this.globalID.toString(),
-					parentID: parentID,
-					value: 'New node...',
-					pos: 0
-				});
-				//housekeeping
-				this.globalID++;
-			}else{
-				alert("To add a node, select a parent node in the tree and enter a label.");
+			var data = dijit.byId('addDialog').get('value');
+			var name = data.name;
+			if(name.length<1){
+				alert('Node label cannot be left blank');
+				return false;
 			}
+			//add a new node
+			var newItem = this.store.newItem({ id: this.globalID.toString(), name:name});
+			var parentID = selectedItem.id[0];
+			//update parent node's children in store & save
+			var children = selectedItem.children;
+			if(children == undefined)
+				children = [];
+			children = [newItem].concat(children);
+			this.store.setValue(selectedItem,'children',children);
+			this.store.save();
+			//trigger callback
+			this.onLocalAddNode({
+				id: this.globalID.toString(),
+				parentID: parentID,
+				value: name,
+				pos: 0
+			});
+			//housekeeping
+			dijit.byId('addName').set('value','');
+			this.globalID++;
 		},
 		
 		_deleteNode: function(e){
@@ -246,6 +269,22 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 			}else{
 				alert("You must select a node to delete.");
 			}
+		},
+		
+		_editNode: function(){
+			var targetItem = this.tree.selectedItem;
+			var data = dijit.byId('editDialog').get('value');
+			var name = data.name;
+			if(name.length<1){
+				alert('Node label cannot be left blank');
+				return false;
+			}
+			this.store.setValue(targetItem,'name',name);
+			this.store.save();
+			this.onLocalUpdateNode({
+				id: targetItem.id[0],
+				name: name
+			});
 		},
 		
 		_dnd: function(){
@@ -280,6 +319,11 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button) {
 					selectedItem = this.store._arrayOfAllItems[i];
 			}
 			return selectedItem;
+		},
+		
+		_hideDialog: function(){
+			dijit.byId('addName').set('value','');
+			dijit.byId('editName').set('value','');
 		},
 		
 		_resize: function(){
