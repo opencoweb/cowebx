@@ -341,6 +341,17 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		_resize: function(){
 			dojo.style('appContainer','height',(document.body.offsetHeight-190)+'px');
 			dojo.style('treeContainer','height',(document.body.offsetHeight-210)+'px');
+			
+			//Late hook for add / edit / delete
+			if(dojo.isWebKit){
+				dojo.style('add','top','16px');
+				dojo.style('edit','top','16px');
+				dojo.style('delete','top','16px');
+			}else{
+				dojo.style('add','top','-6px');
+				dojo.style('edit','top','-1px');
+				dojo.style('delete','top','-6px');
+			}
 		},
 		
 		_click: function(){

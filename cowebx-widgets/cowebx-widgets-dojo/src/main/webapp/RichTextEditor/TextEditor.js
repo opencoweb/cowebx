@@ -37,8 +37,7 @@ define([
             this._shareButton 	= new ShareButton({
                 'domNode':dojo.byId('infoDiv'),
                 'listenTo':this._textarea,
-                'id':'shareButton',
-                'displayButton':false
+                'id':'shareButton'
             });
             
             //3. parameters
@@ -89,6 +88,7 @@ define([
 							s = s+syncs[i].ty+' '+syncs[i].ch+' '+syncs[i].pos+'\n';
 	                    }
 	                }
+					console.log(syncs);
 	            }
 	        }
 	    },
@@ -135,7 +135,7 @@ define([
 	            if(this.q[i].type == 'update')
 	                this.updateChar(this.q[i].value, this.q[i].position);
 	        }
-			console.log('BOOM: ',this.value);
+			console.log('GOT: ',this.value);
 	        this._textarea.innerHTML = this.value;
 			if(this.sel)
             	rangy.restoreSelection(this.sel);

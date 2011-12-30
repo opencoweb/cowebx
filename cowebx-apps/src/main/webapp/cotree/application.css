@@ -105,7 +105,7 @@ body {
 	display:inline-block;
 	position:relative;
 	border:1px solid grey;
-	top:-6px;
+
 }
 
 #add:hover{
@@ -131,7 +131,6 @@ body {
 	overflow:hidden;
 	border:1px solid grey;
 	position:relative;
-	top:-1px;
 }
 
 #edit:hover{
@@ -150,7 +149,6 @@ body {
 	cursor:hand;cursor:pointer;
 	display:inline-block;
 	position:relative;
-	top:-6px;
 	border:1px solid grey;
 	left:-1px;
 }
