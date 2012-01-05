@@ -29,14 +29,18 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			this._getData();			// Fetch the initial data.json
 			this._buildButtons();		// Build UI buttons
 			
+			console.log(this.data);
+			
 			// Build dojo Tree components
-			this.store 		= new Store({data:this.data});
+			this.store 		= (this.store) ? this.store : new Store({data:this.data});
 			this.model 		= new Model({store:this.store, query:{id:"root"}});
 			this.tree 		= this._buildTree();
 			
 			// Connect collab & local events
 			this.collab = coweb.initCollab({id:'foobar'});
 			this.collab.subscribeSync('change.*', this, 'onRemoteChange');
+			this.collab.subscribeStateRequest(this, 'onStateRequest');
+			this.collab.subscribeStateResponse(this, 'onStateResponse');
 			this._connectEvents();
 			
 			// Kick off session
@@ -52,6 +56,7 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		},
 		
 		onRemoteAddNode: function(obj){
+			console.log('remote add');
 			// Get parent item from synced parentID
 			var parentItem = this._getItemById(obj.value.parentID);
 			// If parent item found...
@@ -167,6 +172,56 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			else if(obj.type == 'update')
 				this.onRemoteUpdateNode(obj);
 		},
+		
+		onStateRequest: function(token){
+			var obj = this._itemToJS(this.store, this.store._arrayOfTopLevelItems[0]);
+			var state = { d: obj};
+			this.collab.sendStateResponse(state, token);
+		},
+		
+		onStateResponse: function(state){
+			var d = {
+				identifier: 'id',
+				label: 'name',
+				items: [state.d]
+			};
+			this.store = new Store({data:d});
+			this._refreshTree();
+		},
+		
+		_itemToJS: function(store, item){
+		    var js = {};
+		    if(item && store){
+		      	var attributes = store.getAttributes(item);
+		      	if(attributes && attributes.length > 0){
+		        	var i;
+		        	for(i = 0; i < attributes.length; i++){
+		          		var values = store.getValues(item, attributes[i]);
+		          		if(values){
+		            		if(values.length > 1 ){
+		              			var j;
+		              			js[attributes[i]] = [];
+		              			for(j = 0; j < values.length; j++ ){
+		                			var value = values[j];
+		                			if(store.isItem(value)){
+		                  				js[attributes[i]].push(this._itemToJS(store, value));
+		                			}else{
+		                  				js[attributes[i]].push(value);
+		                			}
+		              			}
+		            		}else{
+		              			if(store.isItem(values[0])){
+									js[attributes[i]] = this._itemToJS(store, values[0]);
+		              			}else{
+		                			js[attributes[i]] = values[0];
+		              			}
+		            		}
+		          		}
+		        	}
+		      	}
+		    }
+		    return js;
+	  	},
 
 		_addNode: function(e){
 			// Get selected item and name from dialog prompt
@@ -288,7 +343,7 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			// destroy tree widget
 			dijit.byId('thisTree').destroyRecursive();
 			// kick off model refresh from store
-			this.model = new Model({store:this.store, query:{id:"0"}});
+			this.model = new Model({store:this.store, query:{id:"root"}});
 			// build tree again
 			this.tree = this._buildTree();
 		},
