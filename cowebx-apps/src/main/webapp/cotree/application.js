@@ -29,8 +29,6 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			this._getData();			// Fetch the initial data.json
 			this._buildButtons();		// Build UI buttons
 			
-			console.log(this.data);
-			
 			// Build dojo Tree components
 			this.store 		= (this.store) ? this.store : new Store({data:this.data});
 			this.model 		= new Model({store:this.store, query:{id:"root"}});

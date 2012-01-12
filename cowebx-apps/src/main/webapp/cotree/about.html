@@ -1,0 +1,102 @@
+<!DOCTYPE html> 
+<html>
+  	<head>
+		<title>Cooperative Tree : About</title>
+		<link href="http://fonts.googleapis.com/css?family=Amaranth:400,700" rel="stylesheet" type="text/css" />
+		<link rel="stylesheet" href="about.css" type="text/css" />
+		<link href="google-code-prettify/prettify.css" type="text/css" rel="stylesheet" />
+		<script type="text/javascript" src="google-code-prettify/prettify.js"></script>
+  	</head>
+	<body onload="prettyPrint()">
+		<div class="title">CoTree : the code</div>
+		<div class="subTitle">
+			This is a walk through of all the code that makes up the Cooperative Tree demo - its just a single JS file. The code that follows is in-order.
+		</div>
+		<table class="codeTable">
+			<tr>
+				<td class="aboutCell">
+					We start by defining a <a href="http://dojotoolkit.org">dojo</a> application as an <a href="https://github.com/amdjs/amdjs-api/wiki/AMD">AMD</a> module using standard <i>define</i> syntax, loading all dependencies.
+				</td>
+				<td class="codeCell">
+					<pre class="prettyprint code">
+define([
+	'dojo',
+	'coweb/main',
+	'dijit/dijit',
+	'dojo/data/ItemFileWriteStore',
+	'./dijit/Tree',
+	'dijit/tree/TreeStoreModel',
+	'dijit/tree/dndSource',
+	'dijit/Menu',
+	'dijit/form/Button',
+	'dojo/dnd/common',
+	'dojo/dnd/Source',
+	'dijit/Dialog',
+	'dijit/form/TextBox'],
+function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog, TextBox) {
+	var app = {</pre>
+				</td>
+			</tr>
+			<tr>
+				<td class="aboutCell">
+					Next, we begin a simple <i>init</i> function that will be called when the app initially loads. This function sets up variables and calls helper methods to construct the Tree, Model, and DataStore - we'll cover these helper methods later on.
+				</td>
+				<td class="codeCell">
+					<pre class="prettyprint code">
+init: function(){
+	// Properties
+	this.dndOps 	= [];		// Dojo-specific DnD queue
+	this.globalID	= 1000;		// Starting ID for new nodes
+	window.foo 		= this;		// For debugging
+	this._getData();			// Fetch the initial data.json
+	this._buildButtons();		// Build UI buttons
+
+	// Build dojo Tree components
+	this.store 		= (this.store) ? this.store : new Store({data:this.data});
+	this.model 		= new Model({store:this.store, query:{id:"root"}});
+	this.tree 		= this._buildTree();
+</pre>
+				</td>
+			</tr>
+			<tr>
+				<td class="aboutCell">
+					We then finish the <i>init</i> function by creating an OpenCoweb <i>collab</i> instance, allowing sync events to occur. After this is instantiated, we <i>subscribe</i> to various collab topics, and register specific callbacks to handle them. Think of this as pub / sub, but between two machines. The <i>_connectEvents</i> function is a helper method that just connects several local UI click events. We'll get to this helper method later as well. Finally, we <i>initiate</i> the collaboration by joining a session.
+				</td>
+				<td class="codeCell">
+					<pre class="prettyprint code">
+	// Connect collab & local events
+	this.collab = coweb.initCollab({id:'foobar'});
+	this.collab.subscribeSync('change.*', this, 'onRemoteChange');
+	this.collab.subscribeStateRequest(this, 'onStateRequest');
+	this.collab.subscribeStateResponse(this, 'onStateResponse');
+	this._connectEvents();
+
+	// Kick off session
+	var sess = coweb.initSession();
+    sess.prepare();
+},</pre>
+				</td>
+			</tr>
+			<tr>
+				<td class="aboutCell">
+					We then finish the <i>init</i> function by creating an OpenCoweb <i>collab</i> instance, allowing sync events to occur. After this is instantiated, we <i>subscribe</i> to various collab topics, and register specific callbacks to handle them. Think of this as pub / sub, but between two machines. The <i>_connectEvents</i> function is a helper method that just connects several local UI click events. We'll get to this helper method later as well. Finally, we <i>initiate</i> the collaboration by joining a session.
+				</td>
+				<td class="codeCell">
+					<pre class="prettyprint code">
+	// Connect collab & local events
+	this.collab = coweb.initCollab({id:'foobar'});
+	this.collab.subscribeSync('change.*', this, 'onRemoteChange');
+	this.collab.subscribeStateRequest(this, 'onStateRequest');
+	this.collab.subscribeStateResponse(this, 'onStateResponse');
+	this._connectEvents();
+
+	// Kick off session
+	var sess = coweb.initSession();
+    sess.prepare();
+},</pre>
+				</td>
+			</tr>
+		</table>
+			
+  	</body>
+</html>

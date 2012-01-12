@@ -1,0 +1,49 @@
+html{
+	color:#333333;
+	background:url(images/light_alu.png);
+}
+
+body{
+	width:1000px;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+a{
+	color:black;
+}
+
+.title{
+	font-size: 50px;
+	text-shadow: 0px 1px 0px white;
+	font-family: 'Amaranth', sans-serif;
+	font-weight:bold;
+	text-align:center;
+	width:100%;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.subTitle{
+	text-align:center;
+	font-family: 'Amaranth', sans-serif;
+	font-size:20px;
+}
+
+.codeTable{
+	width:100%;
+}
+
+.aboutCell{
+
+}
+
+.codeCell{
+	vertical-align:top;
+	width:500px;
+}
+
+.code{
+	width:500px;
+	font-size:10px;
+}
