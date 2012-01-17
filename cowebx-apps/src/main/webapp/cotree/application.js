@@ -318,7 +318,7 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		_getData: function(){
 			// Fetch data.json
 			dojo.xhrGet({
-				url: 'data.json',
+				url: 'data/data.json',
 				handleAs: 'json',
 				preventCache: true,
 				sync:true,
