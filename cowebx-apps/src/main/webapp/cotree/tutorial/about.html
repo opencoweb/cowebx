@@ -96,9 +96,9 @@ this.collab.sendSync('change.'+parentNodeID, {nodeID: 14}, 'delete', 2);
 			3. value parameter is an object containing necessary information to find the node (e.g. just an ID) and the new node value. Even though the node has already been updated locally, this information will be used in the callback for the sync event of all other members in the session to find and update the proper node.<br>
 			4. position parameter is always 0
 			</ul>
-	<pre class="prettyprint code">
-	this.collab.sendSync('change.'+nodeID, {nodeID: 14}, 'delete', 2);
-	</pre>
+<pre class="prettyprint code">
+this.collab.sendSync('change.'+nodeID, {nodeID: 14}, 'delete', 2);
+</pre>
 		</div>
 		<div class="h2">Moving a node</div>		
 		<div class="entry">
