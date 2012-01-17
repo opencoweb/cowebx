@@ -71,7 +71,7 @@ this.collab.subscribeStateResponse(this, 'onStateResponse');
 			4. position parameter is the int position of the added node in its parent node's children array
 			</ul>
 <pre class="prettyprint code">
-this.collab.sendSync(parentNodeID, {nodeID: 7, value: 'Paul Bouchon'}, 'insert', 2);
+this.collab.sendSync('change.'+parentNodeID, {nodeID: 7, value: 'Paul Bouchon'}, 'insert', 2);
 </pre>
 		</div>
 		<div class="h2">Deleting a node</div>		
@@ -84,8 +84,21 @@ this.collab.sendSync(parentNodeID, {nodeID: 7, value: 'Paul Bouchon'}, 'insert',
 			4. position parameter is the int position of the deleted node in its parent node's children array
 			</ul>
 <pre class="prettyprint code">
-this.collab.sendSync(parentNodeID, {nodeID: 14}, 'delete', 2);
+this.collab.sendSync('change.'+parentNodeID, {nodeID: 14}, 'delete', 2);
 </pre>
+		</div>
+		<div class="h2">Updating a node</div>		
+		<div class="entry">
+			When a node is updated locally, we make a sendSync( ) call with the following parameters:
+			<ul>
+			1. op parameter is 'update'<br>
+			2. topic parameter is 'change.' + node ID (note: not parent node ID), e.g. 'change.13'<br>
+			3. value parameter is an object containing necessary information to find the node (e.g. just an ID) and the new node value<br>
+			4. position parameter is always 0
+			</ul>
+	<pre class="prettyprint code">
+	this.collab.sendSync('change.'+nodeID, {nodeID: 14}, 'delete', 2);
+	</pre>
 		</div>
 		<div class="h2">Moving a node</div>		
 		<div class="entry">
@@ -105,8 +118,8 @@ this.collab.sendSync(parentNodeID, {nodeID: 14}, 'delete', 2);
 			4. position parameter is the int position of the deleted node in its parent node's children array
 			</ul>
 <pre class="prettyprint code">
-this.collab.sendSync(currentParentNodeID, {nodeID: 7, 'shallow' : true}, 'delete', 3);
-this.collab.sendSync(newParentNodeID, {nodeID: 7, 'shallow' : true}, 'insert', 1);
+this.collab.sendSync('change.'+currentParentNodeID, {nodeID: 7, 'shallow' : true}, 'delete', 3);
+this.collab.sendSync('change.'+newParentNodeID, {nodeID: 7, 'shallow' : true}, 'insert', 1);
 </pre>
 		</div>
 		<br><br>
@@ -149,6 +162,13 @@ onRemoteChange: function(obj){
 			<ul>
 				1. Find node in data using information that callback receives & delete it (note that all child nodes remain, parent-less)<br>
 				2. Update parent node's children array by deleting the item
+			</ul>
+		</div>
+		<div class="h2">Updating a node</div>
+		<div class="entry">
+			When a node's value is updated remotely, the above <i><b>onRemoteChange</b></i> function will route the sync event to an <i><b>onRemoteUpdateNode</b></i> function. In that function we do the following:
+			<ul>
+				1. Find the node in the data & update it's value using the information that the callback receives
 			</ul>
 		</div>
 		<div class="h2">Moving a node</div>		
