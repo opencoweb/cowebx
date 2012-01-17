@@ -25,25 +25,35 @@ a{
 }
 
 .subTitle{
-	text-align:center;
+	font-family: 'Amaranth', sans-serif;
+	font-size:30px;
+	margin-bottom:5px;
+	font-weight:bold;
+}
+
+.entry{
+	font-family: 'Amaranth', sans-serif;
+	font-size:13px;
+}
+
+.h2{
 	font-family: 'Amaranth', sans-serif;
 	font-size:20px;
+	margin-top:10px;
+	font-weight:bold;
 }
 
-.codeTable{
-	width:100%;
+.titleSub{
+	text-align:center;
+	color:#666;
+	margin-bottom:30px;
 }
 
-.aboutCell{
-
-}
-
-.codeCell{
-	vertical-align:top;
-	width:500px;
+.titleSubLeft{
+	color:#666;
+	margin-bottom:15px;
 }
 
 .code{
-	width:500px;
-	font-size:10px;
+	font-size:11px;
 }

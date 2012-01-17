@@ -111,7 +111,7 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			// with no flag set, indicating a modified 'insert'
 			// which simply modifies children rather than creating
 			// a new node
-			this.collab.sendSync('change.'+obj.prevParentID, obj, 'insert', obj.newPos);
+			this.collab.sendSync('change.'+obj.newParentID, obj, 'insert', obj.newPos);
 		},
 		
 		onRemoteMoveNode: function(obj){
