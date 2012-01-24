@@ -28,6 +28,7 @@ define([
     // define controller singleton for the app
     var app = {
         init: function() {
+			console.log("Jetty Working!");
             // quick and dirty i18n
             var body = dojo.body();
             this.labels = {
