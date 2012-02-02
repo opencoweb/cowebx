@@ -64,6 +64,7 @@
     <modules>
         <module>cowebx-widgets</module>
         <module>cowebx-apps</module>
+        <module>cowebx-cotree</module>
     </modules>
 
     <build>

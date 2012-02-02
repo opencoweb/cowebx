@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  	<head>
+    	<meta charset="utf-8" />
+    	<title>Cooperative Tree</title>
+    	<link rel="stylesheet" href="application.css" type="text/css" />
+		<link id="themeStyles" rel="stylesheet" href="http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit/themes/claro/claro.css"/>
+		<script type="text/javascript" src="../config.js"></script>
+		<script type="text/javascript" src="http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojo/dojo.js" data-dojo-config="isDebug: true, parseOnLoad: true"></script>
+		<script type="text/javascript" src="main.js"></script>
+  	</head>
+  	<body class="claro">
+		<div id="infoContainer">
+			<span id="title">CoTree</span>
+		</div>
+		<div id="dirContainer">
+			<div id="innerDir">
+				<div class="dirText">
+					Collaborative tree demonstrating OpenCoweb's ability to keep multiple complex data structures in sync.
+				</div>
+			</div>
+		</div>
+		<br>
+		<div id="appContainer">
+			<div id="buttonContainer">
+				<div id="add">+</div>
+				<div id="edit"><img id="editImg" src="images/edit.png"/></div>
+				<div id="delete">-</div>
+			</div>
+			<div id="treeContainer"></div>
+		</div>	
+		<div id="dirContainer">
+			<div id="innerDir">
+				<div class="dirText">
+					For a quick tutorial on how to use OpenCoweb to make a complex collaborative data structure, <a href="tutorial/about.html">click here</a>.
+				</div>
+			</div>
+		</div>
+		
+		<div data-dojo-type="dijit.Dialog" id="addDialog" title="New node...">
+		    <table>
+		        <tr>
+		            <td><label for="name">Node label: </label></td>
+		            <td><input data-dojo-type="dijit.form.TextBox" type="text" name="name" id="addName"></td>
+		        </tr>
+		        <tr>
+		            <td align="center" colspan="2">
+		                <button data-dojo-type="dijit.form.Button" type="submit"
+		                    data-dojo-props="onClick:function(){return dijit.byId('addDialog').isValid();}">OK</button>
+		                <button data-dojo-type="dijit.form.Button" type="button"
+		                    data-dojo-props="onClick:function(){dijit.byId('addDialog').hide();}">Cancel</button>
+		            </td>
+		        </tr>
+		    </table>
+		</div>
+		<div data-dojo-type="dijit.Dialog" id="editDialog" title="Edit node...">
+		    <table>
+		        <tr>
+		            <td><label for="name">Node label: </label></td>
+		            <td><input data-dojo-type="dijit.form.TextBox" type="text" name="name" id="editName"></td>
+		        </tr>
+		        <tr>
+		            <td align="center" colspan="2">
+		                <button data-dojo-type="dijit.form.Button" type="submit"
+		                    data-dojo-props="onClick:function(){return dijit.byId('editDialog').isValid();}">OK</button>
+		                <button data-dojo-type="dijit.form.Button" type="button"
+		                    data-dojo-props="onClick:function(){dijit.byId('editDialog').hide();}">Cancel</button>
+		            </td>
+		        </tr>
+		    </table>
+		</div>
+  	</body>
+</html>

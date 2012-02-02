@@ -1,0 +1,7 @@
+{ 
+	"sessionModerator": "org.coweb.CotreeModerator",
+	"moderatorIsUpdater": false,
+	"captureOutgoing" : "/tmp/outgoing.txt",
+	"captureIncoming" : "/tmp/incoming.txt",
+	"bots": [] 
+}

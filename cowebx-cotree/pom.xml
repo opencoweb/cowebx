@@ -7,7 +7,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>cowebx-apps</artifactId>
+    <artifactId>cowebx-cotree</artifactId>
     <name>OpenCoweb Extras :: Applications</name>
     <packaging>war</packaging>
 
@@ -20,7 +20,7 @@
                 <configuration>
                     <scanIntervalSeconds>1</scanIntervalSeconds>
                     <webAppConfig>
-                        <contextPath>/cowebx-apps</contextPath>
+                        <contextPath>/</contextPath>
                     </webAppConfig>
                 </configuration>
             </plugin>
