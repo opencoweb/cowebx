@@ -1,4 +1,4 @@
-{ 
-	"sessionModerator": "org.coweb.CotreeSessionModerator",
+{
+	"moderatorIsUpdater": false,
 	"bots": [] 
 } 
