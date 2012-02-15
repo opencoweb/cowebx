@@ -32,12 +32,17 @@ public class CotreeModerator extends DefaultSessionModerator {
 	@Override
 	public boolean onSync(Map<String, Object> data) {
 		log.info(data.toString());
+		
+		String topic = (String)data.get("topic");
+		topic = topic.replaceFirst("sync", "state");
 		HashMap<String, Object> sync = new HashMap<String, Object>();
-		sync.put("topic", data.get("topic"));
+		sync.put("topic", topic);
 		sync.put("value", data.get("value"));
 		sync.put("position", data.get("position"));
 		sync.put("type", data.get("type"));
 		sync.put("force", data.get("force"));
+		
+		log.info(sync.toString());
 		
 		/*
 		String jsonSync = JSON.toString(sync);
@@ -50,8 +55,15 @@ public class CotreeModerator extends DefaultSessionModerator {
 
 	@Override
 	public Object[] getLateJoinState() {
-		log.info("returning late join state");
+		/*
+		System.out.println("returning late join state");
+		System.out.println(JSON.toString(this.queue.toArray()));
 		return this.queue.toArray();
+		*/
+
+		String state = "[{\"topic\":\"coweb.state.set.foobar\",\"value\":{\"d\":{\"id\":\"root\",\"name\":\"Phonebook\",\"children\":[{\"id\":\"0\",\"name\":\"Person\",\"children\":[{\"id\":\"1\",\"name\":\"firstname\",\"children\":{\"id\":\"2\",\"name\":\"Paul\"}},{\"id\":\"3\",\"name\":\"lastname\",\"children\":{\"id\":\"4\",\"name\":\"Bouchon\"}},{\"id\":\"5\",\"name\":\"address\",\"children\":{\"id\":\"6\",\"name\":\"home\",\"children\":[{\"id\":\"7\",\"name\":\"street\",\"children\":{\"id\":\"8\",\"name\":\"101 Happy Drive\"}},{\"id\":\"9\",\"name\":\"city\",\"children\":{\"id\":\"10\",\"name\":\"New Orleans\"}}]}}]},{\"id\":\"11\",\"name\":\"Person\",\"children\":[{\"id\":\"12\",\"name\":\"firstname\",\"children\":{\"id\":\"13\",\"name\":\"Dan\"}},{\"id\":\"14\",\"name\":\"lastname\",\"children\":{\"id\":\"15\",\"name\":\"Gisolfi\"}},{\"id\":\"16\",\"name\":\"address\",\"children\":{\"id\":\"17\",\"name\":\"home\",\"children\":[{\"id\":\"18\",\"name\":\"street\",\"children\":{\"id\":\"19\",\"name\":\"102 1337 Way\"}},{\"id\":\"20\",\"name\":\"city\",\"children\":{\"id\":\"21\",\"name\":\"Palo Alto\"}}]}}]},{\"id\":\"22\",\"name\":\"Person\",\"children\":[{\"id\":\"23\",\"name\":\"firstname\",\"children\":{\"id\":\"24\",\"name\":\"Brian\"}},{\"id\":\"25\",\"name\":\"lastname\",\"children\":{\"id\":\"26\",\"name\":\"Burns\"}},{\"id\":\"27\",\"name\":\"address\",\"children\":{\"id\":\"28\",\"name\":\"home\",\"children\":[{\"id\":\"29\",\"name\":\"street\",\"children\":{\"id\":\"30\",\"name\":\"103 Windoze Drive\"}},{\"id\":\"31\",\"name\":\"city\",\"children\":{\"id\":\"32\",\"name\":\"New York\"}}]}}]}]}}},{\"topic\":\"coweb.engine.state\",\"value\":[[[0,1],[0,1]],[],1,[0]]},{\"topic\":\"coweb.pause.state\",\"value\":[]}]";
+		Object[] arr = (Object[])JSON.parse(state);
+		return arr;
 	}
 
 	@Override
