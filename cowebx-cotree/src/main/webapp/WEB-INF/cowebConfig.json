@@ -1,6 +1,7 @@
 { 
 	"sessionModerator": "org.coweb.CotreeModerator",
-	"moderatorIsUpdater": true,
+	"moderatorIsUpdater": false,
+	"operationEngine": true,
 	"captureOutgoing" : "/tmp/outgoing.txt",
 	"captureIncoming" : "/tmp/incoming.txt",
 	"bots": [] 
