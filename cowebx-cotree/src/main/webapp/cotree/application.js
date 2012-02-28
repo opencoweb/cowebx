@@ -54,7 +54,6 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		},
 		
 		onRemoteAddNode: function(obj){
-			console.log('remote add');
 			// Get parent item from synced parentID
 			var parentItem = this._getItemById(obj.value.parentID);
 			// If parent item found...
@@ -106,11 +105,13 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			// send sync with topic corresponding to parent id
 			// with no flag set, indicating a modified 'delete'
 			// which keeps the node around
+			console.log('remote delete',obj);
 			this.collab.sendSync('change.'+obj.prevParentID, obj, 'delete', obj.prevPos);
 			// send sync with topic corresponding to parent id
 			// with no flag set, indicating a modified 'insert'
 			// which simply modifies children rather than creating
 			// a new node
+			console.log('remote add',obj);
 			this.collab.sendSync('change.'+obj.newParentID, obj, 'insert', obj.newPos);
 		},
 		
@@ -180,7 +181,6 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		
 		onStateResponse: function(state){
 			console.log('onStateResponse');
-			console.log(state);
 			var d = {
 				identifier: 'id',
 				label: 'name',
@@ -301,21 +301,23 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		},
 		
 		_dnd: function(){
-			// Get last op object from DnD queue (dojo hackiness)
-			var ops = this.dndOps[this.dndOps.length-1];
-			// Get new children, new position, and new parent ID
-			var newChildren = this.tree.selectedNode.getParent().item.children;
-			var pos;
-			for(var i=0; i<newChildren.length; i++){
-				if(newChildren[i].id[0] == ops['targetID'])
-					pos = i;
-			}
-			ops['newPos'] = pos;
-			ops['newParentID'] = this.tree.selectedNode.getParent().item.id[0];
-			// Trigger local callback
-			this.onLocalMoveNode(ops);
-			// Clear DnD queue
-			this.dndOps = [];
+			setTimeout(dojo.hitch(this,function(){
+				// Get last op object from DnD queue (dojo hackiness)
+				var ops = this.dndOps[this.dndOps.length-1];
+				// Get new children, new position, and new parent ID
+				var newChildren = this.tree.selectedNode.getParent().item.children;
+				var pos;
+				for(var i=0; i<newChildren.length; i++){
+					if(newChildren[i].id[0] == ops['targetID'])
+						pos = i;
+				}
+				ops['newPos'] = pos;
+				ops['newParentID'] = this.tree.selectedNode.getParent().item.id[0];
+				// Trigger local callback
+				this.onLocalMoveNode(ops);
+				// Clear DnD queue
+				this.dndOps = [];
+			}),1000);
 		},
 		
 		_getData: function(){
