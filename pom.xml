@@ -8,7 +8,7 @@
     
     <name>OpenCoweb Extras</name>
     <description>Example applications and widgets using the OpenCoweb Framework</description>
-    <version>0.7</version>
+    <version>0.8</version>
     <url>http://opencoweb.org</url>
     <inceptionYear>2011</inceptionYear>
     <organization>
@@ -56,8 +56,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <coweb-version>[0.7,]</coweb-version>
-        <jetty-version>7.3.0.v20110203</jetty-version>
+        <coweb-version>[0.8,]</coweb-version>
+        <jetty-version>7.6.0.v20120127</jetty-version>
         <jetty-plugin-version>${jetty-version}</jetty-plugin-version>
     </properties>
     
