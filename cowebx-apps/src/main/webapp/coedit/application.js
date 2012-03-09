@@ -24,16 +24,18 @@ define(
 			    dojo.parser.parse();
 
 			    //1. Generate session or enter session
- 			    if(this.aquireUrlParams('session') == null){
- 			        dojo.style('splash','display','block');
-       			    dojo.connect(dojo.byId('newDoc'),'onclick',this,function(){
-       			        window.location = document.URL+'?'+'session='+Math.floor(Math.random()*10000001);
-       			    });
+ 			    if(location.hash == ''){
+ 			        	dojo.style('splash','display','block');
+ 			        	console.log("hashtag = "+location.hash);
+	       			dojo.connect(dojo.byId('newDoc'),'onclick',this,function(){
+	       				window.location = document.URL+'#/cowebkey/'+Math.floor(Math.random()*10000001);
+	       				window.location.reload();
+	       			});
 			    }else{
-	        	    var sess = coweb.initSession();
-    			    sess.prepare().then(function(info) { });
-   			        dojo.style('editorNode','display','block');
-   			        dojo.fadeIn({node:'editorNode',duration:1000}).play();
+	        	    		var sess = coweb.initSession();
+    			    	sess.prepare().then(function(info) { });
+   			        	dojo.style('editorNode','display','block');
+   			        	dojo.fadeIn({node:'editorNode',duration:1000}).play();
 			    }
 			},
 			

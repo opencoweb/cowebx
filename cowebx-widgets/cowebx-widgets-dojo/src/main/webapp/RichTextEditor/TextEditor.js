@@ -474,7 +474,8 @@ define([
 	        dijit.byId('tDialog').set('content', "You may lose data if you are the only user in the current session. Do you really want to start a new Document?");
 	        dijit.byId('tDialog').show();
 	        var one = dojo.connect(dijit.byId('yesButton'),'onClick',this, function(){
-	            window.location = window.location.pathname+'?'+'session='+Math.floor(Math.random()*10000001);
+	            window.location = window.location.pathname+'#/cowebkey/'+Math.floor(Math.random()*10000001);
+	            window.location.reload();
 	            dojo.disconnect(one);
 	            dojo.disconnect(two);
 	        });
