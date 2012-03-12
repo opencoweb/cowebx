@@ -7,19 +7,21 @@
 
 define([
 	'dojo',
+	'dojo/parser',
 	'coweb/main',
 	'dijit/dijit',
 	'dojo/data/ItemFileWriteStore',
-	'./dijit/Tree',
+	'dijit/Tree',
 	'dijit/tree/TreeStoreModel',
 	'dijit/tree/dndSource',
 	'dijit/Menu',
 	'dijit/form/Button',
-	'dojo/dnd/common',
-	'dojo/dnd/Source',
 	'dijit/Dialog',
-	'dijit/form/TextBox'],
-function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog, TextBox) {
+	'dijit/form/TextBox',
+	'dojo/dnd/common',
+	'dojo/dnd/Source'],
+function(dojo, parser, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog, TextBox) {
+	parser.parse();
 	var app = {
 		init: function(){
 			// Properties
