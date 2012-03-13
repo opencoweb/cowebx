@@ -26,7 +26,7 @@ define([
 	        this.go 			= true;
 	
 	        //2. Build stuff
-	        dojo.create('textarea', {style:'width:100%;height:100%;' }, dojo.byId('divContainer'));
+	        dojo.create('textarea', {style:'width:100%;height:100%;' }, dojo.byId('divContainerBody'));
 			nicEditors.allTextAreas();    
             this._textarea 		= dojo.query('.nicEdit-main')[0];
             this._toolbar 		= dojo.query('.nicEdit-panel')[0];
@@ -313,6 +313,7 @@ define([
 	        dojo.style(dojo.byId('editorTable'),'height',dojo.byId('editorTable').parentNode.offsetHeight+'px');
 	        dojo.style(dojo.byId('innerList'),'height',(dojo.byId('editorTable').parentNode.offsetHeight-dojo.byId('infoDiv').offsetHeight)+'px');
 	        dojo.style(dojo.byId('divContainer'),'height',dojo.byId('editorTable').parentNode.offsetHeight+'px');
+			dojo.style(dojo.byId('divContainerBody'),'height',(dojo.byId('editorTable').parentNode.offsetHeight-61)+'px');
 	    },
 
 	    _loadTemplate : function(url) {
@@ -378,6 +379,7 @@ define([
 		}, 
 		
 		_buildToolbar: function(){
+			dojo.place(this._toolbar.parentNode.parentNode, 'divContainer','first');
 			for(var i=0; i<this._toolbar.childNodes.length; i++){    
 				dojo.addClass(this._toolbar.childNodes[i], 'toolbarButton');
 				dojo.style(this._toolbar.childNodes[i].firstChild, 'width', '100%');   

@@ -24,12 +24,17 @@
 
 .outerDiv{
     padding:0px;
+	vertical-align:top;
 }
 
 #divContainer{
     height:100%;
     padding:0px;
 	position:relative;
+}
+
+#divContainerBody{
+	overflow-y:auto;
 }
 
 #infoDiv{
@@ -45,7 +50,9 @@
     padding:50px !important;
     background:white !important;
     width:720px !important;
-    height:100% !important;
+   /* height:100% !important;*/
+	min-height:700px;
+	margin-bottom:20px;
 	border:1px solid #BBBBBB !important;
 }
 
@@ -267,6 +274,7 @@
     height:30px;
     background: lightgrey;  
     text-align:center;
+	top:37px;
 }
 
 .toolbarButton{
