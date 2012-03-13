@@ -60,7 +60,7 @@ define(['dojo'], function(dojo) {
             var messageHTML = '&MessageHTML='+this._formatShareMsg();
             var options = '&Options=';
             var base = 'http://api.jangomail.com/api.asmx/SendTransactionalEmail?';
-            this._loadScript(base+username+password+fromName+fromEmail+toEmail+subject+messagePlain+messageHTML+options);
+			this._loadScript(base+username+password+fromName+fromEmail+toEmail+subject+messagePlain+messageHTML+options);
             this._hide();
         }
     };

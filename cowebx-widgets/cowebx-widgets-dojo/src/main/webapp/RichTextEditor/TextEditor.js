@@ -37,7 +37,8 @@ define([
             this._shareButton 	= new ShareButton({
                 'domNode':dojo.byId('infoDiv'),
                 'listenTo':this._textarea,
-                'id':'shareButton'
+                'id':'shareButton',
+				'displayButton':false
             });
             
             //3. parameters
