@@ -13,6 +13,7 @@ define([
     'cowebx/dojo/GMap/GMap',
     'ChatBox',
 	'dojo/parser',
+	'cowebx/dojo/BusyDialog/BusyDialog',
     'dijit/layout/BorderContainer',
     'dijit/layout/AccordionContainer',
     'dijit/layout/AccordionPane',
@@ -21,10 +22,7 @@ define([
     'dijit/form/CheckBox',
     'dojo/hash',
     'dojo/domReady!'
-], function(dojo, dijit, coweb, attendance, GMap, ChatBox, parser) {
-    // dojo.require('comap.GMap');
-    // dojo.require('comap.ChatBox');
-
+], function(dojo, dijit, coweb, attendance, GMap, ChatBox, parser, BusyDialog) {
     // define controller singleton for the app
     var app = {
         init: function() {
@@ -79,7 +77,7 @@ define([
 
             // get a session instance
             this.session = coweb.initSession();
-
+			BusyDialog.createBusy(this.session);
             // do the prep using defaults
             this.session.prepare();
         },

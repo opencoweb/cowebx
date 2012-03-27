@@ -13,10 +13,11 @@ define([
     'CoopItemFileWriteStore',
     'dojox/grid/DataGrid',
     'dojo/data/ItemFileWriteStore',
+	'cowebx/dojo/BusyDialog/BusyDialog',
     'dijit/form/Button',
     'dijit/layout/BorderContainer',
     'dijit/layout/ContentPane'
-], function(dojo, dijit, coweb, CoopGrid, CoopItemFileWriteStore, DataGrid, ItemFileWriteStore) {
+], function(dojo, dijit, coweb, CoopGrid, CoopItemFileWriteStore, DataGrid, ItemFileWriteStore, BusyDialog) {
 
     var app = {
         init: function(){
@@ -47,10 +48,9 @@ define([
 
             // get a session instance
             var sess = coweb.initSession();
-
+			BusyDialog.createBusy(sess);
             var urlParams = this.getURLParams(); 
             var updaterType = urlParams['updaterType'] === undefined  ? 'default' : urlParams['updaterType'];
-            
             // do the prep
             sess.prepare({updaterType: updaterType});
         },

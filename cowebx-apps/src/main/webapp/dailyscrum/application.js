@@ -13,6 +13,7 @@ define([
 		'Clock',
 		'AttendeeList',
 		'cowebx/dojo/BasicTextareaEditor/TextEditor',
+		'cowebx/dojo/BusyDialog/BusyDialog',
 		'dojo/fx',
 		'dojox/mobile',
 		'dojox/mobile/FixedSplitter',
@@ -24,7 +25,8 @@ define([
 		parser,
 		Clock,
 		AttendeeList,
-		TextEditor) {
+		TextEditor,
+		BusyDialog) {
 		
 		var app = {
 			init: function(){		
@@ -52,6 +54,7 @@ define([
 				
 			   	//Session prep
 			    this.sess = coweb.initSession();
+				BusyDialog.createBusy(this.sess);
 			    this.sess.prepare();
 			},
 			

@@ -43,7 +43,9 @@ var BusySheet = declare('cowebx.BusySheet', [_Widget, _TemplatedMixin, _WidgetsI
     },
 
 	postCreate: function(){
-		this._loadTemplate('../lib/cowebx/dojo/BisyDialog/styles/claro.css');
+		this._loadTemplate('http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/resources/dojo.css');
+		this._loadTemplate('http://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/claro/claro.css');
+		this._loadTemplate('../lib/cowebx/dojo/BusyDialog/styles/claro/claro.css');
 	},
 	
 	_loadTemplate : function(url) {
