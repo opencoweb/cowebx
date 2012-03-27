@@ -64,6 +64,7 @@ define([
 			dojo.connect(this.map, 'onMapMarkerMoved', this, 'onMapMarkerMoved');
 			dojo.connect(this.map, 'onMapMarkerAdded', this, 'onMapMarkerAdded');
 			dojo.connect(this.map, 'onMapMarkerAnimated', this, 'onMapMarkerAnimated');
+			dojo.connect(dijit.byId('layout'), 'resize', this.map, 'resize');
 
             // listen to remote events
             this.collab = coweb.initCollab({id : 'comap'});
@@ -75,7 +76,6 @@ define([
     
             // avoid a splitter layout bug by forcing a resize after load
             dijit.byId('layout').resize();
-			this.map.resize();
 
             // get a session instance
             this.session = coweb.initSession();
