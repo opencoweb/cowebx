@@ -10,7 +10,7 @@ define([
     'dijit/registry',
     'coweb/main',
     'coweb/ext/attendance',
-    'GMap',
+    'cowebx/dojo/GMap/GMap',
     'ChatBox',
 	'dojo/parser',
     'dijit/layout/BorderContainer',
@@ -59,21 +59,11 @@ define([
             this.map.attr('app', this);
             this.chat.attr('app', this);
     
-            // deal with initial hash
-            var hash = dojo.hash();
-            if(hash) {
-                this.onHashChange(hash);
-            }
-            // listen to hash changes
-            dojo.subscribe('/dojo/hashchange', this, 'onHashChange');
-    
             // listen for local events
-            dojo.connect(dijit.byId('syncButton'), 'onClick', this, 'onMapSyncClick');
-            dojo.connect(dijit.byId('syncBox'), 'onChange', this, 'onMapContinuousSyncClick');
             dojo.connect(this.chat, 'onMessage', this, 'onChatMessage');
-            dojo.connect(this.map, 'onMarkerAdded', this, 'onMapMarkerAdded');
-            dojo.connect(this.map, 'onMarkerMoved', this, 'onMapMarkerMoved');
-            dojo.connect(this.map, 'onMarkerAnimated', this, 'onMapMarkerAnimated');
+			dojo.connect(this.map, 'onMapMarkerMoved', this, 'onMapMarkerMoved');
+			dojo.connect(this.map, 'onMapMarkerAdded', this, 'onMapMarkerAdded');
+			dojo.connect(this.map, 'onMapMarkerAnimated', this, 'onMapMarkerAnimated');
 
             // listen to remote events
             this.collab = coweb.initCollab({id : 'comap'});
@@ -82,13 +72,10 @@ define([
             this.collab.subscribeStateResponse(this, 'onStateResponse');
             this.collab.subscribeSync('chat.message', this, 'onRemoteChatMessage');
             this.collab.subscribeSync('log.message', this, 'onRemoteLogMessage');
-            this.collab.subscribeSync('marker.add.*', this, 'onRemoteMapMarkerAdded');
-            this.collab.subscribeSync('marker.move.*', this, 'onRemoteMapMarkerMoved');
-            this.collab.subscribeSync('marker.anim.*', this, 'onRemoteMapMarkerAnimated');
-            this.collab.subscribeSync('map.viewport', this, 'onRemoteMapViewport');
     
             // avoid a splitter layout bug by forcing a resize after load
             dijit.byId('layout').resize();
+			this.map.resize();
 
             // get a session instance
             this.session = coweb.initSession();
@@ -97,38 +84,53 @@ define([
             this.session.prepare();
         },
 
-        onHashChange: function(hash) {
-            var latLng;
-            try {
-                latLng = this.map.latLngFromString(hash);
-            } catch(e) {
-                // ignore bad lat/lng hash
-                return;
-            }
-            this.map.setCenter(latLng);
+		onMapMarkerAdded: function(marker) {
+            // include in local log
+            var args = {
+                template : 'add_notice',
+                username : this.username,
+                latLng : marker.getPosition().toUrlValue()
+            };
+            var position = this._insertLogMessage(args);
+            // send to remote logs
+            this.collab.sendSync('log.message', args, 'insert', position);
+        },
+
+		onMapMarkerMoved: function(marker) {
+            // include in local log
+            var args = {
+                template: 'move_notice',
+                username : this.username,
+                latLng : marker.getPosition().toUrlValue()
+            };
+            var position = this._insertLogMessage(args);
+            // send to remote logs
+            this.collab.sendSync('log.message', args, 'insert', position);
+        },
+		
+		onMapMarkerAnimated: function(marker) {
+            // include in local log
+            var args = {
+                template : 'anim_notice',
+                username : this.username,
+                latLng : marker.getPosition().toUrlValue()
+            };
+            var position = this._insertLogMessage(args);
+            // send to remote logs
+            this.collab.sendSync('log.message', args, 'insert', position);
         },
     
         onStateRequest: function(token) {
             var state = {
                 logHtml : this.log.getHtml(),
                 chatHtml : this.chat.getHtml(),
-                markers : this.map.getAllMarkers(),
-                // not necessary to do viewport, but gets user looking somewhere
-                // relevant to one other user at least
-                viewport : {
-                    zoom : this.map.getZoom(),
-                    center : this.map.getCenter().toUrlValue(),
-                    type : this.map.getMapType()
-                }
             };
             this.collab.sendStateResponse(state, token);
         },
     
         onStateResponse: function(state) {
-            this.map.setAllMarkers(state.markers);
             this.chat.setHtml(state.chatHtml);
             this.log.setHtml(state.logHtml);
-            this.onRemoteMapViewport({value : state.viewport});
         },
     
         onCollabReady: function(info) {
@@ -187,119 +189,6 @@ define([
                 position : args.position
             }, args.value);
             this._insertLogMessage(args);
-        },
-
-        onMapMarkerAdded: function(marker) {
-            var info = {
-                uuid : marker._uuid,
-                latLng : marker.getPosition().toUrlValue()
-            };
-            // NO conflict resolution on add, new markers are unique
-            this.collab.sendSync('marker.add.'+marker._uuid, info, null);
-            // include in local log
-            var args = {
-                template : 'add_notice',
-                username : this.username,
-                latLng : marker.getPosition().toUrlValue()
-            };
-            var position = this._insertLogMessage(args);
-            // send to remote logs
-            this.collab.sendSync('log.message', args, 'insert', position);
-        },
-
-        onRemoteMapMarkerAdded: function(args) {
-            var latLng = this.map.latLngFromString(args.value.latLng);
-            var creator = attendance.users[args.site].username;
-            this.map.addMarker(args.value.uuid, creator, latLng);
-        },
-
-        onMapMarkerMoved: function(marker) {
-            // reset zip visits info set by bot
-            delete marker._visitCount;
-            this.map.refreshInfoPop(marker);
-        
-            var info = {
-                uuid : marker._uuid,
-                latLng : marker.getPosition().toUrlValue()
-            };
-            // resolve relocation conflicts
-            this.collab.sendSync('marker.move.'+marker._uuid, info, 'update');
-            // include in local log
-            var args = {
-                template: 'move_notice',
-                username : this.username,
-                latLng : marker.getPosition().toUrlValue()
-            };
-            var position = this._insertLogMessage(args);
-            // send to remote logs
-            this.collab.sendSync('log.message', args, 'insert', position);
-        },
-    
-        onRemoteMapMarkerMoved: function(args) {
-            // could receive repeat value when resolve conflict which doesn't hurt
-            // us; pass it along
-            var latLng = this.map.latLngFromString(args.value.latLng);
-            var marker = this.map.getMarkerById(args.value.uuid);
-            this.map.moveMarker(marker, latLng);
-        },
-
-        onMapMarkerAnimated: function(marker) {
-            var info = {
-                uuid : marker._uuid
-            };
-            // NO conflict resolution on animate, anyone can do it any number of
-            // times without affecting state
-            this.collab.sendSync('marker.anim.'+marker._uuid, info, null);
-            // include in local log
-            var args = {
-                template : 'anim_notice',
-                username : this.username,
-                latLng : marker.getPosition().toUrlValue()
-            };
-            var position = this._insertLogMessage(args);
-            // send to remote logs
-            this.collab.sendSync('log.message', args, 'insert', position);
-        },
-    
-        onRemoteMapMarkerAnimated: function(args) {
-            var marker = this.map.getMarkerById(args.value.uuid);
-            this.map.animateMarker(marker);
-        },
-
-        onMapSyncClick: function() {
-            this.onMapViewport('update');
-        },
-    
-        onMapContinuousSyncClick: function(selected) {
-            if(selected) {
-                this.contTok = [];
-                var self = this;
-                this.contTok.push(dojo.connect(this.map, 'onMapCenter', 
-                    function(e, i) { self.onMapViewport(i ? null : 'update'); }));
-                this.contTok.push(dojo.connect(this.map, 'onMapZoom', 
-                    function() { self.onMapViewport('update'); }));
-                this.contTok.push(dojo.connect(this.map, 'onMapType', 
-                    function() { self.onMapViewport('update'); }));
-            } else {
-                dojo.forEach(this.contTok, dojo.disconnect);
-                this.contTok = null;
-            }
-        },
-
-        onMapViewport: function(type) {
-            var args = {
-                zoom : this.map.getZoom(),
-                center : this.map.getCenter().toUrlValue(),
-                type : this.map.getMapType()
-            };
-            this.collab.sendSync('map.viewport', args, type);
-        },
-    
-        onRemoteMapViewport: function(args) {
-            var latLng = this.map.latLngFromString(args.value.center);
-            this.map.setMapType(args.value.type);
-            this.map.setZoom(args.value.zoom);
-            this.map.setCenter(latLng);
         }
     };
 

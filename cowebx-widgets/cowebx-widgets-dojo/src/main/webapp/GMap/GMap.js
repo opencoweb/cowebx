@@ -8,14 +8,22 @@ define([
     'dojo',
 	"dojo/_base/declare", // declare
 	"dijit/_Widget",
+	"dijit/_TemplatedMixin",
+	"dijit/_WidgetsInTemplateMixin",
+	"dijit/_Contained",
+	"dojo/text!./GMap.html",
+	'coweb/main',
+    'coweb/ext/attendance',
 	'dojox/uuid/generateRandomUuid'
-], function(dojo, declare, _Widget){
+], function(dojo, declare, _Widget, _TemplatedMixin, _WidgetsInTemplateMixin, _Contained, template, coweb, attendance){
 
-	return declare("GMap", [_Widget], {
+	return declare("GMap", [_Widget, _TemplatedMixin, _Contained, _WidgetsInTemplateMixin], {
 	    // application controller
         app : null,
         // template to use for marker bubbles
         markerTemplate : '',
+		// widget template
+		templateString: template,
         
         postMixInProperties: function() {
             // unordered collection of markers
@@ -28,8 +36,9 @@ define([
             this._dragging = false;
         },
 
-        postCreate: function() {
-            // initialize a map widget
+		startup: function(){
+			// initialize a map widget
+			this._loadTemplate("../lib/cowebx/dojo/GMap/GMap.css");
             var latlng = new google.maps.LatLng(35.904, -78.873);
             var mapOpts = {
               zoom: 10,
@@ -38,7 +47,7 @@ define([
               streetViewControl: false,
               disableDoubleClickZoom: true
             };
-            this._map = new google.maps.Map(dojo.byId('map'), mapOpts);
+            this._map = new google.maps.Map(dojo.byId('gmap'), mapOpts);
             // connect to events
             google.maps.event.addListener(this._map, 'dblclick', 
                 dojo.hitch(this, '_onMapDblClick'));
@@ -54,9 +63,33 @@ define([
                 dojo.hitch(this, '_onZoomChange'));
             google.maps.event.addListener(this._map, 'maptypeid_changed', 
                 dojo.hitch(this, '_onTypeChange'));
-        },
+
+			var hash = dojo.hash();
+            if(hash) {
+                this.onHashChange(hash);
+            }
+            // listen to hash changes
+            dojo.subscribe('/dojo/hashchange', this, 'onHashChange');
+
+			dojo.connect(dijit.byId('syncButton'), 'onClick', this, 'onMapSyncClick');
+            dojo.connect(dijit.byId('syncBox'), 'onChange', this, 'onMapContinuousSyncClick');
+            dojo.connect(this, 'onMarkerAdded', this, 'onMapMarkerAdded');
+            dojo.connect(this, 'onMarkerMoved', this, 'onMapMarkerMoved');
+            dojo.connect(this, 'onMarkerAnimated', this, 'onMapMarkerAnimated');
+
+			this.collab = coweb.initCollab({id : 'GMap'});
+            this.collab.subscribeReady(this, 'onCollabReady');
+            this.collab.subscribeStateRequest(this, 'onStateRequest');
+            this.collab.subscribeStateResponse(this, 'onStateResponse');
+            this.collab.subscribeSync('marker.add.*', this, 'onRemoteMapMarkerAdded');
+            this.collab.subscribeSync('marker.move.*', this, 'onRemoteMapMarkerMoved');
+            this.collab.subscribeSync('marker.anim.*', this, 'onRemoteMapMarkerAnimated');
+            this.collab.subscribeSync('map.viewport', this, 'onRemoteMapViewport');
+			setTimeout(dojo.hitch(this, 'resize'),1000);
+		},
 
         resize: function(size) {
+			dijit.byId('layoutTwo').resize();
             dojo.marginBox(this.domNode, size);
             // force map to resize
             google.maps.event.trigger(this._map, 'resize');
@@ -185,7 +218,128 @@ define([
             }, 2000);
         },
 
-        onMarkerAdded: function(marker) {
+		onHashChange: function(hash) {
+            var latLng;
+            try {
+                latLng = this.latLngFromString(hash);
+            } catch(e) {
+                // ignore bad lat/lng hash
+                return;
+            }
+            this.setCenter(latLng);
+        },
+
+		onMapSyncClick: function() {
+            this.onMapViewport('update');
+        },
+
+		onMapViewport: function(type) {
+            var args = {
+                zoom : this.getZoom(),
+                center : this.getCenter().toUrlValue(),
+                type : this.getMapType()
+            };
+            this.collab.sendSync('map.viewport', args, type);
+        },
+
+		onMapContinuousSyncClick: function(selected) {
+            if(selected) {
+                this.contTok = [];
+                var self = this;
+                this.contTok.push(dojo.connect(this, 'onMapCenter', 
+                    function(e, i) { self.onMapViewport(i ? null : 'update'); }));
+                this.contTok.push(dojo.connect(this, 'onMapZoom', 
+                    function() { self.onMapViewport('update'); }));
+                this.contTok.push(dojo.connect(this, 'onMapType', 
+                    function() { self.onMapViewport('update'); }));
+            } else {
+                dojo.forEach(this.contTok, dojo.disconnect);
+                this.contTok = null;
+            }
+        },
+
+		onMapMarkerAdded: function(marker) {
+            var info = {
+                uuid : marker._uuid,
+                latLng : marker.getPosition().toUrlValue()
+            };
+            // NO conflict resolution on add, new markers are unique
+            this.collab.sendSync('marker.add.'+marker._uuid, info, null);
+        },
+
+		onMapMarkerMoved: function(marker) {
+            // reset zip visits info set by bot
+            delete marker._visitCount;
+            this.refreshInfoPop(marker);
+        
+            var info = {
+                uuid : marker._uuid,
+                latLng : marker.getPosition().toUrlValue()
+            };
+            // resolve relocation conflicts
+            this.collab.sendSync('marker.move.'+marker._uuid, info, 'update');
+        },
+		
+		onMapMarkerAnimated: function(marker) {
+            var info = {
+                uuid : marker._uuid
+            };
+            // NO conflict resolution on animate, anyone can do it any number of
+            // times without affecting state
+            this.collab.sendSync('marker.anim.'+marker._uuid, info, null);
+        },
+
+		onCollabReady: function(info) {
+            // store username for use by widgets
+            this.username = info.username;
+        },
+
+		onStateRequest: function(token) {
+            var state = {
+                markers : this.getAllMarkers(),
+                // not necessary to do viewport, but gets user looking somewhere
+                // relevant to one other user at least
+                viewport : {
+                    zoom : this.getZoom(),
+                    center : this.getCenter().toUrlValue(),
+                    type : this.getMapType()
+                }
+            };
+            this.collab.sendStateResponse(state, token);
+        },
+
+		onStateResponse: function(state) {
+            this.setAllMarkers(state.markers);
+            this.onRemoteMapViewport({value : state.viewport});
+        },
+
+		onRemoteMapMarkerAdded: function(args) {
+            var latLng = this.latLngFromString(args.value.latLng);
+            var creator = attendance.users[args.site].username;
+            this.addMarker(args.value.uuid, creator, latLng);
+        },
+
+		onRemoteMapMarkerMoved: function(args) {
+            // could receive repeat value when resolve conflict which doesn't hurt
+            // us; pass it along
+            var latLng = this.latLngFromString(args.value.latLng);
+            var marker = this.getMarkerById(args.value.uuid);
+            this.moveMarker(marker, latLng);
+        },
+
+		onRemoteMapMarkerAnimated: function(args) {
+            var marker = this.getMarkerById(args.value.uuid);
+            this.animateMarker(marker);
+        },
+
+		onRemoteMapViewport: function(args) {
+            var latLng = this.latLngFromString(args.value.center);
+            this.setMapType(args.value.type);
+            this.setZoom(args.value.zoom);
+            this.setCenter(latLng);
+        },
+
+		onMarkerAdded: function(marker) {
             // extension point
         },
 
@@ -208,7 +362,7 @@ define([
         onMapType: function(event) {
             // extension point
         },
-
+		
         _getMarkerHTML: function(marker) {
             if(this.markerTemplate) {
                 return dojo.replace(this.markerTemplate, marker);
@@ -220,7 +374,7 @@ define([
         _onMapDblClick: function(event) {
             // add a new marker
             var uuid = dojox.uuid.generateRandomUuid();
-            var marker = this.addMarker(uuid, this.app.username, event.latLng);
+            var marker = this.addMarker(uuid, this.username, event.latLng);
             // indicate marker added
             this.onMarkerAdded(marker);
         },
@@ -278,7 +432,15 @@ define([
 
         _onTypeChange: function(event) {
             this.onMapType(event);
-        }
-        
+        },
+
+		_loadTemplate : function(url) {
+	        var e = document.createElement("link");
+	        e.href = url;
+	        e.type = "text/css";
+	        e.rel = "stylesheet";
+	        e.media = "screen";
+	        document.getElementsByTagName("head")[0].appendChild(e);
+	    }
 	});
 });

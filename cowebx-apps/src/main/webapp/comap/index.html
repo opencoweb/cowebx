@@ -11,22 +11,18 @@
   </head>
   <body class="claro" style="display: none;">
     <div id="layout" dojoType="dijit.layout.BorderContainer" liveSplitters="true" design="sidebar">
-	  <div id="mapContainer" dojoType="dijit.layout.ContentPane" region="center" class="mapContainer">
-	  	<div id="map" dojoType="GMap" class="map"></div>
-	  </div>
-      <div id="sidebar" dojoType="dijit.layout.AccordionContainer" region="right" splitter="true">
-        <div dojoType="dijit.layout.AccordionPane" title="{chat_pane_title}">
-          <div id="chat" dojoType="ChatBox"></div>
-        </div>
-        <div dojoType="dijit.layout.AccordionPane" title="{log_pane_title}">
-          <div id="log" allowEntry="false" dojoType="ChatBox"></div>
-        </div>
-        <div id="help" href="templates/help.html" dojoType="dijit.layout.AccordionPane" selected title="{help_pane_title}"></div>
-      </div>
-      <div dojoType="dijit.Toolbar" region="bottom">
-        <button dojoType="dijit.form.Button" id="syncButton" iconClass="syncIcon">{sync_button_label}</button>
-        <label style="display: block-inline; vertical-align: middle;" for="syncBox">{continuous_sync_button_label}</label> <input dojoType="dijit.form.CheckBox" id="syncBox"/> 
-      </div>
+	
+		<div id="map" dojoType="GMap" class="map" region="center"></div>
+		
+		<div id="sidebar" dojoType="dijit.layout.AccordionContainer" region="right" splitter="true">
+	        <div dojoType="dijit.layout.AccordionPane" title="{chat_pane_title}">
+	          <div id="chat" dojoType="ChatBox"></div>
+	        </div>
+	        <div dojoType="dijit.layout.AccordionPane" title="{log_pane_title}">
+	          <div id="log" allowEntry="false" dojoType="ChatBox"></div>
+	        </div>
+	        <div id="help" href="templates/help.html" dojoType="dijit.layout.AccordionPane" selected title="{help_pane_title}"></div>
+	    </div>
     </div>
   </body>
 </html>
