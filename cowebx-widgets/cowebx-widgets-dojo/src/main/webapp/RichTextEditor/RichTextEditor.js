@@ -76,7 +76,7 @@ define([
 			this._prevPOR		=	{start:0, end:0};
 
             //4. Style / connect
-			this.style();
+			this._style();
             this.connect();
    
 			//5. kick things off
@@ -361,7 +361,7 @@ define([
 	        document.getElementsByTagName("head")[0].appendChild(e);
 	    },
 	    
-	    style: function(){
+	    _style: function(){
 	        //dojo.attr(this._textarea, 'innerHTML', 'To begin, just start click and start <strong>typing</strong>...');
 	        this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
 	        dojo.addClass(this._textarea.parentNode, 'textareaContainer');
