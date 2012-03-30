@@ -40,7 +40,6 @@
 #infoDiv{
     height:145px;
     border-top:1px solid #CACACA;
-    float:top;
 }
 
 .textareaContainer{
@@ -320,30 +319,12 @@
     margin-top:10px;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .editor_node{
     width:100%;
     height:100%;
     margin-left:auto;
     margin-right:auto;
-    display:none;
+    display:block;
     opacity:0;
     position:relative;
 }

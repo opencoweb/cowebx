@@ -47,7 +47,6 @@ define(['dojo'], function(dojo) {
     };
     
     proto.send = function(e) {
-        console.log('send');
         var email = dojo.byId('sendInput').value;
         if(email != ''){
             var username = 'Username=paboucho';

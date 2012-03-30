@@ -25,27 +25,16 @@ define([
 		
         postCreate: function(){
 			this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
-
-		    //1. Generate session or enter session
-		    if(location.hash == ''){
-		        dojo.style('splash','display','block');
-       			dojo.connect(dojo.byId('newDoc'),'onclick',this,function(){
-       				window.location = document.URL+'#/cowebkey/'+Math.floor(Math.random()*10000001);
-       				window.location.reload();
-       			});
-		    }else{
-        	    var sess = coweb.initSession();
-		    	sess.prepare().then(function(info) { });
-	        	dojo.style('editorNode','display','block');
-				this.buildEditor();
-	        	dojo.fadeIn({node:'editorNode',duration:1000}).play();
-		    }
+		    this.buildEditor();
+        	dojo.fadeIn({node:'editorNode',duration:1000}).play();
 		},
 		
 		buildEditor: function(){
 			//1. Process args
 			window.foo			= this;
-            this.id 			= 'TextEditor';
+            if(!this.collabID || this.collabID==undefined)
+                console.error("RichTextEditor: unique collabID required.");
+            this.id 			= this.collabID;
 	        this.go 			= true;
 
 	        //2. Build stuff
@@ -123,7 +112,6 @@ define([
 							s = s+syncs[i].ty+' '+syncs[i].ch+' '+syncs[i].pos+'\n';
 	                    }
 	                }
-					console.log(syncs);
 	            }
 	        }
 	    },
@@ -170,7 +158,6 @@ define([
 	            if(this.q[i].type == 'update')
 	                this.updateChar(this.q[i].value, this.q[i].position);
 	        }
-			console.log('GOT: ',this.value);
 	        this._textarea.innerHTML = this.value;
 			if(this.sel)
             	rangy.restoreSelection(this.sel);
@@ -379,7 +366,7 @@ define([
             dojo.style(this._toolbar, 'width','100%');
             dojo.style(this._toolbar, 'margin','0px');
 			dojo.style(this._toolbar, 'borderRight', '0px')
-			dojo.style(this._toolbar, 'padding-left','30px'); 
+			dojo.style(this._toolbar, 'padding-left','10px'); 
            	
 			var rulerContainer = dojo.create('div',{'class':'rulerContainer',id:'rulerContainer'},this._toolbar.parentNode,'after');
 			var i = dojo.create('img', {src:'../lib/cowebx/dojo/RichTextEditor/images/ruler.png', 'class':'ruler'}, rulerContainer, 'first');
@@ -477,11 +464,7 @@ define([
 			dojo.connect(redo, 'onclick', this, function(){ document.execCommand('redo',"",""); });
 			dojo.connect(undo, 'onclick', this, function(){ document.execCommand('undo',"",""); });
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
-			var newPage = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/RichTextEditor/images/newpage.png);'},this._toolbar,'first');
-			var home = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/RichTextEditor/images/home.png);'},this._toolbar,'first');
 			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/RichTextEditor/images/save.png);'},this._toolbar,'first');
-			dojo.connect(newPage, 'onclick', this, 'onNewPageClick');
-			dojo.connect(home, 'onclick', this, 'onHomeClick');
 			dojo.connect(save, 'onclick', this, 'onSaveClick');
 			this._buildConfirmDialog();		         
 		},
@@ -490,45 +473,6 @@ define([
 	         dojo.publish("shareClick", [{}]);
 	    },
 		
-		onHomeClick: function() {
-	        dijit.byId('tDialog').set('content', "You may lose data if you are the only user in the current session. Do you really want to go to Home?");
-	        dijit.byId('tDialog').show();
-	        var one = dojo.connect(dijit.byId('yesButton'),'onClick',this, function(){
-	            window.location = window.location.pathname;
-	        });
-	        var two = dojo.connect(dijit.byId('noButton'),'onClick',this, function(){
-	            dijit.byId('tDialog').hide();
-	            dojo.disconnect(one);
-	            dojo.disconnect(two);
-	        });
-	        var three = dojo.connect(dijit.byId('tDialog'), 'onHide', this, function(){
-	            dojo.disconnect(one);
-	            dojo.disconnect(two);
-	            dojo.disconnect(three);
-	        });
-	    },
-		
-		onNewPageClick: function() {
-	        dijit.byId('tDialog').set('content', "You may lose data if you are the only user in the current session. Do you really want to start a new Document?");
-	        dijit.byId('tDialog').show();
-	        var one = dojo.connect(dijit.byId('yesButton'),'onClick',this, function(){
-	            window.location = window.location.pathname+'#/cowebkey/'+Math.floor(Math.random()*10000001);
-	            window.location.reload();
-	            dojo.disconnect(one);
-	            dojo.disconnect(two);
-	        });
-	        var two = dojo.connect(dijit.byId('noButton'),'onClick',this, function(){
-	            dijit.byId('tDialog').hide();
-	            dojo.disconnect(one);
-	            dojo.disconnect(two);
-	        });
-	        var three = dojo.connect(dijit.byId('tDialog'), 'onHide', this, function(){
-	            dojo.disconnect(one);
-	            dojo.disconnect(two);
-	            dojo.disconnect(three);
-	        });
-	    },
-	
 		_buildConfirmDialog: function(){
 	        secondDlg = new Dialog({
 	            title: "Are you sure?",

@@ -21,7 +21,20 @@ define(
 		
 		var app = {
 			init: function(){
-			    dojo.parser.parse();
+			    //1. Generate session or enter session
+                if(location.hash == ''){
+                    dojo.style('splash','display','block');
+                	dojo.connect(dojo.byId('newDoc'),'onclick',this,function(){
+                		window.location = document.URL+'#/cowebkey/'+Math.floor(Math.random()*10000001);
+                		window.location.reload();
+                	});
+                }else{
+                    dojo.parser.parse();
+                    var sess = coweb.initSession();
+                	sess.prepare();
+                	dojo.style('rte','display','block');
+                }
+			    
 			}
 		};
 		
