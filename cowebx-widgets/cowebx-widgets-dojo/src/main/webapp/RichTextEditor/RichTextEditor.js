@@ -23,7 +23,8 @@ define([
 	    // widget template
 		templateString: template,
 		
-        postCreate: function(){
+        //postCreate: function(){
+		startup: function(){
 			this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
 		    this.buildEditor();
         	dojo.fadeIn({node:this.editorNode,duration:1000}).play();
