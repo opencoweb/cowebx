@@ -1,4 +1,4 @@
-#editorTable{
+.editor_table{
     width:100%;
     border-spacing:0px;
     border-collapse:true;
@@ -9,7 +9,7 @@
     height:100%;
 }
 
-#listContainer{
+.listContainer{
     width:200px;
     height:100%;
     vertical-align:top;
@@ -18,26 +18,22 @@
     padding:0px; 
 }
 
-#innerList{
-    
-}
-
 .outerDiv{
     padding:0px;
 	vertical-align:top;
 }
 
-#divContainer{
+.divContainer{
     height:100%;
     padding:0px;
 	position:relative;
 }
 
-#divContainerBody{
+.divContainerBody{
 	overflow-y:auto;
 }
 
-#infoDiv{
+.infoDiv{
     height:145px;
     border-top:1px solid #CACACA;
 }
@@ -132,7 +128,7 @@
     text-align:center;
 }
 
-#url{
+.url{
     width:180px;
     font:14px arial;
     min-height:15px;
@@ -145,7 +141,7 @@
 	overflow:hidden;
 }
 
-#url:focus{
+.url:focus{
     outline:0px solid transparent;
 }
 

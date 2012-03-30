@@ -26,7 +26,7 @@ define([
         postCreate: function(){
 			this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
 		    this.buildEditor();
-        	dojo.fadeIn({node:'editorNode',duration:1000}).play();
+        	dojo.fadeIn({node:this.editorNode,duration:1000}).play();
 		},
 		
 		buildEditor: function(){
@@ -38,16 +38,16 @@ define([
 	        this.go 			= true;
 
 	        //2. Build stuff
-	        dojo.create('textarea', {style:'width:100%;height:100%;' }, dojo.byId('divContainerBody'));
+	        dojo.create('textarea', {style:'width:100%;height:100%;' }, this.divContainerBody);
 			nicEditors.nicEditors.allTextAreas();    
             this._textarea 		= dojo.query('.nicEdit-main')[0];
             this._toolbar 		= dojo.query('.nicEdit-panel')[0];
 			this._buildToolbar();                
 			this._footer		= this._buildFooter();
-	        this._attendeeList 	= new AttendeeList({domNode:dojo.byId('innerList'), id:'_attendeeList'});
+	        this._attendeeList 	= new AttendeeList({domNode:this.innerList, id:'_attendeeList'});
             this.util 			= new ld({});
             this._shareButton 	= new ShareButton({
-                'domNode':dojo.byId('infoDiv'),
+                'domNode':this.infoDiv,
                 'listenTo':this._textarea,
                 'id':'shareButton',
 				'displayButton':false
@@ -270,8 +270,8 @@ define([
 	    	this.collab.subscribeStateResponse(this, 'onStateResponse');
 	        dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
 	        dojo.connect(this._textarea, 'onblur', this, '_onBlur');
-	        dojo.connect(dojo.byId('url'),'onclick',this,function(e){ this.selectElementContents(e.target) });
-            dojo.connect(dojo.byId('url'),'onblur',this,function(e){ e.target.innerHTML = window.location; });
+	        dojo.connect(this.url,'onclick',this,function(e){ this.selectElementContents(e.target) });
+            dojo.connect(this.url,'onblur',this,function(e){ e.target.innerHTML = window.location; });
 	        dojo.connect(window, 'resize', this, 'resize');
 	        // dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
 	        //     dojo.publish("shareClick", [{}]);
@@ -332,11 +332,11 @@ define([
         },
          
 	    resize: function(){
-			dojo.style(dojo.byId('editorNode'),'height',document.body.offsetHeight+'px');
-	        dojo.style(dojo.byId('editorTable'),'height',dojo.byId('editorTable').parentNode.offsetHeight+'px');
-	        dojo.style(dojo.byId('innerList'),'height',(dojo.byId('editorTable').parentNode.offsetHeight-dojo.byId('infoDiv').offsetHeight)+'px');
-	        dojo.style(dojo.byId('divContainer'),'height',dojo.byId('editorTable').parentNode.offsetHeight+'px');
-			dojo.style(dojo.byId('divContainerBody'),'height',(dojo.byId('editorTable').parentNode.offsetHeight-61)+'px');
+			dojo.style(this.editorNode,'height',document.body.offsetHeight+'px');
+	        dojo.style(this.editorTable,'height',this.editorTable.parentNode.offsetHeight+'px');
+	        dojo.style(this.innerList,'height',(this.editorTable.parentNode.offsetHeight-this.infoDiv.offsetHeight)+'px');
+	        dojo.style(this.divContainer,'height',this.editorTable.parentNode.offsetHeight+'px');
+			dojo.style(this.divContainerBody,'height',(this.editorTable.parentNode.offsetHeight-61)+'px');
 	    },
 
 	    _loadTemplate : function(url) {
@@ -372,11 +372,11 @@ define([
 			var i = dojo.create('img', {src:'../lib/cowebx/dojo/RichTextEditor/images/ruler.png', 'class':'ruler'}, rulerContainer, 'first');
 			
             
-            dojo.attr('url','innerHTML',window.location);
+            dojo.attr(this.url,'innerHTML',window.location);
 	    },
 	
 		_buildFooter: function(){
-	        var footerNode = dojo.create('div',{'class':'footer gradient'},dojo.byId('divContainer'),'last');
+	        var footerNode = dojo.create('div',{'class':'footer gradient'},this.divContainer,'last');
 
 	        //1. Title box & image
 	        var title = dojo.create('input',{'class':'title',value:'Untitled Document',type:'text'},footerNode,'first');
@@ -402,7 +402,7 @@ define([
 		}, 
 		
 		_buildToolbar: function(){
-			dojo.place(this._toolbar.parentNode.parentNode, 'divContainer','first');
+			dojo.place(this._toolbar.parentNode.parentNode, this.divContainer,'first');
 			for(var i=0; i<this._toolbar.childNodes.length; i++){    
 				dojo.addClass(this._toolbar.childNodes[i], 'toolbarButton');
 				dojo.style(this._toolbar.childNodes[i].firstChild, 'width', '100%');   
