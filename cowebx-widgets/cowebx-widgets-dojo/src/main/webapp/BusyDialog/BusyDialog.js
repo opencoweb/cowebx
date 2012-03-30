@@ -20,7 +20,7 @@ define([
 ], 
 function(Dialog, declare, _Widget, _TemplatedMixin, _WidgetsInTemplateMixin, domClass, domStyle, template, i18n) {
 
-var messages = i18n.getLocalization("cowebx.dojo", "BusyDialog"); 
+var messages = i18n.getLocalization("cowebx.dojo.BusyDialog", "BusyDialog"); 
 
 /**
  * Dialog containing a busy indicator, status message, and cancel button.
