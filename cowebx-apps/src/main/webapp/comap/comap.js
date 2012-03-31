@@ -78,6 +78,7 @@ define([
             // get a session instance
             this.session = coweb.initSession();
 			BusyDialog.createBusy(this.session);
+			
             // do the prep using defaults
             this.session.prepare();
         },
