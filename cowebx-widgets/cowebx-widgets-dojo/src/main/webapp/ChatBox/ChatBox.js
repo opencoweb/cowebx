@@ -6,14 +6,16 @@
 
 define([
     'dojo',
+    'coweb/main',
 	"dojo/_base/declare", // declare
 	"dijit/_Widget",
 	"dijit/_TemplatedMixin",
 	"dijit/_Contained",
-	"dojo/text!./templates/ChatBox.html",
+	"dojo/text!./ChatBox.html",
+	'coweb/ext/attendance',
 	'dojo/date/locale',
 	'dojo/date/stamp'
-], function(dojo, declare, _Widget, _TemplatedMixin, _Contained, template){
+], function(dojo, coweb, declare, _Widget, _TemplatedMixin, _Contained, template, attendance){
 
 	return declare("ChatBox", [_Widget, _TemplatedMixin, _Contained], {
 	    // widget template
@@ -22,6 +24,7 @@ define([
         app: null,
         // allow user entry?
         allowEntry: true,
+        
 
         postMixInProperties: function() {
             // regex for links
@@ -29,16 +32,89 @@ define([
         },
 
         postCreate: function() {
-            if(!this.allowEntry) {
+            this.labels = {
+                map_source : 'Map',
+                add_notice : 'Added a marker at <a href="#{0}">{0}</a>',
+                move_notice : 'Moved a marker to <a href="#{0}">{0}</a>',
+                anim_notice : 'Bounced a marker at <a href="#{0}">{0}</a>',
+                sync_button_label : 'Sync map',
+                chat_pane_title : 'Chat',
+                log_pane_title : 'Map Log',
+                help_pane_title : 'Help',
+                continuous_sync_button_label : 'Sync always'
+            };
+            this._loadTemplate(require.toUrl('cowebx/dojo/ChatBox/ChatBox.css'));
+            dojo.connect(this, 'onMessage', this, 'onChatMessage');
+            if(this.allowEntry){
+                this.collab = coweb.initCollab({id : 'Chat'});
+                this.collab.subscribeSync('chat.message', this, 'onRemoteChatMessage');
+            }else{
+                this.collab = coweb.initCollab({id : 'Log'});
+                this.collab.subscribeSync('log.message', this, 'onRemoteLogMessage');
                 dojo.style(this.entryContainerNode, 'display', 'none');
                 dojo.style(this.historyNode, 'bottom', '0px');
             }
+            this.collab.subscribeReady(this, 'onCollabReady');
+            this.collab.subscribeStateRequest(this, 'onStateRequest');
+            this.collab.subscribeStateResponse(this, 'onStateResponse');
+
             // watch for first focus on chat to hide the prompt message
             var tok = dojo.connect(this.entryNode, 'onfocus', function(event) {
                 event.target.style.color = '';
                 event.target.value = '';
                 dojo.disconnect(tok);
             });
+        },
+        
+        onCollabReady: function(info) {
+            // store username for use by widgets
+            this.username = info.username;
+        },
+
+        onChatMessage: function(text, position, isoDT) {
+            var value = {text : text, isoDT : isoDT};
+            // send raw value, will be parsed / sanitized on the other side
+            this.collab.sendSync('chat.message', value, 'insert', position);
+        },
+        
+        onStateResponse: function(state) {
+            this.setHtml(state.html);
+        },
+        
+        onStateRequest: function(token) {
+            var state = {
+                html : this.getHtml()
+            };
+            this.collab.sendStateResponse(state, token);
+        },
+        
+        onRemoteChatMessage : function(args) {
+            var username = attendance.users[args.site].username;
+            // sanitize received text
+            args.value.text = this.sanitizeText(args.value.text);
+            // parse for http links
+            args.value.text = this.parseLinks(args.value.text);
+            this.insertMessage(username, args.value.text, 
+                args.value.isoDT, args.position);
+        },
+    
+        _insertLogMessage: function(args) {
+            // make sure latlng isn't bogus
+            var latLng = this.sanitizeText(args.latLng);
+            var text = dojo.replace(this.labels[args.template], [latLng]);
+            var rv = this.insertMessage(args.username, text, args.isoDT, 
+                args.position);
+            args.isoDT = rv.isoDT;
+            delete args.username;
+            return rv.position;
+        },
+
+        onRemoteLogMessage : function(args) {
+            args = dojo.mixin({
+                username : attendance.users[args.site].username,
+                position : args.position
+            }, args.value);
+            this._insertLogMessage(args);
         },
 
         sanitizeText: function(text) {
@@ -127,7 +203,7 @@ define([
                 var date = dojo.date.stamp.fromISOString(item.title);
                 var localTime = dojo.date.locale.format(date,
                     {timePattern: 'HH:mm', selector: 'time'});
-                item.innerHTML = '@123'+localTime;
+                item.innerHTML = '@'+localTime;
             });
         },
 
@@ -135,6 +211,15 @@ define([
             // @todo: replace to return raw chat log for processing to avoid
             //   poisoned state attacks
             return this.historyNode.innerHTML;
-        }
+        },
+        
+        _loadTemplate : function(url) {
+	        var e = document.createElement("link");
+	        e.href = url;
+	        e.type = "text/css";
+	        e.rel = "stylesheet";
+	        e.media = "screen";
+	        document.getElementsByTagName("head")[0].appendChild(e);
+	    }
 	});
 });

@@ -1,0 +1,54 @@
+.wChatBox {
+    background-color: white;
+}
+
+.wChatBoxHistory {
+    position: absolute;
+    top: 0px;
+    bottom: 32px;
+    left: 0px;
+    right: 0px;
+    border: 0px solid #999;
+    overflow: auto;
+}
+
+.wChatBoxMessage {
+    margin: 1px 5px;
+    padding: 5px 5px;
+    word-wrap: break-word;
+    border-bottom: 1px solid #999;
+}
+
+.wChatBoxMessageMeta {
+    font-style: italic;
+    color: #999;
+}
+
+.wChatBoxMessageTime {
+    float: right;
+}
+
+.wChatBoxEntry {
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    right: 0px;
+    height: 32px;
+    border-top: 1px solid #B5BCC7;
+    background-repeat: no-repeat;
+    background-color: white;
+}
+
+.wChatBoxEntry input {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    height: 32px;
+    border: 0px solid white;
+}
+
+.dj_ie .wChatBoxEntry input {
+    line-height: 32px;
+    width: 90%;
+}

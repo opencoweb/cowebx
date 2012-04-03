@@ -26,11 +26,7 @@ define([
 		
         //postCreate: function(){
 		startup: function(){
-		    //console.log("*****************");
-		    //console.log(css);
-			//this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
 			this._loadTemplate(require.toUrl('cowebx/dojo/RichTextEditor/TextEditor.css'));
-			//this._loadCss(css);
 			
 		    this.buildEditor();
         	dojo.fadeIn({node:this.editorNode,duration:1000}).play();
@@ -352,13 +348,6 @@ define([
 	        e.type = "text/css";
 	        e.rel = "stylesheet";
 	        e.media = "screen";
-	        document.getElementsByTagName("head")[0].appendChild(e);
-	    },
-	    
-	    _loadCss: function(data) {
-	        var e = document.createElement("style");
-	        e.type = "text/css";
-	        e.innerHTML = data;
 	        document.getElementsByTagName("head")[0].appendChild(e);
 	    },
 	    

@@ -11,7 +11,7 @@ define([
     'coweb/main',
     'coweb/ext/attendance',
     'cowebx/dojo/GMap/GMap',
-    'ChatBox',
+    'cowebx/dojo/ChatBox/ChatBox',
 	'dojo/parser',
 	'cowebx/dojo/BusyDialog/BusyDialog',
     'dijit/layout/BorderContainer',
@@ -58,7 +58,6 @@ define([
             this.chat.attr('app', this);
     
             // listen for local events
-            dojo.connect(this.chat, 'onMessage', this, 'onChatMessage');
 			dojo.connect(this.map, 'onMapMarkerMoved', this, 'onMapMarkerMoved');
 			dojo.connect(this.map, 'onMapMarkerAdded', this, 'onMapMarkerAdded');
 			dojo.connect(this.map, 'onMapMarkerAnimated', this, 'onMapMarkerAnimated');
@@ -67,10 +66,7 @@ define([
             // listen to remote events
             this.collab = coweb.initCollab({id : 'comap'});
             this.collab.subscribeReady(this, 'onCollabReady');
-            this.collab.subscribeStateRequest(this, 'onStateRequest');
-            this.collab.subscribeStateResponse(this, 'onStateResponse');
-            this.collab.subscribeSync('chat.message', this, 'onRemoteChatMessage');
-            this.collab.subscribeSync('log.message', this, 'onRemoteLogMessage');
+            this.collab.subscribeSync('log.message', this, 'onRemoteLogMsg');
     
             // avoid a splitter layout bug by forcing a resize after load
             dijit.byId('layout').resize();
@@ -90,7 +86,7 @@ define([
                 username : this.username,
                 latLng : marker.getPosition().toUrlValue()
             };
-            var position = this._insertLogMessage(args);
+            var position = this.log._insertLogMessage(args);
             // send to remote logs
             this.collab.sendSync('log.message', args, 'insert', position);
         },
@@ -102,7 +98,7 @@ define([
                 username : this.username,
                 latLng : marker.getPosition().toUrlValue()
             };
-            var position = this._insertLogMessage(args);
+            var position = this.log._insertLogMessage(args);
             // send to remote logs
             this.collab.sendSync('log.message', args, 'insert', position);
         },
@@ -114,22 +110,13 @@ define([
                 username : this.username,
                 latLng : marker.getPosition().toUrlValue()
             };
-            var position = this._insertLogMessage(args);
+            var position = this.log._insertLogMessage(args);
             // send to remote logs
             this.collab.sendSync('log.message', args, 'insert', position);
         },
-    
-        onStateRequest: function(token) {
-            var state = {
-                logHtml : this.log.getHtml(),
-                chatHtml : this.chat.getHtml(),
-            };
-            this.collab.sendStateResponse(state, token);
-        },
-    
-        onStateResponse: function(state) {
-            this.chat.setHtml(state.chatHtml);
-            this.log.setHtml(state.logHtml);
+        
+        onRemoteLogMsg: function(obj) {
+            this.log.onRemoteLogMessage(obj);
         },
     
         onCollabReady: function(info) {
@@ -153,41 +140,6 @@ define([
             }
             // refresh the current info popup
             this.map.refreshInfoPop();
-        },
-        
-        onChatMessage: function(text, position, isoDT) {
-            var value = {text : text, isoDT : isoDT};
-            // send raw value, will be parsed / sanitized on the other side
-            this.collab.sendSync('chat.message', value, 'insert', position);
-        },
-
-        onRemoteChatMessage : function(args) {
-            var username = attendance.users[args.site].username;
-            // sanitize received text
-            args.value.text = this.chat.sanitizeText(args.value.text);
-            // parse for http links
-            args.value.text = this.chat.parseLinks(args.value.text);
-            this.chat.insertMessage(username, args.value.text, 
-                args.value.isoDT, args.position);
-        },
-    
-        _insertLogMessage: function(args) {
-            // make sure latlng isn't bogus
-            var latLng = this.log.sanitizeText(args.latLng);
-            var text = dojo.replace(this.labels[args.template], [latLng]);
-            var rv = this.log.insertMessage(args.username, text, args.isoDT, 
-                args.position);
-            args.isoDT = rv.isoDT;
-            delete args.username;
-            return rv.position;
-        },
-
-        onRemoteLogMessage : function(args) {
-            args = dojo.mixin({
-                username : attendance.users[args.site].username,
-                position : args.position
-            }, args.value);
-            this._insertLogMessage(args);
         }
     };
 
