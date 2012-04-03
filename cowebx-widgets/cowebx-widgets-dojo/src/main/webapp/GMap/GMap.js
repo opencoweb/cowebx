@@ -47,7 +47,7 @@ define([
               streetViewControl: false,
               disableDoubleClickZoom: true
             };
-            this._map = new google.maps.Map(dojo.byId('gmap'), mapOpts);
+            this._map = new google.maps.Map(this.gmap, mapOpts);
             // connect to events
             google.maps.event.addListener(this._map, 'dblclick', 
                 dojo.hitch(this, '_onMapDblClick'));
@@ -71,8 +71,8 @@ define([
             // listen to hash changes
             dojo.subscribe('/dojo/hashchange', this, 'onHashChange');
 
-			dojo.connect(dijit.byId('syncButton'), 'onClick', this, 'onMapSyncClick');
-            dojo.connect(dijit.byId('syncBox'), 'onChange', this, 'onMapContinuousSyncClick');
+			dojo.connect(this.syncButton, 'onClick', this, 'onMapSyncClick');
+            dojo.connect(this.syncBox, 'onChange', this, 'onMapContinuousSyncClick');
             dojo.connect(this, 'onMarkerAdded', this, 'onMapMarkerAdded');
             dojo.connect(this, 'onMarkerMoved', this, 'onMapMarkerMoved');
             dojo.connect(this, 'onMarkerAnimated', this, 'onMapMarkerAnimated');
@@ -89,7 +89,7 @@ define([
 		},
 
         resize: function(size) {
-			dijit.byId('layoutTwo').resize();
+			this.layoutTwo.resize();
             dojo.marginBox(this.domNode, size);
             // force map to resize
             google.maps.event.trigger(this._map, 'resize');

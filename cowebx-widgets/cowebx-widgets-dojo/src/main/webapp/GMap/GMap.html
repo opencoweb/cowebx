@@ -1,13 +1,13 @@
 <div>
-	<div id="layoutTwo" style="height:100%" dojoType="dijit.layout.BorderContainer" liveSplitters="true" gutters="false">
+	<div data-dojo-attach-point="layoutTwo" style="height:100%" dojoType="dijit.layout.BorderContainer" liveSplitters="true" gutters="false">
 		
-	  <div id="mapContainer" dojoType="dijit.layout.ContentPane" region="center" class="mapContainer" splitter="true">
-	  	<div id="gmap" class="map"></div>
+	  <div data-dojo-attach-point="mapContainer" dojoType="dijit.layout.ContentPane" region="center" class="mapContainer" splitter="true">
+	  	<div data-dojo-attach-point="gmap" class="map"></div>
 	  </div>
 	
-	  <div dojoType="dijit.Toolbar" region="bottom" splitter="true" style="border-bottom:0px !important; border-top: 1px solid #B5BCC7 !important;">
-	    <button dojoType="dijit.form.Button" id="syncButton" iconClass="syncIcon">Sync map</button>
-	    <label style="display: block-inline; vertical-align: middle;" for="syncBox">Sync always</label> <input dojoType="dijit.form.CheckBox" id="syncBox"/> 
+	  <div dojoType="dijit.Toolbar" data-dojo-attach-point="mapToolbar" region="bottom" splitter="true" style="border-bottom:0px !important; border-top: 1px solid #B5BCC7 !important;">
+	    <button dojoType="dijit.form.Button" data-dojo-attach-point="syncButton" iconClass="syncIcon">Sync map</button>
+	    <label style="display: block-inline; vertical-align: middle;" for="syncBox">Sync always</label> <input dojoType="dijit.form.CheckBox" data-dojo-attach-point="syncBox"/> 
 	  </div>
 	
 	</div>

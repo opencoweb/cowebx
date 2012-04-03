@@ -18,7 +18,11 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
         this.collab.subscribeStateRequest(this, 'onStateRequest');
     	this.collab.subscribeStateResponse(this, 'onStateResponse');
         if (args.attachee) {
-    		this.attachee = dojo.byId(args.attachee);
+            if(typeof args.attachee == "object"){
+                this.attachee = args.attachee;
+            }else{
+    		    this.attachee = dojo.byId(args.attachee);
+    		}
             this.collab.subscribeSync('whiteboardAttach', this, 'onWhiteboardAttach');
         } else {
         	this.container = dojo.byId(args.container);

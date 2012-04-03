@@ -48,3 +48,8 @@ html, body {
 #help li {
     margin-left: 15px;
 }
+
+.mapDiv {
+    width:100%;
+    height:100%;
+}
