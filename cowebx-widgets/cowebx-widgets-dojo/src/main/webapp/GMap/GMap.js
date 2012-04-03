@@ -38,7 +38,7 @@ define([
 
 		startup: function(){
 			// initialize a map widget
-			this._loadTemplate("../lib/cowebx/dojo/GMap/GMap.css");
+			this._loadTemplate(require.toUrl("cowebx/dojo/GMap/GMap.css"));
             var latlng = new google.maps.LatLng(35.904, -78.873);
             var mapOpts = {
               zoom: 10,

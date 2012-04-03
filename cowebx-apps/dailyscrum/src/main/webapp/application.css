@@ -1,0 +1,116 @@
+/*
+ * Cooperative scrum styles.
+ *
+ * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+ * 
+ */
+@import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojox/mobile/themes/iphone/iphone.css";
+@import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojox/mobile/themes/iphone/ipad.css";
+
+html, body {
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.dailyscrum_left{
+	border-right:1px solid black;
+	width:300px;
+}
+
+.dailyscrum_top{
+	border-bottom:1px solid grey;
+	height: 100px;
+	overflow:hidden;
+}
+
+.dailyscrum_clock_table{
+	width:100%;
+	height:100%;
+	font-family: “Lucida Grande”, sans-serif;
+	font-size: 90px;
+	color:grey;
+}
+
+.dailyscrum_clock_left{
+	text-align:center;
+	border-right:1px solid grey;
+}
+
+.dailyscrum_clock_right{
+	text-align:center;
+	background-color:rgb(197, 204, 211);
+}
+
+.dailyscrum_minAdded{
+	font-size:14px;
+	color:red;
+}
+
+.dailyscrum_editor{
+	width:100%;
+	height:100%;
+	display:none;
+}
+
+.dailyscrum_editor_node{
+	width:100%;
+	height:100%;
+}
+
+.dailyscrum_count{
+	float: right;
+	margin-right:5px;
+	color:grey;
+}
+
+.dailyscrum_control{
+	position: absolute;
+	bottom: 0;
+	border:1px solid grey;
+	width: 100%;
+	height: 150px;
+}
+
+.dailyscrum_addMin{
+	height: 100%;
+}
+
+.dailyscrum_plus{
+	height:25px;
+	width:40px;
+	display:none;
+}
+
+.dailyscrum_scrumFrameView{
+	overflow:hidden;
+}
+
+.dailyscrum_tip{
+	text-align:center;
+	margin-top:5px;
+	color:grey;
+	text-shadow:#fff 0px 1px 0, #000 0 -1px 0;
+	display:none;
+}
+
+.dailyscrum_start{
+	display:none;
+}
+
+.dailyscrum_control_table{
+	height:70%;
+	width:100%;
+	font-family: “Lucida Grande”, sans-serif;
+	font-size: 85px;
+	color:grey;
+	text-align:center;
+	overflow:hidden;
+	background-color:rgb(197, 204, 211);
+}
+
+.dailyscrum_inactive{
+	background-color:lightgrey;
+}
