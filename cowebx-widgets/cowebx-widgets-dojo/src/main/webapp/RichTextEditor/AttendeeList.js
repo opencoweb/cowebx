@@ -66,7 +66,7 @@ define([
             var color = dojo.create('div',{'class':'attendeeColor',style:'cursor:hand;cursor:pointer;', id:'localColor'},a,'first');
             dojo.style(color,'background',this.attendees[site]['color']);
             dojo.addClass(a, 'localUser');
-            dojo.create('img',{src:'../lib/cowebx/dojo/RichTextEditor/images/pencil.png','class':'userEditIcon'},b,'after');
+            dojo.create('img',{src:require.toUrl('cowebx/dojo/RichTextEditor/images/pencil.png'),'class':'userEditIcon'},b,'after');
             dojo.connect(b, 'onclick', this, function(e){ e.target.value = ''; });
             dojo.connect(b, 'onblur', this, function(e){
                 if(e.target.value.length == 0){

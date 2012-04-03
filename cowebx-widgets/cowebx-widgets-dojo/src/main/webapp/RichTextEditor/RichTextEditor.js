@@ -12,12 +12,13 @@ define([
     'dijit/Dialog',
     'dijit/form/ToggleButton',
 	'./lib/niceEdit/niceEdit-latest',
+	'dojo/text!./TextEditor.css',
 	'dojox/mobile/parser',
     'dijit/layout/ContentPane',
     'dijit/layout/BorderContainer',
 	'./lib/rangy/uncompressed/rangy-core',
 	'./lib/rangy/uncompressed/rangy-selectionsaverestore'
-], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors){
+], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors, css){
 
 	return dojo.declare("RichTextEditor", [_Widget, _TemplatedMixin, _Contained], {
 	    // widget template
@@ -25,7 +26,12 @@ define([
 		
         //postCreate: function(){
 		startup: function(){
-			this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
+		    //console.log("*****************");
+		    //console.log(css);
+			//this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
+			this._loadTemplate(require.toUrl('cowebx/dojo/RichTextEditor/TextEditor.css'));
+			//this._loadCss(css);
+			
 		    this.buildEditor();
         	dojo.fadeIn({node:this.editorNode,duration:1000}).play();
 		},
@@ -349,9 +355,16 @@ define([
 	        document.getElementsByTagName("head")[0].appendChild(e);
 	    },
 	    
+	    _loadCss: function(data) {
+	        var e = document.createElement("style");
+	        e.type = "text/css";
+	        e.innerHTML = data;
+	        document.getElementsByTagName("head")[0].appendChild(e);
+	    },
+	    
 	    _style: function(){
 	        //dojo.attr(this._textarea, 'innerHTML', 'To begin, just start click and start <strong>typing</strong>...');
-	        this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
+	        //this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
 	        dojo.addClass(this._textarea.parentNode, 'textareaContainer');
 			dojo.addClass(this._textarea, 'textarea'); 
 			
@@ -370,7 +383,7 @@ define([
 			dojo.style(this._toolbar, 'padding-left','10px'); 
            	
 			var rulerContainer = dojo.create('div',{'class':'rulerContainer',id:'rulerContainer'},this._toolbar.parentNode,'after');
-			var i = dojo.create('img', {src:'../lib/cowebx/dojo/RichTextEditor/images/ruler.png', 'class':'ruler'}, rulerContainer, 'first');
+			var i = dojo.create('img', {src:require.toUrl('cowebx/dojo/RichTextEditor/images/ruler.png'), 'class':'ruler'}, rulerContainer, 'first');
 			
             
             dojo.attr(this.url,'innerHTML',window.location);
@@ -381,7 +394,7 @@ define([
 
 	        //1. Title box & image
 	        var title = dojo.create('input',{'class':'title',value:'Untitled Document',type:'text'},footerNode,'first');
-	        var edit = dojo.create('img',{src:'../lib/cowebx/dojo/RichTextEditor/images/pencil.png','class':'editIcon'},title,'after');
+	        var edit = dojo.create('img',{src:require.toUrl('cowebx/dojo/RichTextEditor/images/pencil.png'),'class':'editIcon'},title,'after');
 
 	        //2. Connect
 	        dojo.connect(title, 'onclick', this, function(e){
@@ -415,38 +428,38 @@ define([
 				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'backgroundPosition', 'center');   
                	switch(i){
 	            	case 1:                                              
-	                    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/bold.png)');
+	                    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/bold.png')+')');
 						break;
 					case 2:
-					    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/italic.png)');     
+					    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/italic.png')+')');     
 						break;
 					case 3:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/underline.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/underline.png')+')');
 						break; 
 					case 8:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/ordered.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/ordered.png')+')');
 						break;
 					case 9:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/unOrdered.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/unOrdered.png')+')');
 						break;   
 					case 10:   
 						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
 						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/fontSize.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/fontSize.png')+')');
 						break;
 					case 11:   
 						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
 						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/fontFace.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/fontFace.png')+')');
 						break;
 					case 15:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/image.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/image.png')+')');
 						break;
 					case 19:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/textColor.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/textColor.png')+')');
 						break; 
 					case 20:   
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url(../lib/cowebx/dojo/RichTextEditor/images/hiliteColor.png)');
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/hiliteColor.png')+')');
 						break;      
 				
 				}
@@ -460,12 +473,12 @@ define([
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[8],'before'); 
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[19],'before');  
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
-			var redo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/RichTextEditor/images/redo.png);'},this._toolbar,'first');
-			var undo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/RichTextEditor/images/undo.png);'},this._toolbar,'first');
+			var redo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url('+require.toUrl('cowebx/dojo/RichTextEditor/images/redo.png')+');'},this._toolbar,'first');
+			var undo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url('+require.toUrl('cowebx/dojo/RichTextEditor/images/undo.png')+');'},this._toolbar,'first');
 			dojo.connect(redo, 'onclick', this, function(){ document.execCommand('redo',"",""); });
 			dojo.connect(undo, 'onclick', this, function(){ document.execCommand('undo',"",""); });
 			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
-			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url(../lib/cowebx/dojo/RichTextEditor/images/save.png);'},this._toolbar,'first');
+			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url('+require.toUrl('cowebx/dojo/RichTextEditor/images/save.png')+');'},this._toolbar,'first');
 			dojo.connect(save, 'onclick', this, 'onSaveClick');
 			this._buildConfirmDialog();		         
 		},
