@@ -508,7 +508,6 @@ define([
 	            clearTimeout(this.t);
 	            this. t = null;
 	        }
-	    },
-	
+	    }
 	});
 });
