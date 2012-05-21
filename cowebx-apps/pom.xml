@@ -20,6 +20,7 @@
         <module>coedit</module>
         <module>dailyscrum</module>
         <module>launcher</module>
+        <module>cotree_no_mod</module>
     </modules>
 
 </project>

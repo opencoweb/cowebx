@@ -7,8 +7,8 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>launcher</artifactId>
-    <name>OpenCoweb Extras :: Demos :: Launcher</name>
+    <artifactId>cotree_no_mod</artifactId>
+    <name>OpenCoweb Extras :: Demos :: Co-Tree</name>
     <packaging>war</packaging>
 
     <build>
@@ -20,42 +20,11 @@
                 <configuration>
                     <scanIntervalSeconds>1</scanIntervalSeconds>
                     <webAppConfig>
-                        <contextPath>/cowebx-apps</contextPath>
+                        <contextPath>/cotree_no_mod</contextPath>
                     </webAppConfig>
-					<contextHandlers>
-					    <contextHandler implementation="org.eclipse.jetty.webapp.WebAppContext">
-					        <war>${basedir}/../comap/target/comap-${version}.war</war>
-					        <contextPath>/comap</contextPath>
-	                    </contextHandler>
-				
-					    <contextHandler implementation="org.eclipse.jetty.webapp.WebAppContext">
-					        <war>${basedir}/../colist/target/colist-${version}.war</war>
-					        <contextPath>/colist</contextPath>
-	                    </contextHandler>
-					
-					    <contextHandler implementation="org.eclipse.jetty.webapp.WebAppContext">
-					        <war>${basedir}/../coedit/target/coedit-${version}.war</war>
-					        <contextPath>/coedit</contextPath>
-	                    </contextHandler>
-				
-					    <contextHandler implementation="org.eclipse.jetty.webapp.WebAppContext">
-					        <war>${basedir}/../cotree/target/cotree-${version}.war</war>
-					        <contextPath>/cotree</contextPath>
-	                    </contextHandler>
-	                    
-	                    <contextHandler implementation="org.eclipse.jetty.webapp.WebAppContext">
-					        <war>${basedir}/../cotree_no_mod/target/cotree_no_mod-${version}.war</war>
-					        <contextPath>/cotree_no_mod</contextPath>
-	                    </contextHandler>
-					
-					    <contextHandler implementation="org.eclipse.jetty.webapp.WebAppContext">
-					        <war>${basedir}/../dailyscrum/target/dailyscrum-${version}.war</war>
-					        <contextPath>/dailyscrum</contextPath>
-	                    </contextHandler>
-					</contextHandlers>
-
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
