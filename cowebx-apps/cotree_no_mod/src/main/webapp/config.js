@@ -5,7 +5,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 //
 var dojoConfig = {
-	baseUrl: '/cotree',
+	baseUrl: '/cotree_no_mod',
 	async:true,
 	paths : {
 	   coweb : 'lib/coweb',
