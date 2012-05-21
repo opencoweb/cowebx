@@ -22,9 +22,5 @@
         <module>launcher</module>
         <module>cotree_no_mod</module>
     </modules>
-    
-    <pluginGroups>
-        <pluginGroup>org.mortbay.jetty</pluginGroup>
-    </pluginGroups>
 
 </project>
