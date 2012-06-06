@@ -27,7 +27,8 @@ define([
         //postCreate: function(){
 		startup: function(){
 			this._loadTemplate(require.toUrl('cowebx/dojo/RichTextEditor/TextEditor.css'));
-			
+			rangy.init(); // Sometimes rangy does not get initialized automatically, so this
+                          // ensures it is always does get initialized.
 		    this.buildEditor();
         	dojo.fadeIn({node:this.editorNode,duration:1000}).play();
 		},
