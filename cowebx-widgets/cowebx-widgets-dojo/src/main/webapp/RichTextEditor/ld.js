@@ -22,15 +22,19 @@ define([], function() {
     };
     
 	proto.ld = function(a, b){
+        return this.ld(a, b, 0);
+    }
+	
+	proto.ld_offset = function(a, b, offset){
 	    if(a == null){
 	        var arr = [];
 	        for(var i=0; i<b.length; i++)
-	            arr.push({ty:'insert',ch:b[i],pos:i});
+	            arr.push({ty:'insert',ch:b[i],pos:i + offset});
 	        return arr;
 	    }else if(b == null){
 	        var arr = [];
 	        for(var i=0; i<a.length; i++)
-	            arr.push({ty:'delete',ch:null,pos:0});
+	            arr.push({ty:'delete',ch:null,pos:offset});
 	        return arr;
 	    }
 	    
@@ -39,13 +43,13 @@ define([], function() {
 	    
 	    //seed first row, all inserts
 	    for(var x=0; x<b.length; x++){
-	        var op = {ty:'insert',ch:b[x],pos:x,cost:1};
+	        var op = {ty:'insert',ch:b[x],pos:x + offset,cost:1};
 	        var cell = {op:op,prev:row_p[x],length:row_p[x].length+op.cost};
 	        row_p.push(cell);
 	    }
 	    
 	    for(var y=0; y<a.length; y++){
-	        var op = {ty:'delete',ch:null,pos:0,cost:1};
+	        var op = {ty:'delete',ch:null,pos:offset,cost:1};
 	        var row_c = [{op:op,prev:row_p[0],length:row_p[0].length+op.cost}];
 	        
 	        for(var x=0; x<b.length; x++){
@@ -72,9 +76,9 @@ define([], function() {
 	                ch = b[x];
 	            }
 	            if(ty == 'update'){
-	                op = {ty:ty,ch:ch,pos:pos,cost:2};
+	                op = {ty:ty,ch:ch,pos:pos + offset,cost:2};
 	            }else{
-	                op = {ty:ty,ch:ch,pos:pos,cost:1};
+	                op = {ty:ty,ch:ch,pos:pos + offset,cost:1};
 	            }
 	            
 	            row_c.push({op:op,prev:cell_o,length:cell_o.length+op.cost});
@@ -92,6 +96,5 @@ define([], function() {
 	    ops.reverse();
 	    return ops;
 	};
-	
 	return ld;
 });

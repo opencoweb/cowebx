@@ -1,3 +1,6 @@
+
+var DEBUG = false; // TODO remove once Chris's editor changes have been tested/verified.
+
 define([
     'dojo',
 	"dijit/_Widget",
@@ -13,12 +16,38 @@ define([
     'dijit/form/ToggleButton',
 	'./lib/niceEdit/niceEdit-latest',
 	'dojo/text!./TextEditor.css',
+    'dojo/dom-construct',
 	'dojox/mobile/parser',
     'dijit/layout/ContentPane',
     'dijit/layout/BorderContainer',
 	'./lib/rangy/uncompressed/rangy-core',
 	'./lib/rangy/uncompressed/rangy-selectionsaverestore'
-], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors, css){
+], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors, css, domConstruct){
+
+    /* Take two strings and determine how many characters they share in both directions. 
+       Returns an object with two integers. */
+    function determineLdBounds(a, b) {
+        // First, figure out how far in each direction the strings match.
+        var i;
+        var alen = a.length;
+        var blen = b.length;
+        var alen1 = alen - 1;
+        var blen1 = blen - 1;
+        var forwards, backwards;
+        for (i = 0; i < alen && i < blen && a[i] == b[i]; ++i)
+            ; // Continue while the strings match.
+        forwards = i;
+        for (i = 0; i < alen && i < blen && a[alen1 - i] == b[blen1 - i]; ++i)
+            ; // Continue while the strings match.
+        backwards = i;
+
+        // If the ranges overlap, scale back the backwards range.
+        if (forwards + backwards > alen)
+            backwards = alen - forwards;
+        if (forwards + backwards > blen)
+            backwards = blen - forwards;
+        return { fwds : forwards, bwds : backwards};
+    }
 
 	return dojo.declare("RichTextEditor", [_Widget, _TemplatedMixin, _Contained], {
 	    // widget template
@@ -56,6 +85,7 @@ define([
                 'id':'shareButton',
 				'displayButton':false
             });
+            this.divChecker = domConstruct.create("div");
             
             //3. parameters
             this.oldSnapshot 	= this.snapshot();
@@ -67,6 +97,9 @@ define([
 			this.title          = 'Untitled Document';
 			this._POR			=	{start:0, end:0};
 			this._prevPOR		=	{start:0, end:0};
+            this.firstSpan      = null;
+            this.secondSpan     = null;
+            this._skipRestore   = false;
 
             //4. Style / connect
 			this._style();
@@ -103,12 +136,47 @@ define([
 	        this.iterateRecv();
 	    },
 
+        /* This function transforms the editor HTML into HTML that all major browsers support.
+           This is important because iterateRecv will set _textarea.innerHTML, and doing so with
+           invalid HTML will lead to a divergence between two client's editor HTML content (i.e.
+           the data becomes out of sync).
+
+           This function exists in hopes that one day a perfect implementation will exist. Right now,
+           the implementation assumes that if setting innerHTML works without modification on this
+           client, it will work on all clients. However, this is likely not 100 percent correct. */
+        normalizeHTML : function() {
+            var sel = rangy.saveSelection();
+            this.divChecker.innerHTML = "";
+            this.divChecker.innerHTML = this._textarea.innerHTML;
+            this._textarea.innerHTML = this.divChecker.innerHTML;
+            if (sel)
+                rangy.restoreSelection(sel);
+        },
+
 	    iterateSend : function() {
+            var syncs, diffs;
+            var ldOffset, ldLength;
+            var oldSub, newSub;
+            var bnds;
 	        this.newSnapshot = this.snapshot();
-	        if(this.oldSnapshot && this.newSnapshot){
-	            if(this.oldSnapshot != this.newSnapshot)
-	                var syncs = this.syncs.concat(this.util.ld(this.oldSnapshot, this.newSnapshot));
+	        if(null !== this.oldSnapshot && null !== this.newSnapshot) {
+	            if(this.oldSnapshot != this.newSnapshot) {
+                    this.normalizeHTML();
+                    this.newSnapshot = this.snapshot();
+                    if (this.oldSnapshot != this.newSnapshot) {
+                        bnds = determineLdBounds(this.oldSnapshot, this.newSnapshot);
+                        oldSub = this.oldSnapshot.substring(bnds.fwds, this.oldSnapshot.length - bnds.bwds);
+                        newSub = this.newSnapshot.substring(bnds.fwds, this.newSnapshot.length - bnds.bwds);
+                        diffs = this.util.ld_offset(oldSub, newSub, bnds.fwds);
+                        syncs = this.syncs.concat(diffs);
+                        var tmp1 = 2 * (bnds.fwds + bnds.bwds);
+                        var tmp2 = this.oldSnapshot.length + this.newSnapshot.length;
+                        if(DEBUG)console.log("ld savings of %d/%d %f", tmp1, tmp2, 1. * tmp1 / tmp2);
+                    }
+                }
 	            if(syncs){
+                    if(DEBUG)console.log("WAS=%s",this.oldSnapshot);
+                    if(DEBUG)console.log("NOW=%s",this.newSnapshot);
 					var s = '';
 	                for(var i=0; i<syncs.length; i++){
 	                    if(syncs[i] != undefined){
@@ -116,6 +184,7 @@ define([
 							s = s+syncs[i].ty+' '+syncs[i].ch+' '+syncs[i].pos+'\n';
 	                    }
 	                }
+                    if(DEBUG)console.log(s);
 	            }
 	        }
 	    },
@@ -123,13 +192,19 @@ define([
 	    iterateRecv : function() {
 			//Get local typing syncs
 			this.syncs = [];
-			this.syncs = this.util.ld(this.newSnapshot, this.snapshot());
+            var currentSnap = this.snapshot();
+            var bnds, oldSub, newSub, diffs;
+            if (this.newSnapshot != currentSnap) {
+                bnds = determineLdBounds(this.newSnapshot, currentSnap);
+                oldSub = this.oldSnapshot.substring(bnds.fwds, this.newSnapshot.length - bnds.bwds);
+                newSub = this.newSnapshot.substring(bnds.fwds, currentSnap.length - bnds.bwds);
+                diffs = this.util.ld_offset(oldSub, newSub, bnds.fwds); // Careful with O(n^2) algo.
+                this.syncs = this.syncs.concat(diffs);
+            }
 	        this.collab.resumeSync();
 	        this.collab.pauseSync();
-	        if(this.q.length != 0 && !this.hasIncompleteTags(this.q)){
-	            this.runOps();
-	            this.q = [];
-	        }
+            if (this.q.length > 0)
+                this.tryUpdate();
 	        this.oldSnapshot = this.snapshot();
 	        this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
 	    },
@@ -151,9 +226,106 @@ define([
 	        }
 	    },
 
-	    runOps : function(){
+        removeRangySpans : function()
+        {
+            var val = this.value;
+			var search1 = '<span style="line-height: 0; display: none;" id="1sel';
+			var search1a = '<span id="1sel';
+			var search2 = '<span style="line-height: 0; display: none;" id="2sel';
+			var search2a = '<span id="2sel';
+            var start, end;
+			var markerLength = (dojo.isWebKit) ? 78 : 77;
+
+            this.firstSpan = null;
+            this.secondSpan = null;
+            // Non-collapsed?
+            var start = val.indexOf(search1);
+            if (-1 == start)
+                start = val.indexOf(search1a);
+            if (-1 != start)
+            {
+                end = val.indexOf(search2);
+                if (-1 == end)
+                    end = val.indexOf(search2a);
+                if (-1 == end)
+                    return;
+
+                // Guaranteed both spans exist.
+                if (start > end)
+                {
+                    var tmp = end;
+                    end = start;
+                    start = tmp;
+                }
+                this.firstSpan = {
+                    pos : start,
+                    text : val.substring(start, start + markerLength),
+                    skip : false
+                };
+                this.secondSpan = {
+                    pos : end - markerLength,
+                    text : val.substring(end, end + markerLength),
+                    skip : false
+                };
+                // Order is important below!
+                this.value = this.value.substring(0, end) + this.value.substring(end + markerLength);
+                this.value = this.value.substring(0, start) + this.value.substring(start + markerLength);
+            }
+            else
+            {
+                // Collapsed selection.
+                end = val.indexOf(search2);
+                if (-1 == end)
+                    end = val.indexOf(search2a);
+                if (-1 == end) {
+                    this.first
+                    return; 
+                }
+                // Guaranteed only second span exists.
+                this.secondSpan = {
+                    pos : end,
+                    text : val.substring(end, end + markerLength),
+                    skip : false
+                };
+                this.value = this.value.substring(0, end) + this.value.substring(end + markerLength);
+            }
+
+        },
+
+        restoreRangySpan : function(data) {
+            if (!data || data.skip)
+                return;
+            this.value = this.value.substring(0, data.pos) + data.text + this.value.substring(data.pos);
+        },
+
+        tryUpdate : function() {
+            // Process the queue and check that the changes are valid.
             this.sel = rangy.saveSelection();
+            this._skipRestore = false;
             this.value = this._textarea.innerHTML;
+            var tmp1, tmp2;
+            tmp1 = this.value.indexOf('2selectionBoundary');
+            if (tmp1 >= 0)
+            {
+                tmp2 = this.value.indexOf('2selectionBoundary', tmp1+1);
+                if (tmp2 >= 0)
+                {
+                    console.warn("OOOPS");
+                    console.warn("OOOPS");
+                }
+            }
+            if(DEBUG)console.log(this.q);
+            if(DEBUG)console.log("before remove");
+            if(DEBUG)console.log(this.value);
+            /* We will actually remove Rangy's invisible markers, perform the remote operations,
+               then add the markers back in. We track remote changes to update the position of the
+               markers - this makes performing the operations easier (faster) and removes the bug
+               of Rangy's markers invalidating the HTML.
+                */
+            this.removeRangySpans();
+            if(DEBUG)console.log(this.value);
+            if(DEBUG)console.log(this.firstSpan);
+            if(DEBUG)console.log(this.secondSpan);
 	        for(var i=0; i<this.q.length; i++){
 	            if(this.q[i].type == 'insert')
 	                this.insertChar(this.q[i].value, this.q[i].position);
@@ -162,27 +334,63 @@ define([
 	            if(this.q[i].type == 'update')
 	                this.updateChar(this.q[i].value, this.q[i].position);
 	        }
-	        this._textarea.innerHTML = this.value;
-			if(this.sel)
-            	rangy.restoreSelection(this.sel);
-	    },
+	        if (!this.willHTMLChange(this.value)) {
+                // If HTML is valid, update textarea and clear the queue.
+                if(DEBUG)console.log("before restore");
+                if(DEBUG)console.log(this.firstSpan);
+                if(DEBUG)console.log(this.secondSpan);
+                if(DEBUG)console.log(this.value);
+                // Order important for below operations!
+                if (!this._skipRestore) {
+                    this.restoreRangySpan(this.secondSpan);
+                    this.restoreRangySpan(this.firstSpan);
+                }
+                if(DEBUG)console.log(this.value);
+                this._textarea.innerHTML = this.value;
+                this.q = [];
+            } // Else, do nothing and wait for more remote changes.
+            if (!this._skipRestore && this.sel)
+                rangy.restoreSelection(this.sel);
+        },
 
-	    insertChar : function(c, pos) {
-	        var p = this.fixPos(pos);
+	    insertChar : function(c, p) {
+	        this.fixPos(p, 1);
 	        this.value = this.value.substr(0, p) + c + this.value.substr(p);
 	    },
 
-	    deleteChar : function(pos) {
-            var p = this.fixPos(pos);
+	    deleteChar : function(p) {
+            this.fixPos(p, -1);
 	        this.value = this.value.substr(0, p) + this.value.substr(p+1);
 	    },
 
-	    updateChar : function(c, pos) {
-            var p = this.fixPos(pos);
+	    updateChar : function(c, p) {
 	        this.value = this.value.substr(0, p) + c + this.value.substr(p+1);
 	    },
 	    
-	    fixPos: function(pos){
+        fixPos : function(pos, dx) {
+            // If either span reach the beginning, clear the selection.
+
+            if (this.firstSpan && pos <= this.firstSpan.pos) {
+                this.firstSpan.pos += dx;
+                if (0 === this.firstSpan.pos || this.firstSpan.pos >= this.value.length) {
+                    console.warn("HAD TO CLEAR");
+                    this.clearSelection();
+                    this.firstSpan.skip = true;
+                }
+            }
+            if (this.secondSpan && pos < this.secondSpan.pos) { // Off by one half-open interval.
+                this.secondSpan.pos += dx;
+                if (0 === this.secondSpan.pos || this.secondSpan.pos >= this.value.length) {
+                    console.warn("HAD TO CLEAR");
+                    this.clearSelection();
+                    this.secondSpan.skip = true;
+                }
+            }
+
+        },
+
+                 // TODO remove me
+	    fixPos2: function(pos){
 			var search1 = '<span style="line-height: 0; display: none;" id="1sel';
 			var search1a = '<span id="1sel';
 			var search2 = '<span style="line-height: 0; display: none;" id="2sel';
@@ -191,14 +399,14 @@ define([
 			var markerLength = (dojo.isWebKit) ? 78 : 77;
 			
 			// get start index
-	        var start = this.value.search(search1);
+	        var start = this.value.indexOf(search1);
 	        if(start == -1)
-	            var start = this.value.search(search1a);
+	            var start = this.value.indexOf(search1a);
 	        if(start != -1){
 				// get end index and adjust
-	            var end = this.value.search(search2);
+	            var end = this.value.indexOf(search2);
     	        if(end == -1)
-    	            var end = this.value.search(search2a);   
+    	            var end = this.value.indexOf(search2a);   
 				end = end - markerLength;
 				
                 if(pos>=end){
@@ -209,9 +417,9 @@ define([
 					this.sel = rangy.saveSelection();
     	        } 
 	        }else if(start == -1){
-	            var end = this.value.search(search2);
+	            var end = this.value.indexOf(search2);
     	        if(end == -1)
-    	            var end = this.value.search(search2a);
+    	            var end = this.value.indexOf(search2a);
     	        if(end != -1){
     	            if(pos>=end)
         	            pos = pos + markerLength;
@@ -236,6 +444,16 @@ define([
 		    }
 	    },
 	    
+        willHTMLChange : function(html) {
+            this.divChecker.innerHTML = "";
+            this.divChecker.innerHTML = html;
+            if (this.divChecker.innerHTML != html)
+                return true; // True if DOM changed the html (i.e. it was malformed).
+            else
+                return false;
+        },
+
+                         // TODO remove me
 	    hasIncompleteTags : function(arr){
             var openCount = 0;
             var closeCount = 0;
@@ -512,3 +730,10 @@ define([
 	    }
 	});
 });
+
+// TODO remove me
+function curVal()
+{
+     return dojo.query(".nicEdit-main")[0].innerHTML;
+}
+
