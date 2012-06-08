@@ -303,15 +303,16 @@ define([
             this.sel = rangy.saveSelection();
             this._skipRestore = false;
             this.value = this._textarea.innerHTML;
-            var tmp1, tmp2;
-            tmp1 = this.value.indexOf('2selectionBoundary');
-            if (tmp1 >= 0)
-            {
-                tmp2 = this.value.indexOf('2selectionBoundary', tmp1+1);
-                if (tmp2 >= 0)
+            if (DEBUG) { // TODO remove
+                var tmp1, tmp2;
+                tmp1 = this.value.indexOf('2selectionBoundary');
+                if (tmp1 >= 0)
                 {
-                    console.warn("OOOPS");
-                    console.warn("OOOPS");
+                    tmp2 = this.value.indexOf('2selectionBoundary', tmp1+1);
+                    if (tmp2 >= 0)
+                    {
+                        console.warn("OOOPS");
+                    }
                 }
             }
             if(DEBUG)console.log(this.q);
@@ -373,7 +374,6 @@ define([
             if (this.firstSpan && pos <= this.firstSpan.pos) {
                 this.firstSpan.pos += dx;
                 if (0 === this.firstSpan.pos || this.firstSpan.pos >= this.value.length) {
-                    console.warn("HAD TO CLEAR");
                     this.clearSelection();
                     this.firstSpan.skip = true;
                 }
@@ -381,7 +381,6 @@ define([
             if (this.secondSpan && pos < this.secondSpan.pos) { // Off by one half-open interval.
                 this.secondSpan.pos += dx;
                 if (0 === this.secondSpan.pos || this.secondSpan.pos >= this.value.length) {
-                    console.warn("HAD TO CLEAR");
                     this.clearSelection();
                     this.secondSpan.skip = true;
                 }
