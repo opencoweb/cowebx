@@ -93,6 +93,7 @@ define([
             this.t 				= null;
             this.q 				= [];
             this.value 			= '';
+            this.valueNoRangy   = '';
             this.interval		= 100;
 			this.title          = 'Untitled Document';
 			this._POR			=	{start:0, end:0};
@@ -153,25 +154,31 @@ define([
                 rangy.restoreSelection(sel);
         },
 
+        doDiff : function(oldS, newS)
+        {
+            var bnds, subA, subB, diffs;
+            bnds = determineLdBounds(oldS, newS);
+            oldSub = oldS.substring(bnds.fwds, oldS.length - bnds.bwds);
+            newSub = newS.substring(bnds.fwds, newS.length - bnds.bwds);
+            diffs = this.util.ld_offset(oldSub, newSub, bnds.fwds); // Careful with O(n^2) algo...
+            if (DEBUG) {
+                var tmp1 = 2 * (bnds.fwds + bnds.bwds);
+                var tmp2 = oldS.length + newS.length;
+                console.log("ld savings of %d/%d %f", tmp1, tmp2, 1. * tmp1 / tmp2);
+            }
+            return diffs;
+        },
+
 	    iterateSend : function() {
-            var syncs, diffs;
-            var ldOffset, ldLength;
-            var oldSub, newSub;
-            var bnds;
+            var syncs;
+            var ldOffset;
 	        this.newSnapshot = this.snapshot();
 	        if(null !== this.oldSnapshot && null !== this.newSnapshot) {
 	            if(this.oldSnapshot != this.newSnapshot) {
                     this.normalizeHTML();
                     this.newSnapshot = this.snapshot();
                     if (this.oldSnapshot != this.newSnapshot) {
-                        bnds = determineLdBounds(this.oldSnapshot, this.newSnapshot);
-                        oldSub = this.oldSnapshot.substring(bnds.fwds, this.oldSnapshot.length - bnds.bwds);
-                        newSub = this.newSnapshot.substring(bnds.fwds, this.newSnapshot.length - bnds.bwds);
-                        diffs = this.util.ld_offset(oldSub, newSub, bnds.fwds);
-                        syncs = this.syncs.concat(diffs);
-                        var tmp1 = 2 * (bnds.fwds + bnds.bwds);
-                        var tmp2 = this.oldSnapshot.length + this.newSnapshot.length;
-                        if(DEBUG)console.log("ld savings of %d/%d %f", tmp1, tmp2, 1. * tmp1 / tmp2);
+                        syncs = this.syncs.concat(this.doDiff(this.oldSnapshot, this.newSnapshot));
                     }
                 }
 	            if(syncs){
@@ -195,11 +202,7 @@ define([
             var currentSnap = this.snapshot();
             var bnds, oldSub, newSub, diffs;
             if (this.newSnapshot != currentSnap) {
-                bnds = determineLdBounds(this.newSnapshot, currentSnap);
-                oldSub = this.oldSnapshot.substring(bnds.fwds, this.newSnapshot.length - bnds.bwds);
-                newSub = this.newSnapshot.substring(bnds.fwds, currentSnap.length - bnds.bwds);
-                diffs = this.util.ld_offset(oldSub, newSub, bnds.fwds); // Careful with O(n^2) algo.
-                this.syncs = this.syncs.concat(diffs);
+                this.syncs = this.doDiff(this.newSnapshot, currentSnap);
             }
 	        this.collab.resumeSync();
 	        this.collab.pauseSync();
@@ -278,7 +281,6 @@ define([
                 if (-1 == end)
                     end = val.indexOf(search2a);
                 if (-1 == end) {
-                    this.first
                     return; 
                 }
                 // Guaranteed only second span exists.
@@ -315,18 +317,19 @@ define([
                     }
                 }
             }
+            if (DEBUG)console.log("this.q=");
             if(DEBUG)console.log(this.q);
             if(DEBUG)console.log("before remove");
-            if(DEBUG)console.log(this.value);
+            if(DEBUG)console.log("xxx'%s'xxx",this.value);
             /* We will actually remove Rangy's invisible markers, perform the remote operations,
                then add the markers back in. We track remote changes to update the position of the
                markers - this makes performing the operations easier (faster) and removes the bug
                of Rangy's markers invalidating the HTML.
                 */
             this.removeRangySpans();
-            if(DEBUG)console.log(this.value);
-            if(DEBUG)console.log(this.firstSpan);
-            if(DEBUG)console.log(this.secondSpan);
+            if(DEBUG)console.log("xxx'%s'xxx",this.value);
+            if(DEBUG&&this.firstSpan)console.log(this.firstSpan.pos);
+            if(DEBUG&&this.secondSpan)console.log(this.secondSpan.pos);
 	        for(var i=0; i<this.q.length; i++){
 	            if(this.q[i].type == 'insert')
 	                this.insertChar(this.q[i].value, this.q[i].position);
@@ -338,15 +341,25 @@ define([
 	        if (!this.willHTMLChange(this.value)) {
                 // If HTML is valid, update textarea and clear the queue.
                 if(DEBUG)console.log("before restore");
-                if(DEBUG)console.log(this.firstSpan);
-                if(DEBUG)console.log(this.secondSpan);
-                if(DEBUG)console.log(this.value);
+                if(DEBUG&&this.firstSpan)console.log(this.firstSpan.pos);
+                if(DEBUG&&this.secondSpan)console.log(this.secondSpan.pos);
+                if(DEBUG)console.log("xxx'%s'xxx",this.value);
                 // Order important for below operations!
+                this.valueNoRangy = this.value;
                 if (!this._skipRestore) {
                     this.restoreRangySpan(this.secondSpan);
                     this.restoreRangySpan(this.firstSpan);
                 }
-                if(DEBUG)console.log(this.value);
+                if(DEBUG)console.log("xxx'%s'xxx",this.value);
+                /* Recheck HTML - the rangy solution for remembering caret position is not perfect.
+                   It sometimes fails when the caret is located inbetween remote edit operations.
+                   In this case, we don't try to restore the caret and let the caret reset itself. */
+                if (this.willHTMLChange(this.value))
+                {
+                    this.value = this.valueNoRangy;
+                    this._skipRestore = true;
+                    this.sel = null;
+                }
                 this._textarea.innerHTML = this.value;
                 this.q = [];
             } // Else, do nothing and wait for more remote changes.
@@ -378,7 +391,7 @@ define([
                     this.firstSpan.skip = true;
                 }
             }
-            if (this.secondSpan && pos < this.secondSpan.pos) { // Off by one half-open interval.
+            if (this.secondSpan && pos <= this.secondSpan.pos) {
                 this.secondSpan.pos += dx;
                 if (0 === this.secondSpan.pos || this.secondSpan.pos >= this.value.length) {
                     this.clearSelection();
