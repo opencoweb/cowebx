@@ -1,4 +1,8 @@
 
+// TODO remove once Chris's changes are tested.
+var DEBUG = false;
+function curVal() { return dojo.query(".nicEdit-main")[0].innerHTML; }
+
 define([
     'dojo',
 	"dijit/_Widget",
@@ -88,13 +92,14 @@ define([
             this.differ = new diff_match_patch();
             
             //3. parameters
+            this.syncs          = [];
             this.oldSnapshot 	= this.snapshot();
             this.newSnapshot 	= null;
             this.t 				= null;
             this.q 				= [];
             this.value 			= '';
             this.valueNoRangy   = '';
-            this.interval		= 100;
+            this.interval		= 1000;
 			this.title          = 'Untitled Document';
 			this._POR			=	{start:0, end:0};
 			this._prevPOR		=	{start:0, end:0};
@@ -217,44 +222,47 @@ define([
             return q;
         },
 
-	    iterateSend : function() {
+        iterateSend : function() {
             var syncs;
             var ldOffset;
-	        this.newSnapshot = this.snapshot();
-	        if(null !== this.oldSnapshot && null !== this.newSnapshot) {
-	            if(this.oldSnapshot != this.newSnapshot) {
+            this.newSnapshot = this.snapshot();
+            if(null !== this.oldSnapshot && null !== this.newSnapshot) {
+                if(this.oldSnapshot != this.newSnapshot) {
                     this.normalizeHTML();
                     this.newSnapshot = this.snapshot();
                     if (this.oldSnapshot != this.newSnapshot) {
                         syncs = this.syncs.concat(this.doDiff(this.oldSnapshot, this.newSnapshot));
                     }
                 }
-	            if(syncs){
-					var s = '';
-	                for(var i=0; i<syncs.length; i++){
-	                    if(syncs[i] != undefined){
-	                       	this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
-							s = s+syncs[i].ty+' '+syncs[i].ch+' '+syncs[i].pos+'\n';
-	                    }
-	                }
-	            }
-	        }
-	    },
+                if(syncs){
+                    var s = '';
+                    DEBUG ? console.log("WAS=%s", this.oldSnapshot):null;
+                    DEBUG ? console.log("NOW=%s", this.newSnapshot):null;
+                    for(var i=0; i<syncs.length; i++){
+                        if(syncs[i] != undefined){
+                               this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
+                            s = s+syncs[i].ty+' '+syncs[i].ch+' '+syncs[i].pos+'\n';
+                        }
+                    }
+                    DEBUG ? console.log("diffs=%s",s):null;
+                }
+            }
+        },
 
-	    iterateRecv : function() {
-			//Get local typing syncs
-			this.syncs = [];
+        iterateRecv : function() {
+            //Get local typing syncs
+            this.syncs = [];
             var currentSnap = this.snapshot();
             if (this.newSnapshot != currentSnap)
                 this.syncs = this.doDiff(this.newSnapshot, currentSnap);
 
-	        this.collab.resumeSync();
-	        this.collab.pauseSync();
+            this.collab.resumeSync();
+            this.collab.pauseSync();
             if (this.q.length > 0)
                 this.tryUpdate();
-	        this.oldSnapshot = this.snapshot();
-	        this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
-	    },
+            this.oldSnapshot = this.snapshot();
+            this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
+        },
 
 	    onRemoteChange : function(obj){
 	        this.q.push(obj);
@@ -275,17 +283,19 @@ define([
 
         removeRangySpans : function()
         {
+            /* The Rangy span will be one of search# or search#a (or neither). */
             var val = this.value;
-			var search1 = '<span style="line-height: 0; display: none;" id="1sel';
-			var search1a = '<span id="1sel';
-			var search2 = '<span style="line-height: 0; display: none;" id="2sel';
-			var search2a = '<span id="2sel';
+            var search1 = '<span style="line-height: 0; display: none;" id="1sel';
+            var search1a = '<span id="1sel';
+            var search2 = '<span style="line-height: 0; display: none;" id="2sel';
+            var search2a = '<span id="2sel';
             var start, end;
-			var markerLength = (dojo.isWebKit) ? 78 : 77;
+            /* I think WebKit inserts a weird character inside the span. */
+            var markerLength = (dojo.isWebKit) ? 78 : 77;
 
             this.firstSpan = null;
             this.secondSpan = null;
-            // Non-collapsed?
+            // Non-collapsed selection?
             var start = val.indexOf(search1);
             if (-1 == start)
                 start = val.indexOf(search1a);
@@ -345,6 +355,7 @@ define([
         },
 
         tryUpdate : function() {
+            DEBUG ? console.log("BEGIN UPDATE"):null;
             // Process the queue and check that the changes are valid.
             this.sel = rangy.saveSelection();
             this._skipRestore = false;
@@ -354,16 +365,30 @@ define([
                markers - this makes performing the operations easier (faster) and removes the bug
                of Rangy's markers invalidating the HTML.
                 */
+                    // TODO remove
+            if (DEBUG) {
+                var s = '';
+                for(var i=0; i<this.q.length; i++){
+                    if(this.q[i] != undefined){
+                        s = s+this.q[i].type+' '+this.q[i].value+' '+this.q[i].position+'\n';
+                    }
+                }
+                DEBUG ? console.log("this.q diffs=%s",s):null;
+            }
+            DEBUG ? console.log("this.q.length=%d", this.q.length):null;
+            DEBUG ? console.log("this.value    spans=%s",this.value):null;
             this.removeRangySpans();
-	        for(var i=0; i<this.q.length; i++){
-	            if(this.q[i].type == 'insert')
-	                this.insertChar(this.q[i].value, this.q[i].position);
-	            if(this.q[i].type == 'delete')
-	                this.deleteChar(this.q[i].position);
-	            if(this.q[i].type == 'update')
-	                this.updateChar(this.q[i].value, this.q[i].position);
-	        }
-	        if (!this.willHTMLChange(this.value)) {
+            DEBUG ? console.log("this.value no spans=%s",this.value):null;
+            for(var i=0; i<this.q.length; i++){
+                if(this.q[i].type == 'insert')
+                    this.insertChar(this.q[i].value, this.q[i].position);
+                if(this.q[i].type == 'delete')
+                    this.deleteChar(this.q[i].position);
+                if(this.q[i].type == 'update')
+                    this.updateChar(this.q[i].value, this.q[i].position);
+            }
+            DEBUG ? console.log("changes=%s", this.value):null;
+            if (!this.willHTMLChange(this.value)) {
                 // If HTML is valid, update textarea and clear the queue.
                 // Order important for below operations!
                 this.valueNoRangy = this.value;
@@ -371,35 +396,39 @@ define([
                     this.restoreRangySpan(this.secondSpan);
                     this.restoreRangySpan(this.firstSpan);
                 }
+                DEBUG ? console.log("spanses=%s",this.value):null;
                 /* Recheck HTML - the rangy solution for remembering caret position is not perfect.
                    It sometimes fails when the caret is located inbetween remote edit operations.
                    In this case, we don't try to restore the caret and let the caret reset itself. */
                 if (this.willHTMLChange(this.value))
                 {
+                    DEBUG?console.warn("CHANGED SECOND %s", this.value):null;
                     this.value = this.valueNoRangy;
                     this.clearSelection();
                 }
                 this._textarea.innerHTML = this.value;
                 this.q = [];
             } // Else, do nothing and wait for more remote changes.
+            else { DEBUG ? console.warn("HTML WOULD HAVE CHANGED"):null}
             if (!this._skipRestore && this.sel)
                 rangy.restoreSelection(this.sel);
+            DEBUG?console.log("END UPDATE"):null;
         },
 
-	    insertChar : function(c, p) {
-	        this.fixPos(p, 1);
-	        this.value = this.value.substr(0, p) + c + this.value.substr(p);
-	    },
+        insertChar : function(c, p) {
+            this.fixPos(p, 1);
+            this.value = this.value.substr(0, p) + c + this.value.substr(p);
+        },
 
-	    deleteChar : function(p) {
+        deleteChar : function(p) {
             this.fixPos(p, -1);
-	        this.value = this.value.substr(0, p) + this.value.substr(p+1);
-	    },
+            this.value = this.value.substr(0, p) + this.value.substr(p+1);
+        },
 
-	    updateChar : function(c, p) {
-	        this.value = this.value.substr(0, p) + c + this.value.substr(p+1);
-	    },
-	    
+        updateChar : function(c, p) {
+            this.value = this.value.substr(0, p) + c + this.value.substr(p+1);
+        },
+        
         fixPos : function(pos, dx) {
             // If either span reach the beginning, clear the selection.
 

@@ -77,7 +77,7 @@
         <dependency>
             <groupId>org.opencoweb.cowebx</groupId>
             <artifactId>cowebx-widgets-dojo</artifactId>
-            <version>${version}</version>
+            <version>${project.version}</version>
             <type>war</type>
         </dependency>
     </dependencies>

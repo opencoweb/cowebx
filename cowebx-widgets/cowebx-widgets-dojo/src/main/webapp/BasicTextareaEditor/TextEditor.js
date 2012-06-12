@@ -1,4 +1,4 @@
-define(['coweb/main','./ld'], function(coweb,ld) {
+define(['coweb/main','./diff_match_patch'], function(coweb) {
     var TextEditor = function(args){
         this.id = args.id;
         this.listen = args.listen;
@@ -7,6 +7,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         if(!this.id)
             throw new Error('missing id argument');
     
+        this.differ = new diff_match_patch();
         this._por = {start : 0, end: 0};
         this._textarea = dojo.create('textarea', {style:'position:relative;'}, args.domNode);
         dojo.style(this._textarea, 'width', '100%');
@@ -34,8 +35,6 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
         dojo.connect(this._textarea, 'onblur', this, '_onBlur');
 
-        this.util = new ld({});
-
         if(this.go == true)
             this.listenInit();
     };
@@ -54,38 +53,52 @@ define(['coweb/main','./ld'], function(coweb,ld) {
         this.iterateSend();
         this.iterateRecv();
     };
+
+    proto.doDiff = function(oldS, newS) {
+        function convertInsert(q, s, off) {
+            var i;
+            for (i = 0; i < s.length; ++i)
+                q.push({ty:'insert', pos:i+off, ch:s[i]});
+        }
+        function convertDelete(q, s, off) {
+            var i;
+            for (i = 0; i < s.length; ++i)
+                q.push({ty:'delete', pos:off, ch:null});
+        }
+        var q, rawDiffs;
+        var i = 0, off = 0;
+
+        rawDiffs = this.differ.diff_main(oldS, newS);
+        q = [];
+        for ( ; i < rawDiffs.length; ++i)
+        {
+            switch(rawDiffs[i][0]) {
+                case 0:
+                    off += rawDiffs[i][1].length;
+                    break;
+                case 1:
+                    convertInsert(q, rawDiffs[i][1], off);
+                    off += rawDiffs[i][1].length;
+                    break;
+                case -1:
+                    convertDelete(q, rawDiffs[i][1], off);
+                    break;
+            }
+        }
+        return q;
+    };
     
     proto.iterateSend = function() {
+        var syncs = null;
         this.newSnapshot = this.snapshot();
         var oldLength = this.oldSnapshot.length;
         var newLength = this.newSnapshot.length;
-        
-        if(oldLength < newLength){
-            var mx = this.max+(newLength - oldLength);
-            if(this.oldSnapshot != this.newSnapshot)
-                var syncs = this.syncs.concat(this.util.ld(this.oldSnapshot.substring(this.min, this.max), this.newSnapshot.substring(this.min, mx)));
-            //console.log('old = '+this.oldSnapshot.substring(this.min, this.max));
-            //console.log('new = '+this.newSnapshot.substring(this.min, mx));
-            
-            if(syncs){
-                //console.log(syncs);
+
+        if (this.oldSnapshot != this.newSnapshot) {
+            syncs = this.syncs.concat(this.doDiff(this.oldSnapshot, this.newSnapshot));
+            if (syncs){
                 for(var i=0; i<syncs.length; i++){
-                    this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+this.min);
-                }
-            }
-            
-        }else if(newLength < oldLength){
-            var mx = this.max+(oldLength-newLength);
-            var mn = (this.min-1 > -1) ? this.min-1 : 0;
-            if(this.oldSnapshot != this.newSnapshot)
-                var syncs = this.syncs.concat(this.util.ld(this.oldSnapshot.substring(mn, mx), this.newSnapshot.substring(mn, this.max)));
-            //console.log('old = '+this.oldSnapshot.substring(mn, mx));
-            //console.log('new = '+this.newSnapshot.substring(mn, this.max));
-            
-            if(syncs){
-                //console.log(syncs);
-                for(var i=0; i<syncs.length; i++){
-                    this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos+mn);
+                    this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
                 }
             }
         }
@@ -93,7 +106,7 @@ define(['coweb/main','./ld'], function(coweb,ld) {
     
     proto.iterateRecv = function() {
 		this.syncs = [];
-		this.syncs = this.util.ld(this.newSnapshot, this.snapshot());
+		this.syncs = this.doDiff(this.newSnapshot, this.snapshot());
         this.collab.resumeSync();
         this.collab.pauseSync();
         if(this.q.length != 0)

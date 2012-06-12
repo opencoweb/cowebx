@@ -9,7 +9,7 @@ This is a demo application that allows for collaborative control of a Google map
 1. If you haven't already, follow [these instructions](http://opencoweb.org/ocwdocs/tutorial/install.html) to deploy a Coweb instance.
 2. After installing either the Java server of Python server in the step above, make sure to deploy the [cowebx demos](http://opencoweb.org/ocwdocs/tutorial/install.html#deploying-the-cowebx-demos-optional).
 3. Start the coweb server instance as instructed in the installation guide above.
-4. Visit the app in your browser, which my default is located at [http://localhost:8080/cowebx-apps/comap/index.html](http://localhost:8080/cowebx-apps/comap/index.html).
+4. Visit the app in your browser, which by default is located at [http://localhost:8080/comap/index.html](http://localhost:8080/comap/index.html).
 	
 ##A Brief Tour
 
