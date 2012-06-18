@@ -1,3 +1,5 @@
+
+// TODO see if we can optimize the indexOf's? is it worth it?
 var COUNTER={};
 COUNTER.option1=1;
 COUNTER.option2=1;
@@ -136,14 +138,6 @@ define([
         };
     };
 
-    proto.copyFromArray = function(val) {
-        this.beginTag = val[0];
-        this.endTag = val[1];
-        this.text = val[2];
-        this.nodeType = val[3];
-        this.id = val[4];
-    }
-
     proto.sanityCheck = function() {
         var ret = true;
         if (this.parent && this.parent.children.indexOf(this) < 0) {
@@ -174,20 +168,11 @@ define([
         if (undefined === depth || null === depth)
             depth = 0;
         var s = tabs(depth);
-        var ok = "";
-        var ok2 = "";
-        if (!this.diffId.wont)
-            ok2 = "("+this.diffId+")";
-        if(test)
-            var ok = test[this.diffId] ? ("("+this.diffId+"="+test[this.diffId].diffId+","+this.inOrder+")") : "";
-        //if (Node.ELEMENT_NODE == this.nodeType)
         if (this.beginTag)
             s += this.beginTag;
         if (this.text)
             s += this.text;
-        s += ok+"\n";
-        //else
-        //    s += this.text + ok2 + "\n";
+        s += "id="+this.id+"\n";
         ++depth;
         array.forEach(this.children, function(child, i) {
             s += child.toString(depth,test);
@@ -730,7 +715,7 @@ define([
 
     // TODO doc
     // A big assumption is that root(t1) == root(t2).
-    EditorTree.treeDiff = function(t1, t2) {
+    EditorTree.treeDiff = function(t1, t2, map) {
         t11 = t1;
         t21=t2;
         DEBUG1?console.log(t1.toHTML()):null;
@@ -806,7 +791,7 @@ define([
                         console.error("idx bad applyMov");
                     if (a.parent == w && k > oldK) // Minus one for 
                         --k;
-                    E.push({ty:"move", args:{x:a, y:w, k:k, oldK:oldK}});
+                    E.push({ty:"move", args:{oldParent:a.parent.id,x:a.id, y:w.id, k:k, oldK:oldK}});
                     EditorTree.applyMov(a, w, k, oldK);
                     if (DEBUG1){t11.sanityCheck();t21.sanityCheck();}
                     a.inOrder = true;
@@ -892,7 +877,7 @@ define([
 
         // Insert, update, align, and move phases all at once:
         t2.levelOrder(function(x) {
-            var y, z, w, v;
+            var y, z, w, v, pid;
             var k, oldK, newId;
 
             y = x.parent;
@@ -902,8 +887,9 @@ define([
                 k = findPos(x);
                 z = Mp[y.diffId]; // TODO always exists? what?
                 newId = globalIdCounter++;
-                E.push({ty:"insert", args:{x:x, y:z, k:k, newId:newId}});
+                E.push({ty:"insert", args:{data:x.data(), x:x.id, y:z.id, k:k, newId:newId}});
                 w = EditorTree.applyIns(x, z, k, newId);
+                map ? (map[w.id] = w) : null;
                     if (DEBUG1){t11.sanityCheck();t21.sanityCheck();}
                 x.inOrder = true;
                 w.inOrder = true;
@@ -918,7 +904,15 @@ define([
                 v = w.parent;
                 if (w.getValue() != x.getValue()) {
                     DEBUG1?console.warn("case 2a"):null;
-                    E.push({ty:"update", args:{x:w, val:x}});
+                    // args.parent and args.k are specifically for the RichTextEditor.
+                    if (w.parent) {
+                        pid = w.parent.id;
+                        k = w.parent.children.indexOf(w);
+                    } else {
+                        pid = -1;
+                        k = -1;
+                    }
+                    E.push({ty:"update", args:{pid:pid, x:w.id, k:k, val:x.data()}});
                     EditorTree.applyUpd(w, x);
                     if (DEBUG1){t11.sanityCheck();t21.sanityCheck();}
                     DEBUG1?console.log(t11.toString(0,Mp)):null;
@@ -932,7 +926,7 @@ define([
                         console.error("idx bad applyMov");
                     if (w.parent == z && k > oldK)
                         --k;
-                    E.push({ty:"move", args:{x:w, y:z, k:k, oldK:oldK}});
+                    E.push({ty:"move", args:{oldParent:w.parent.id,x:w.id, y:z.id, k:k, oldK:oldK}});
                     EditorTree.applyMov(w, z, k, oldK);
                     w.inOrder = true;
                     x.inOrder = true;
@@ -960,8 +954,9 @@ define([
                 pos = w.parent.children.indexOf(w);
                 if (pos<0) // TODO remove
                     console.error("idx bad applyDel!",siblings.indexOf(x));
-                E.push({ty:"delete", args:{x:w,k:pos}});
+                E.push({ty:"delete", args:{parentId:w.parent.id,k:pos}});
                 EditorTree.applyDel(w, pos);
+                map ? (delete map[w.id]) : null;
                     if (DEBUG1){t11.sanityCheck();t21.sanityCheck();}
                 DEBUG1?console.log(t11.toString(0, MMP)):null;
             }

@@ -141,20 +141,25 @@ define([
         },
         onRemoteDeleteNode : function(data) {
             // The sync event tells us to delete a node from its parent.
-            var toDelete = this.domTree_map[data.value.id].children[data.position];
-            EditorTree.applyDel(toDelete);
+            var toDelete = this.domTree_map[data.value.oldParent].children[data.position];
+            EditorTree.applyDel(toDelete, data.position);
             delete this.domTree_map[toDelete.id];
         },
         onRemoteMoveNode : function(data) {
             // Unfortunately, we can't use applyMov because the coweb API must use an insert/delete pair.
-            var node = this.domTree_map[data.value.id];
-            var p = node.parent;
+            var node;
+            var p;
             if ("insert" == data.type) {
+                node = this.domTree_map[data.value.id];
+                p = this.domTree_map[data.value.newParent];
+                node.parent = p;
+                node.depth = p.depth + 1;
                 if (p.children)
                     p.children.splice(data.position, 0, node);
                 else
                     p.children = [node];
             } else if ("delete" == data.type) {
+                p = this.domTree_map[data.value.oldParent];
                 // Remove node from parent's children array.
                 p.children.splice(data.position, 1);
                 if (0 == p.children.length)
@@ -162,8 +167,7 @@ define([
             }
         },
         onRemoteUpdateNode : function(data) {
-            var node = this.domTree_map[data.value.id];
-            console.log(data);
+            var node = this.domTree_map[data.value.pid].children[data.position];
             EditorTree.applyUpd(node, data.value.val);
         },
 
@@ -173,7 +177,6 @@ define([
 
         applySyncs : function() {
             array.forEach(this.syncQueue, dojo.hitch(this, function(obj) {
-                console.log(obj);
                 if(obj.type == 'insert' && obj.value['force']) {
                     this.onRemoteAddNode(obj);
                 } else if(obj.type == 'delete' && obj.value['force']) {
@@ -199,7 +202,7 @@ define([
 
             // Get diffs, then send syncs.
             var s=oldTree.toHTML()+"\n"+newTree.toHTML();
-            diffs = EditorTree.treeDiff(oldTree, newTree);
+            diffs = EditorTree.treeDiff(oldTree, newTree, this.domTree_map);
             if (oldTree.toHTML() !=newTree.toHTML()) {
                 console.error("diff broke");
                 console.log(s);
@@ -269,40 +272,44 @@ define([
                     this.newSnapshot = this.snapshot();
                     if (this.oldSnapshot != this.newSnapshot) {
                         syncs = this.syncs.concat(this.doTreeDiff(this.domTree, this.newSnapshot));
-                        array.forEach(syncs, function(at) { console.log(at.ty); });
+                        console.log("FIRST");array.forEach(syncs, function(at) { console.log(at); });
                     }
                 }
-                var collab = this.collab;
                 if (syncs) {
-                    array.forEach(syncs, function(dd) {
+                    array.forEach(syncs, dojo.hitch(this, function(dd) {
                         var args = dd.args;
                         var obj;
                         // TODO refactor this...make the edit script give us exactly what we want to send.
                         switch (dd.ty) {
                             case "insert": // {x=new node data, y=parent, k=position, newId=new id}
                                 obj = {};
-                                obj.parentId = args.y.id;
-                                obj.x = args.x.data();
+                                obj.parentId = args.y;
+                                obj.x = args.data;
                                 obj.newId = args.newId;
                                 obj.force = true;
-                                collab.sendSync("change." + args.y.id, obj, "insert", args.k);
+                                DEBUG?console.log("sync(insert)",obj):null;
+                                this.collab.sendSync("change." + args.y, obj, "insert", args.k);
                                 break;
                             case "delete": // {x=node to delete, k=position of x in x.parent.children}
-                                obj = {force:true, id:args.x.parent.id};
-                                collab.sendSync("change." + args.x.parent.id, obj, "delete", args.k);
+                                obj = {force:true, oldParent:args.parentId};
+                                DEBUG?console.log("sync(delete)",obj):null;
+                                this.collab.sendSync("change." + args.parentId, obj, "delete", args.k);
                                 break;
                             case "update": // {x=node to update, val=node to copy from}
-                                obj = {val:args.val.data(), id:args.x.id};
-                                collab.sendSync("change." + args.x.id, obj, "update", 0);
+                                obj = {val:args.val, k:args.k, pid:args.pid};
+                                DEBUG?console.log("sync(update)",obj):null;
+                                // TODO do we ever update the root? we shouldnt allow it (or find a workaround)!
+                                this.collab.sendSync("change." + args.pid, obj, "update", args.k);
                                 break;
                             case "move": // {x=node to move, y=new parent, k=new position, oldK=old position}
-                                obj = {id:args.x.id, newParent:args.y.id};
-                                console.log("move",obj,args.x.data);
-                                collab.sendSync("change." + args.x.parent.id, obj, "delete", args.oldK);
-                                collab.sendSync("change." + args.y.id, obj, "insert", args.k);
+                                obj = {oldParent:args.oldParent, id:args.x, newParent:args.y};
+                                DEBUG?console.log("sync(del-move)",obj):null;
+                                this.collab.sendSync("change." + args.oldParent, obj, "delete", args.oldK);
+                                DEBUG?console.log("sync(ins-move)",obj):null;
+                                this.collab.sendSync("change." + args.y, obj, "insert", args.k);
                                 break;
                         }
-                    });
+                    }));
                 }
             }
         },
@@ -312,7 +319,10 @@ define([
             this.syncs = [];
             var currentSnap = this.snapshot();
             if (this.newSnapshot != currentSnap)
+            {
                 this.syncs = this.doTreeDiff(this.domTree, currentSnap);
+                console.log("SECOND");array.forEach(this.syncs, function(at) { console.log(at); });
+            }
 
             this.collab.resumeSync();
             this.collab.pauseSync();
@@ -321,10 +331,6 @@ define([
             this.oldSnapshot = this.snapshot();
             this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
         },
-
-	    onRemoteChange : function(obj){
-	        this.syncQueue.push(obj);
-	    },
 
 	    onUserChange : function(params) {
 	        //Break if empty object
