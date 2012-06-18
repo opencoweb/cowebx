@@ -70,13 +70,8 @@ require(["dojo/dom", "dojo/_base/array", "TreeTools", "dojo/domReady!"], functio
         var html1 = dom.byId(id1);
         var html2 = dom.byId(id2);
         // Give tree1 some dummy ids.
-        DEBUG1=true;
         tree1.levelOrder(function(at) { at.id = idCounter++; });
-        console.log(tree1.toHTML());
-        console.log(tree2.toHTML());
         var diffs = EditorTree.treeDiff(tree1, tree2);
-        console.log(tree1.toHTML());
-        console.log(tree2.toHTML());
         if (!deepEquals(tree1, tree2)) {
             Failures.push(id1.substring(0, id1.length - 4));
         }
@@ -96,14 +91,14 @@ require(["dojo/dom", "dojo/_base/array", "TreeTools", "dojo/domReady!"], functio
             var ty = at.ty;
             var args = at.args;
             if ("insert" == ty) {
-                w = EditorTree.applyIns(args.x, tree1Map[args.y.id], args.k, args.newId);
+                w = EditorTree.applyIns(args.data, tree1Map[args.y], args.k, args.newId);
                 tree1Map[w.id] = w;
             } else if ("update" == ty) {
-                EditorTree.applyUpd(tree1Map[args.x.id], args.val);
+                EditorTree.applyUpd(tree1Map[args.x], args.val);
             } else if ("move" == ty) {
-                EditorTree.applyMov(tree1Map[args.x.id], tree1Map[args.y.id], args.k, args.oldK);
+                EditorTree.applyMov(tree1Map[args.x], tree1Map[args.y], args.k, args.oldK);
             } else if ("delete" == ty) {
-                EditorTree.applyDel(tree1Map[args.x.id], args.k);
+                EditorTree.applyDel(tree1Map[args.parentId].children[args.k], args.k);
             }
         });
         if (!deepEquals(tree1, tree1_tochange)) {
@@ -118,22 +113,29 @@ require(["dojo/dom", "dojo/_base/array", "TreeTools", "dojo/domReady!"], functio
         TestSet.push([a, b]);
     }
 
-    // Find test set.
-    array.forEach(dom.byId("test_set").childNodes, function(at) {
-        if (at.tagName && "div" == at.tagName.toLowerCase())
-            createTest(at);
-    });
+    try {
+        // Find test set.
+        array.forEach(dom.byId("test_set").childNodes, function(at) {
+            if (at.tagName && "div" == at.tagName.toLowerCase())
+                createTest(at);
+        });
 
-    // Run test set.
-    array.forEach(TestSet, doTest);
+        // Run test set.
+        array.forEach(TestSet, doTest);
 
-    var results;
-    if (Failures.length) {
+        var results;
+        if (Failures.length) {
+            results = dom.byId("bad");
+            results.innerHTML = "Failures: <br />" + Failures.join("<br />");
+            results.style.display = "block";
+        } else {
+            dom.byId("good").style.display = "block";
+        }
+    } catch (e) {
         results = dom.byId("bad");
-        results.innerHTML = "Failures: <br />" + Failures.join("<br />");
+        results.innerHTML = "Exception!<br /><br />" + e;
         results.style.display = "block";
-    } else {
-        dom.byId("good").style.display = "block";
+        throw e;
     }
 
 });
