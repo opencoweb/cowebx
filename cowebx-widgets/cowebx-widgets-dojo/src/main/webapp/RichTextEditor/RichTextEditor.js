@@ -2,6 +2,7 @@
 // TODO remove once Chris's changes are tested.
 var DEBUG = false;
 function curVal() { return dojo.query(".nicEdit-main")[0].innerHTML; }
+var QWE;
 
 // TODO refactor code
 
@@ -13,7 +14,6 @@ define([
 	"dojo/text!./TextEditor.html",
 	'coweb/main',
 	'coweb/ext/attendance',
-    './ld',
     './AttendeeList',
     './ShareButton',
     'dijit/Dialog',
@@ -29,7 +29,7 @@ define([
 	'./lib/rangy/uncompressed/rangy-core',
 	'./lib/rangy/uncompressed/rangy-selectionsaverestore',
     './lib/diff_match_patch'
-], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors, css, domConstruct, array, EditorTree){
+], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors, css, domConstruct, array, EditorTree){
 
     function preprocessTree(t) {
         /* Make sure the root is the exact node: `<div></div>`
@@ -73,7 +73,6 @@ define([
 			this._buildToolbar();                
 			this._footer		= this._buildFooter();
 	        this._attendeeList 	= new AttendeeList({domNode:this.innerList, id:'_attendeeList'});
-            this.util 			= new ld({});
             this._shareButton 	= new ShareButton({
                 'domNode':this.infoDiv,
                 'listenTo':this._textarea,
@@ -101,6 +100,7 @@ define([
             //3b new tree parameters.
             this.syncQueue      = [];
             this.domTree        = null;
+            this.domTree_map    = null;
 
             //4. Style / connect
 			this._style();
@@ -135,12 +135,36 @@ define([
         // Most of the syncing code that follows comes from the CoTree demo.
 
         onRemoteAddNode : function(data) {
+            var value = data.value;
+            var newNode = EditorTree.applyIns(value.x, this.domTree_map[value.parentId], data.position, value.newId);
+            this.domTree_map[value.newId] = newNode;
         },
         onRemoteDeleteNode : function(data) {
+            // The sync event tells us to delete a node from its parent.
+            var toDelete = this.domTree_map[data.value.id].children[data.position];
+            EditorTree.applyDel(toDelete);
+            delete this.domTree_map[toDelete.id];
         },
         onRemoteMoveNode : function(data) {
+            // Unfortunately, we can't use applyMov because the coweb API must use an insert/delete pair.
+            var node = this.domTree_map[data.value.id];
+            var p = node.parent;
+            if ("insert" == data.type) {
+                if (p.children)
+                    p.children.splice(data.position, 0, node);
+                else
+                    p.children = [node];
+            } else if ("delete" == data.type) {
+                // Remove node from parent's children array.
+                p.children.splice(data.position, 1);
+                if (0 == p.children.length)
+                    p.children = null;
+            }
         },
         onRemoteUpdateNode : function(data) {
+            var node = this.domTree_map[data.value.id];
+            console.log(data);
+            EditorTree.applyUpd(node, data.value.val);
         },
 
         onTreeUpdate : function(obj) {
@@ -148,8 +172,8 @@ define([
         },
 
         applySyncs : function() {
-            array.forEach(this.syncQueue, function(obj) {
-                console.log(data);
+            array.forEach(this.syncQueue, dojo.hitch(this, function(obj) {
+                console.log(obj);
                 if(obj.type == 'insert' && obj.value['force']) {
                     this.onRemoteAddNode(obj);
                 } else if(obj.type == 'delete' && obj.value['force']) {
@@ -161,27 +185,60 @@ define([
                 } else if(obj.type == 'update') {
                     this.onRemoteUpdateNode(obj);
                 }
-            });
+            }));
+            this._textarea.innerHTML = this.toHTML();
+            this.syncQueue = [];
         },
 
-        doTreeDiff : function(oldHTMl, newHTML) {
-            var tmpDiv, oldTree, newTree, diffs;
-            this.oldDiv.innerHTML = oldHTML;
+        doTreeDiff : function(oldTree, newHTML) {
+            var newTree, diffs;
             this.newDiv.innerHTML = newHTML;
-            oldTree = EditorTree.createTreeFromElement(this.oldDiv);
             newTree = EditorTree.createTreeFromElement(this.newDiv);
             preprocessTree(oldTree);
             preprocessTree(newTree);
 
             // Get diffs, then send syncs.
-            return EditorTree.treeDiff(oldTree, newTree);
+            var s=oldTree.toHTML()+"\n"+newTree.toHTML();
+            diffs = EditorTree.treeDiff(oldTree, newTree);
+            if (oldTree.toHTML() !=newTree.toHTML()) {
+                console.error("diff broke");
+                console.log(s);
+                console.log(oldTree.toHTML());
+                console.log(newTree.toHTML());
+            }
+            /* In rare certain cases, EditorTree.createTreeFromElement and toHTML
+               return a different string than newHTML. The visual output *should* be
+               the same, but just to be sure, match this._textarea.innerHTML to whatever
+               is returned by toHTML. Documented cases appear below.
+             
+               1. "&nbsp" is converted to a single space character by toHTML.
 
-            tmpDiv = this.oldDiv;
-            this.oldDiv = this.newDiv;
-            this.newDiv = tmpDiv;
+               TODO It would be better if we could avoid this step somehow (ex: make
+               createTreeFromElement always be the same as the input).
+             */
+            var html = this.toHTML();
+            if (html != newHTML)
+                this._textarea.innerHTML = html;
+            return diffs;
+        },
+
+        generateDomTreeMap : function() {
+            this.domTree_map = {};
+            var map = this.domTree_map;
+            map[null]  = null;
+            this.domTree.levelOrder(function(at) {
+                console.log(at.id);
+                map[at.id] = at;
+            });
         },
 
 	    iterate : function() { 
+            if (null === this.domTree) { // First client, so construct dom tree here.
+                this.newDiv.innerHTML = "";
+                this.newDiv.innerHTML = this._textarea.innerHTML;
+                this.domTree = EditorTree.createTreeFromElement(this.newDiv);
+                this.generateDomTreeMap();
+            }
 	        this.iterateSend();
 	        this.iterateRecv();
 	    },
@@ -211,28 +268,38 @@ define([
                     this.normalizeHTML();
                     this.newSnapshot = this.snapshot();
                     if (this.oldSnapshot != this.newSnapshot) {
-                        syncs = this.syncs.concat(this.doTreeDiff(this.oldSnapshot, this.newSnapshot));
+                        syncs = this.syncs.concat(this.doTreeDiff(this.domTree, this.newSnapshot));
+                        array.forEach(syncs, function(at) { console.log(at.ty); });
                     }
                 }
+                var collab = this.collab;
                 if (syncs) {
                     array.forEach(syncs, function(dd) {
                         var args = dd.args;
-                        // TODO send only the essential data.
+                        var obj;
+                        // TODO refactor this...make the edit script give us exactly what we want to send.
                         switch (dd.ty) {
-                            case "insert": // {x=new node data, y=parent, k=position}
+                            case "insert": // {x=new node data, y=parent, k=position, newId=new id}
+                                obj = {};
+                                obj.parentId = args.y.id;
+                                obj.x = args.x.data();
+                                obj.newId = args.newId;
                                 obj.force = true;
-                                this.collab.sendSync("change" + args.y.id, args.x, "insert", args.k);
+                                collab.sendSync("change." + args.y.id, obj, "insert", args.k);
                                 break;
                             case "delete": // {x=node to delete, k=position of x in x.parent.children}
-                                obj.force = true;
-                                this.collab.sendSync("change" + args.x.parent.id, null, "delete", args.k);
+                                obj = {force:true, id:args.x.parent.id};
+                                collab.sendSync("change." + args.x.parent.id, obj, "delete", args.k);
                                 break;
                             case "update": // {x=node to update, val=node to copy from}
-                                this.collab.sendSync("change" + args.x.id, args.val, "update", 0);
+                                obj = {val:args.val.data(), id:args.x.id};
+                                collab.sendSync("change." + args.x.id, obj, "update", 0);
                                 break;
                             case "move": // {x=node to move, y=new parent, k=new position, oldK=old position}
-                                this.collab.sendSync("change" + args.x.parent.id, null, "delete", args.oldK);
-                                this.collab.sendSync("change" + args.y.id, args.x, "insert", args.k);
+                                obj = {id:args.x.id, newParent:args.y.id};
+                                console.log("move",obj,args.x.data);
+                                collab.sendSync("change." + args.x.parent.id, obj, "delete", args.oldK);
+                                collab.sendSync("change." + args.y.id, obj, "insert", args.k);
                                 break;
                         }
                     });
@@ -245,7 +312,7 @@ define([
             this.syncs = [];
             var currentSnap = this.snapshot();
             if (this.newSnapshot != currentSnap)
-                this.syncs = this.doDiff(this.newSnapshot, currentSnap);
+                this.syncs = this.doTreeDiff(this.domTree, currentSnap);
 
             this.collab.resumeSync();
             this.collab.pauseSync();
@@ -372,7 +439,7 @@ define([
 	    connect : function(){
 	        this.collab = coweb.initCollab({id : this.id});  
 	        this.collab.subscribeReady(this,'onCollabReady');
-            this.collab.subscribeSync('change*', this, 'onTreeUpdate');
+            this.collab.subscribeSync('change.*', this, 'onTreeUpdate');
 			this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
 	        this.collab.subscribeStateRequest(this, 'onStateRequest');
 	    	this.collab.subscribeStateResponse(this, 'onStateResponse');
@@ -385,9 +452,17 @@ define([
 	        //     dojo.publish("shareClick", [{}]);
 	        // });
 	        attendance.subscribeChange(this, 'onUserChange');
+            QWE = this;
 	    },
 
 	    onStateRequest : function(token){
+            /* Need to make domTree non-circular in order to send it. Just remove all parent
+               references and other clients can re construct that information later. */
+            var map = this.domTree_map;
+            this.domTree.levelOrder(function(at) {
+                if (at.parent)
+                    at.parent = at.parent.id;
+            });
 	        var state = {
 	            snapshot: this.newSnapshot,
                 domTree : this.domTree,
@@ -395,11 +470,37 @@ define([
 				title: this.title
 	        };
 	        this.collab.sendStateResponse(state,token);
+            this.domTree.levelOrder(function(at) {
+                at.parent = map[at.parent];
+            });
 	    },
+
+        reconstructTree : function(rawObj) {
+            var at, rawAt, q, tree, tmp, map;
+            map = {};
+            tree = new EditorTree(null);
+            q = [{at:tree, rawAt:rawObj}];
+            while (q.length > 0) {
+                at = q[0].at;
+                rawAt = q.shift().rawAt;
+                at.id = rawAt.id;
+                at.copyFrom(rawAt);
+                map[at.id] = at;
+                if (rawAt.children)
+                    at.children = [];
+                array.forEach(rawAt.children, function(child) {
+                    var ntree = new EditorTree(at);
+                    at.children.push(ntree);
+                    q.push({at:ntree, rawAt:child});
+                });
+            }
+            this.domTree_map = map;
+            return tree;
+        },
 
 	    onStateResponse : function(obj){
 			this._textarea.innerHTML = '';
-            this.domTree = obj.domTree;
+            this.domTree = this.reconstructTree(obj.domTree);
 	        this._textarea.innerHTML = this.toHTML();
             // TODO check incompatible client  by doing a divChecker validation.
 	        this.newSnapshot = this._textarea.innerHTML;
@@ -416,6 +517,13 @@ define([
 	            this._attendeeList.onRemoteUserJoin(o);
 	        }
 	    },
+
+        toHTML : function() {
+            /* We don't want the outermost <div>. The assumption is that domTree
+               always has the outer <div> elements. */
+            var HTML = this.domTree.toHTML();
+            return HTML.substring(5, HTML.length - 6);
+        },
  
 	    _getValue : function() {
 	        return this._textarea.innerHTML;

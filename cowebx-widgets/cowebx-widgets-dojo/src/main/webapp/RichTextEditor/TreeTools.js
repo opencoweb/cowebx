@@ -56,9 +56,10 @@ define([
 
        The constructor simple sets all members to null. `parent` is null only for the root.
        */
-    var EditorTree = function(p) {
+    var mangledObj = {wont:123,work:321};
+    var EditorTree = function(p, id) {
         this.parent     = p;
-        this.diffId     = {wont:123,work:321}; // For diff computation.
+        this.diffId     = mangledObj; // For diff computation.
         this.inOrder    = 0xdeadbeef; // Also for diff computation.
         this.nodeType   = null;
         this.children   = null;
@@ -68,6 +69,10 @@ define([
         else
             this.depth      = 0;
 
+        if (undefined === id)
+            this.id = 0xdeadbeef;
+        else
+            this.id = id
         this.beginTag   = null;
         this.endTag     = null;
         this.text       = null;
@@ -121,6 +126,24 @@ define([
 
     var proto = EditorTree.prototype;
 
+    proto.data =  function() {
+        //return [this.beginTag, this.endTag, this.text, this.nodeType, this.id];
+        return {
+            beginTag    : this.beginTag,
+            endTag      : this.endTag,
+            text        : this.text,
+            nodeType    : this.nodeType
+        };
+    };
+
+    proto.copyFromArray = function(val) {
+        this.beginTag = val[0];
+        this.endTag = val[1];
+        this.text = val[2];
+        this.nodeType = val[3];
+        this.id = val[4];
+    }
+
     proto.sanityCheck = function() {
         var ret = true;
         if (this.parent && this.parent.children.indexOf(this) < 0) {
@@ -132,19 +155,19 @@ define([
                 return;
         });
         return ret;
-    }
+    };
 
     proto.getLabel = function() {
         if (Node.ELEMENT_NODE == this.nodeType)
             return this.beginTag;
         else
             return "TEXT_NODE"
-    }
+    };
 
     // TODO make better for non text nodes.
     proto.getValue = function() {
         return null !== this.text ? this.text : "";
-    }
+    };
 
     // TODO consider making functions non-recursive.
     proto.toString = function(depth,test) {
@@ -156,13 +179,13 @@ define([
         if (!this.diffId.wont)
             ok2 = "("+this.diffId+")";
         if(test)
-            var ok = test[this.diffId] ? ("("+this.diffId+"="+test[this.diffId].diffId+")") : "";
+            var ok = test[this.diffId] ? ("("+this.diffId+"="+test[this.diffId].diffId+","+this.inOrder+")") : "";
         //if (Node.ELEMENT_NODE == this.nodeType)
         if (this.beginTag)
             s += this.beginTag;
         if (this.text)
             s += this.text;
-        s += this.id+"\n";
+        s += ok+"\n";
         //else
         //    s += this.text + ok2 + "\n";
         ++depth;
@@ -351,7 +374,7 @@ define([
             y.children.splice(k, 0, x);
     };
 
-    var t11,t21;
+    var t11,t21,MMP; // TODO remove
     /* Creates a custom tree representation of a DomNode. The structure of the custom
        tree nodes is:
          * tag - Name of the node element's tag. Ex: "b"
@@ -705,19 +728,6 @@ define([
         return longest(n1, n2);
     }
 
-    // Like array.forEach, but with a custom comparison function.
-    function treeNodeIndexOf(arr, node, cmp) {
-        var idx = -1;
-        array.some(arr, function(at, i) {
-            if (0 == cmp(node, at)) {
-                idx = i;
-                return true;
-            }
-            return false;
-        });
-        return idx;
-    }
-
     // TODO doc
     // A big assumption is that root(t1) == root(t2).
     EditorTree.treeDiff = function(t1, t2) {
@@ -753,11 +763,13 @@ define([
             S1 = [];
             S2 = [];
             array.forEach(w.children, function(at, i) {
-                if (treeNodeIndexOf(x.children, at, EditorTree.compare) >= 0)
+                var partner = Mp[at.diffId];
+                if (partner && partner.parent == x)
                     S1.push(at);
             });
             array.forEach(x.children, function(at, i) {
-                if (treeNodeIndexOf(w.children, at, EditorTree.compare) >= 0)
+                var partner = Mp[at.diffId];
+                if (partner && partner.parent == w)
                     S2.push(at);
             });
 
@@ -787,18 +799,19 @@ define([
             array.forEach(S1, function(a, i) {
                 var b, k, oldK;
                 // The `&&` sequence point below ensures `b` is correctly set.
-                if (a.matched && (b = Mp[a.diffId]) && a.diffId == b.diffId && S.indexOf(a) < 0) {
+                if (a.matched && (b = Mp[a.diffId]) && b.parent == x && !b.inOrder) {
                     k = findPos(b);
-                    //idx = treeNodeIndexOf(xparent.children, x, EditorTree.compare); // TODO could memoize this?
-                    oldK = a.parent.children.indexOf(x);
+                    oldK = w.children.indexOf(a);
                     if (oldK<0)
                         console.error("idx bad applyMov");
+                    if (a.parent == w && k > oldK) // Minus one for 
+                        --k;
                     E.push({ty:"move", args:{x:a, y:w, k:k, oldK:oldK}});
                     EditorTree.applyMov(a, w, k, oldK);
                     if (DEBUG1){t11.sanityCheck();t21.sanityCheck();}
-                    DEBUG1?console.log(t11.toString()):null;
                     a.inOrder = true;
                     b.inOrder = true;
+                    DEBUG1?console.log(t11.toString(0,MMP)):null;
                 }
             });
         }
@@ -841,7 +854,7 @@ define([
                 console.error("!u.inOrder");
             if (!u.parent)
                 console.error("!u.parent");
-            return array.indexOf(u.parent.children, u) + 2; // + 2 since 1-indexed.
+            return array.indexOf(u.parent.children, u) + 1;
         }
 
         // Prepare the two trees for a diff. Each node must have a globally unique id (diffId).
@@ -870,6 +883,7 @@ define([
             DEBUG1?console.log("M2=",(function(){var x=0; for (i in M){console.log(i+"="+M[i]);++x;}return x;})()):null;
         }
         Mp = {};
+        MMP = Mp;
         for (tmp in M)
             Mp[tmp] = M[tmp];
         E = [];
@@ -898,7 +912,7 @@ define([
                 w.diffId = seed++;
                 Mp[w.diffId] = x;
                 Mp[x.diffId] = w;
-                DEBUG1?console.log(t11.toString()):null;
+                DEBUG1?console.log(t11.toString(0,Mp)):null;
             } else if (null !== y) { // !isRoot(x) and x has a partner.
                 DEBUG1?console.log("case 2"):null;
                 v = w.parent;
@@ -907,7 +921,7 @@ define([
                     E.push({ty:"update", args:{x:w, val:x}});
                     EditorTree.applyUpd(w, x);
                     if (DEBUG1){t11.sanityCheck();t21.sanityCheck();}
-                    DEBUG1?console.log(t11.toString()):null;
+                    DEBUG1?console.log(t11.toString(0,Mp)):null;
                 }
                 if (!doMatch(y, v)) {
                     z = Mp[y.diffId]; // TODO always exists? what?
@@ -916,15 +930,20 @@ define([
                     oldK = w.parent.children.indexOf(w);
                     if (oldK < 0)
                         console.error("idx bad applyMov");
+                    if (w.parent == z && k > oldK)
+                        --k;
                     E.push({ty:"move", args:{x:w, y:z, k:k, oldK:oldK}});
                     EditorTree.applyMov(w, z, k, oldK);
+                    w.inOrder = true;
+                    x.inOrder = true;
                     if (DEBUG1){t11.sanityCheck();t21.sanityCheck();}
-                    DEBUG1?console.log(t11.toString()):null;
+                    DEBUG1?console.log(t11.toString(0,Mp)):null;
                 }
             } else {
                 DEBUG1?console.log("case 3"):null;
             }
             alignChildren(w, x);
+                DEBUG1?console.log(t11.toString(0,Mp)):null;
         });
         DEBUG1?console.log("OK\n\n\nready\n\n"+t1.toString(0,Mp)+"\n"+t2.toString(0,Mp)):null;
         // Delete phase.
@@ -938,13 +957,13 @@ define([
         array.forEach(postOrderList, function(w, i) {
             var pos;
             if (!Mp[w.diffId]) {
-                pos = treeNodeIndexOf(w.parent.children, w, EditorTree.compare); // TODO could memoize this?
+                pos = w.parent.children.indexOf(w);
                 if (pos<0) // TODO remove
                     console.error("idx bad applyDel!",siblings.indexOf(x));
                 E.push({ty:"delete", args:{x:w,k:pos}});
                 EditorTree.applyDel(w, pos);
                     if (DEBUG1){t11.sanityCheck();t21.sanityCheck();}
-                DEBUG1?console.log(t11.toString()):null;
+                DEBUG1?console.log(t11.toString(0, MMP)):null;
             }
         });
         return E;

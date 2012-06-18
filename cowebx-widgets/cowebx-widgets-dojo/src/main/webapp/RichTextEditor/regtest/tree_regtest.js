@@ -16,6 +16,7 @@ require(["dojo/dom", "dojo/_base/array", "TreeTools", "dojo/domReady!"], functio
     }
 
     function deepEquals(t1, t2, checkId) {
+        var ret = true;
         if (undefined === checkId)
             checkId = false;
         if (t1.getLabel() != t2.getLabel() ||
@@ -25,11 +26,13 @@ require(["dojo/dom", "dojo/_base/array", "TreeTools", "dojo/domReady!"], functio
             (t1.children && t1.children.length != t2.children.length)) {
             return false;
         }
-        array.forEach(t1.children, function(at, i) {
-            if (!deepEquals(at, t2.children[i]))
-                return false;
+        array.some(t1.children, function(at, i) {
+            if (!deepEquals(at, t2.children[i], checkId)) {
+                ret = false;
+                return true;
+            }
         });
-        return true;
+        return ret;
     }
 
     /* Our regression tests test higher level functionality: we only care that the
@@ -67,8 +70,13 @@ require(["dojo/dom", "dojo/_base/array", "TreeTools", "dojo/domReady!"], functio
         var html1 = dom.byId(id1);
         var html2 = dom.byId(id2);
         // Give tree1 some dummy ids.
+        DEBUG1=true;
         tree1.levelOrder(function(at) { at.id = idCounter++; });
+        console.log(tree1.toHTML());
+        console.log(tree2.toHTML());
         var diffs = EditorTree.treeDiff(tree1, tree2);
+        console.log(tree1.toHTML());
+        console.log(tree2.toHTML());
         if (!deepEquals(tree1, tree2)) {
             Failures.push(id1.substring(0, id1.length - 4));
         }
@@ -122,7 +130,7 @@ require(["dojo/dom", "dojo/_base/array", "TreeTools", "dojo/domReady!"], functio
     var results;
     if (Failures.length) {
         results = dom.byId("bad");
-        results.innerHTML = Failures.join("<br />");
+        results.innerHTML = "Failures: <br />" + Failures.join("<br />");
         results.style.display = "block";
     } else {
         dom.byId("good").style.display = "block";
