@@ -99,7 +99,7 @@ define([
             this.q 				= [];
             this.value 			= '';
             this.valueNoRangy   = '';
-            this.interval		= 1000;
+            this.interval		= 100;
 			this.title          = 'Untitled Document';
 			this._POR			=	{start:0, end:0};
 			this._prevPOR		=	{start:0, end:0};
