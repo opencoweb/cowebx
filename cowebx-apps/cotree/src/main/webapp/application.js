@@ -5,6 +5,10 @@
 // 
 //
 
+// TODO remove code that sends targetID as part of the sync
+
+function honor(x) { console.log("can't honor request",x); }
+
 define([
 	'dojo',
 	'coweb/main',
@@ -18,18 +22,29 @@ define([
 	'dijit/Dialog',
 	'dijit/form/TextBox',
 	'dojo/parser',
+    'dojo/_base/array',
 	'dojo/dnd/common',
 	'dojo/dnd/Source'],
-function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog, TextBox, parser) {
+function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog, TextBox, parser, array) {
 	parser.parse();
+    /*var bs  = document.getElementById("ps");
+    bs.onclick = function() {
+        if (bs.value=="pause"){
+            bs.value="resume";
+            app.collab.pauseSync();
+        } else {
+            bs.value="pause";
+            app.collab.resumeSync();
+        }
+    };*/
 	var app = {
 		init: function(){
 			// Properties
-			this.dndOps 	= [];		// Dojo-specific DnD queue
-			this.globalID	= 1000;		// Starting ID for new nodes
-			window.foo 		= this;		// For debugging
-			this._getData();			// Fetch the initial data.json
-			this._buildButtons();		// Build UI buttons
+            this.dndOps = {};           // Track each node's drag and drop movement.
+            this.superRootId = -1;      // This is the imaginary root of the entire tree.
+			window.foo = this;          // For debugging
+			this._getData();            // Fetch the initial data.json
+			this._buildButtons();       // Build UI buttons
 			
 			// Build dojo Tree components
 			this.store 		= (this.store) ? this.store : new Store({data:this.data});
@@ -48,131 +63,208 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		    sess.prepare();
 		},
 		
-		onLocalAddNode: function(obj){
-			// Set flag to indicate a regular 'insert'
-			obj['force'] = true;
-			// Send sync with topic corresponding to parent id
-			this.collab.sendSync('change.'+obj.parentID, obj, 'insert', obj.pos);
-		},
-		
-		onRemoteAddNode: function(obj){
-			// Get parent item from synced parentID
-			var parentItem = this._getItemById(obj.value.parentID);
-			// If parent item found...
-			if(parentItem){
-				// add the new item to data store
-				var newItem = this.store.newItem({ id: obj.value.id, name:obj.value.value});
-				var parentID = obj.value.parentID;
-				// update parent node's children in store & save
-				var children = parentItem.children;
-				if(children == undefined)
-					children = [];
-				children = [newItem].concat(children);
-				this.store.setValue(parentItem,'children',children);
-				this.store.save();
-				// housekeeping
-				this.globalID++;
-			}else{
-				throw new Error("Cotree: couldn't find synced parent node");
-			}
-		},
+        onLocalAddNode: function(obj){
+            // Set flag to indicate a regular 'insert'
+            obj['force'] = true;
+            // Send sync with topic corresponding to parent id
+            console.log("Local insert: %d[%d] = %d", obj.parentId, obj.pos, obj.id);
+            this.collab.sendSync('change.'+obj.parentId, obj, 'insert', obj.pos);
+        },
+        
+        onRemoteAddNode: function(obj){
+            // Get parent item from synced parentId
+            console.log("Remote insert: %d[%d] = %d", obj.value.parentId, obj.position, obj.value.id);
+            var parentItem = this._getItemById(obj.value.parentId);
+            // If parent item found...
+            if(parentItem){
+                // add the new item to data store
+                var newItem = this.store.newItem({ id: obj.value.id, name:obj.value.value});
+                var parentId = obj.value.parentId;
+                // update parent node's children in store & save
+                var children = parentItem.children;
+                if(children == undefined)
+                    children = [newItem];
+                else {
+                    /* What a joke...for whatever reason the application breaks if I don't copy
+                       the array. Spent over two hours trying to figure out why... */
+                    children = children.slice(0);
+                    children.splice(obj.position, 0, newItem);
+                }
+                this.store.setValue(parentItem,'children',children);
+                this.store.save();
+            }else{
+                honor(obj);
+                /* We can't honor the insert operation since the parent was already deleted. By assumption,
+                   other clients will also delete this parent at some point, thereby negating their
+                   insert of the desired node. Thus, we ignore this insert request. */
+            }
+        },
 
-		onLocalDeleteNode: function(obj){
-			// Set flag to indicate regular 'delete'
-			obj['force'] = true;
-			// Send sync with topic corresponding to parent id
-			this.collab.sendSync('change.'+obj.parentID, obj, 'delete', obj.pos);
-		},
-		
-		onRemoteDeleteNode: function(obj){
-			// Remove node focus temporarily & save ref
-			if(this.tree.selectedItem)
-				var prevSelectedItemId = this.tree.selectedItem.id[0];
-			// Hide UI buttons temporarily 
-			this.tree.attr('selectedItem','_null');
-			dojo.place('buttonContainer',document.body,'last');
-			dojo.style('buttonContainer','display','none');
-			// Get targeted item by synced id
-			var targetItem = this._getItemById(obj.value.id);
-			// Delete targeted item from store & save
-			this.store.deleteItem(targetItem);
-			this.store.save();
-			// Re-focus prevSelectedItem if it exists
-			this.tree.attr('selectedItem',prevSelectedItemId);
-			// Try to show buttons again
-			this._click();
-		},
+        onLocalDeleteNode: function(parentId, pos, force,id){
+            var obj = {};
+            obj['force'] = force;
+            obj['parentId'] = parentId;
+            obj['id'] = id;
+            // Send sync with topic corresponding to parent id
+            console.log("Local delete %d[%d]", parentId, pos);
+            this.collab.sendSync('change.'+parentId, obj, 'delete', pos);
+        },
+        
+        onRemoteDeleteNode: function(obj){
+            console.log("Remote delete %d[%d] = %d", obj.value.parentId, obj.position, obj.value.id);
+            var prevSelectedItemId = null;
+            // Remove node focus temporarily & save ref
+            if(this.tree.selectedItem) {
+                prevSelectedItemId = this.tree.selectedItem.id[0];
+                // Hide UI buttons temporarily 
+                this.tree.attr('selectedItem','_null');
+                dojo.place('buttonContainer',document.body,'last');
+                dojo.style('buttonContainer','display','none');
+            }
+            // Get targeted item by synced id
+            var p = this._getItemById(obj.value.parentId);
+            if (!p) {
+                honor(obj);
+                return; // TODO
+            }
+            var targetItem = p.children[obj.position];
+            if (targetItem != this._getItemById(obj.value.id))
+                console.log("wrong");
+            // Delete targeted item from store & save
+            this.store.deleteItem(targetItem);
+            this.store.save();
+            // Re-focus prevSelectedItem if it exists
+            if (prevSelectedItemId)
+                this.tree.attr('selectedItem',prevSelectedItemId);
+            // Try to show buttons again
+            this._click();
+        },
 
-		onLocalMoveNode: function(obj){
-			// send sync with topic corresponding to parent id
-			// with no flag set, indicating a modified 'delete'
-			// which keeps the node around
-			console.log('remote delete',obj);
-			this.collab.sendSync('change.'+obj.prevParentID, obj, 'delete', obj.prevPos);
-			// send sync with topic corresponding to parent id
-			// with no flag set, indicating a modified 'insert'
-			// which simply modifies children rather than creating
-			// a new node
-			console.log('remote add',obj);
-			this.collab.sendSync('change.'+obj.newParentID, obj, 'insert', obj.newPos);
-		},
-		
-		onRemoteMoveNode: function(obj){
-			if(obj.type == 'delete'){
-				// Get parent item's children
-				var prevParent = this._getItemById(obj.value.prevParentID);
-				var children = prevParent.children;
-				// Remove target item from children
-				children.splice(obj.value.prevPos, 1);
-				// Update store & save
-				this.store.setValue(prevParent,'children',children);
-				this.store.save();
-			}else if(obj.type == 'insert'){
-				// Get parent item's children
-				var newItem = this._getItemById(obj.value.targetID);
-				var newParent = this._getItemById(obj.value.newParentID);
-				var children = newParent.children;
-				// Add target item to children in proper pos
-				if(children == undefined)
-					children = [];
-				children = children.slice(0,obj.value.newPos).concat([newItem].concat(children.slice(obj.value.newPos)));
-				// Update store & save
-				this.store.setValue(newParent,'children',children);
-				this.store.save();
-			}
-		},
-		
-		onLocalUpdateNode: function(obj){
-			// Send sync with topic corresponding to target node id
-			this.collab.sendSync('change.'+obj.id, obj, 'update', 0);
-		},
-		
-		onRemoteUpdateNode: function(obj){
-			// Get targeted item by synced id
-			var targetItem = this._getItemById(obj.value.id);
-			// Set new name, update store & save
-			var name = obj.value.name;
-			this.store.setValue(targetItem,'name',name);
-			this.store.save();
-		},
-		
-		onRemoteChange: function(obj){
-			// Normal insert
-			if(obj.type == 'insert' && obj.value['force'])
-				this.onRemoteAddNode(obj);
-			// Normal delete
-			else if(obj.type == 'delete' && obj.value['force'])
-				this.onRemoteDeleteNode(obj);
-			// Modified insert
-			else if(obj.type == 'insert')
-				this.onRemoteMoveNode(obj);
-			// Modified delete
-			else if(obj.type == 'delete')
-				this.onRemoteMoveNode(obj);
-			// Normal update
-			else if(obj.type == 'update')
-				this.onRemoteUpdateNode(obj);
-		},
+        onLocalMoveNode: function(obj){
+            // send sync with topic corresponding to parent id
+            // with no flag set, indicating a modified 'delete'
+            // which keeps the node around
+            console.log("Local move %d[%d] = %d   -> %d[%d]", obj.prevParentID, obj.prevPos, obj.targetID,
+                    obj.newParentID, obj.newPos);
+            this.collab.sendSync('change.'+obj.prevParentID, obj, 'delete', obj.prevPos);
+            // send sync with topic corresponding to parent id
+            // with no flag set, indicating a modified 'insert'
+            // which simply modifies children rather than creating
+            // a new node
+            this.collab.sendSync('change.'+obj.newParentID, obj, 'insert', obj.newPos);
+        },
+
+        validate: function(arr) {
+            try{
+            var been = {};
+            function t(x) { if (been[x]) throw 5;been[x] = true; }
+            var q = [];
+            array.forEach(arr, function(m) { q.push(m); });
+            while (q.length > 0) {
+                var at = q.shift();
+                t(at.id[0]);
+                array.forEach(at.children, function(ch) {
+                    q.push(ch);
+                });
+            }
+            } catch (e) { return false;
+            }
+            return true;
+        },
+        
+        onRemoteMoveNode: function(obj){
+            console.log("Remote move %d[%d] = %d   -> %d[%d]", obj.value.prevParentID,
+                    obj.value.prevPos, obj.value.targetID, obj.value.newParentID, obj.value.newPos);
+            if(obj.type == 'delete'){
+                // Get parent item's children
+                var prevParent = this._getItemById(obj.value.prevParentID);
+                if (!prevParent) {
+                honor(obj);
+                    return; // TODO
+                }
+                var children = prevParent.children;
+                // Remove target item from children
+                children.splice(obj.value.prevPos, 1);
+                // Update store & save
+                this.store.setValue(prevParent,'children',children);
+                this.store.save();
+            }else if(obj.type == 'insert'){
+                // Get parent item's children
+                var newItem = this._getItemById(obj.value.targetID);
+                var newParent = this._getItemById(obj.value.newParentID);
+                if (!newParent) {
+                honor(obj);
+                    return; // TODO
+                }
+                var children = newParent.children;
+                // Add target item to children in proper pos
+                if(children == undefined)
+                    children = [];
+                children = children.slice(0,obj.value.newPos).concat([newItem].concat(children.slice(obj.value.newPos)));
+                if (!this.validate(children)) {
+                    debugger;
+                    console.log("oop");
+                }
+                // Update store & save
+                this.store.setValue(newParent,'children',children);
+                this.store.save();
+            }
+        },
+        
+        onLocalUpdateNode: function(obj){
+            // Send sync with topic corresponding to target node id
+            console.log("Local update %d[%d] = %d",obj.parentId, obj.pos, obj.id);
+            this.collab.sendSync('change.'+obj.parentId, obj, 'update', obj.pos);
+        },
+        
+        onRemoteUpdateNode: function(obj){
+            console.log("Remote update %d[%d] = %d", obj.value.parentId, obj.position, obj.value.id);
+            // Get targeted item by synced id
+            var targetItem, p;
+            if (obj.value.parentId == this.superRootId) {
+                // This is ok because we don't allow the root to be deleted.
+                targetItem = this._getItemById(obj.value.id);
+            } else {
+                p = this._getItemById(obj.value.parentId);
+                if (!p) {
+                honor(obj);
+                    /* We can't honor the update operation since the parent was already deleted. By assumption,
+                       other clients will also delete this parent at some point, thereby negating their
+                       update of the desired node. Thus, we ignore this update request. */
+                    return;
+                }
+                targetItem = p.children[obj.position];
+                if (!this._getItemById(obj.value.id))
+                    console.error("whoops");
+            }
+            // Set new name, update store & save
+            var name = obj.value.name;
+            this.store.setValue(targetItem,'name',name);
+            this.store.save();
+        },
+        
+        onRemoteChange: function(obj){
+            try{
+            // Normal insert
+            if(obj.type == 'insert' && obj.value['force'])
+                this.onRemoteAddNode(obj);
+            // Normal delete
+            else if(obj.type == 'delete' && obj.value['force'])
+                this.onRemoteDeleteNode(obj);
+            // Modified insert
+            else if(obj.type == 'insert')
+                this.onRemoteMoveNode(obj);
+            // Modified delete
+            else if(obj.type == 'delete')
+                this.onRemoteMoveNode(obj);
+            // Normal update
+            else if(obj.type == 'update')
+                this.onRemoteUpdateNode(obj);
+            } catch(e) {
+                debugger;
+                console.log(e);
+            }
+        },
 		
 		onStateRequest: function(token){
 			console.log('onStateRequest');
@@ -236,9 +328,11 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 				alert('Node label cannot be left blank');
 				return false;
 			}
-			// Create new item
-			var newItem = this.store.newItem({ id: this.globalID.toString(), name:name});
-			var parentID = selectedItem.id[0];
+			// Create new item.
+            // TODO We don't actually have a true way to generate unique IDs (unique across all clients).
+            var newId = Math.floor(Math.random() * 1000000) + 1000;
+			var newItem = this.store.newItem({ id: newId.toString(), name:name});
+			var parentId = selectedItem.id[0];
 			// Update parent item's children in store & save
 			var children = selectedItem.children;
 			if(children == undefined)
@@ -248,18 +342,16 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			this.store.save();
 			// Trigger local callback
 			this.onLocalAddNode({
-				id: this.globalID.toString(),
-				parentID: parentID,
+				id: newId.toString(),
+				parentId: parentId,
 				value: name,
 				pos: 0
 			});
 			// Housekeeping
 			dijit.byId('addName').set('value','');
-			this.globalID++;
 		},
-		
-		_deleteNode: function(e){
-			// Move UI buttons out and hide them
+
+        _deleteNode:function(e) {
 			dojo.place('buttonContainer',document.body,'last');
 			dojo.style('buttonContainer','display','none');
 			// Get currently selected item & parent item
@@ -275,11 +367,61 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			this.store.deleteItem(targetItem);
 			this.store.save();
 			// trigger local callback
-			this.onLocalDeleteNode({
-				id: targetItem.id[0],
-				parentID: parentItem.id[0],
-				pos:pos
-			});
+			this.onLocalDeleteNode(
+				 parentItem.id[0],
+				pos,
+                true,
+				 targetItem.id[0]
+			);
+        },
+		_del3eteNode: function(e){
+            var toDel = [];
+            var del = dojo.hitch(this, function(node) {
+                var pos;
+                var id = node.item.id[0];
+                var p = node.getParent();
+                var children = p.getChildren();
+                var item = node.item;
+                for(var i=0; i<children.length; i++){
+                    if(children[i].item.id[0] == id)
+                        pos = i;
+                }
+                // delete item from store & save
+                toDel.push([item,p.item.id[0],pos,id]);
+            });
+            var postOrder = dojo.hitch(this, function(node) {
+                var i;
+                var children = node.getChildren();
+                for (i = 0; i < children.length; ++i) {
+                    postOrder(children[i]);
+                }
+                del(node);
+            });
+            // Move UI buttons out and hide them
+            dojo.place('buttonContainer',document.body,'last');
+            dojo.style('buttonContainer','display','none');
+            this.collab.pauseSync();
+            var target = this.tree.selectedNode;
+            if (!target.getParent().item) {
+                return; // Can't delete the root.
+            }
+
+            // Correct way to delete is to delete all children (post-order traversal) first.
+            postOrder(target);
+            for (var i =0;i<toDel.length; ++i) {
+                var itm = toDel[i];
+                if(itm[0]!=this.tree.selectedItem)
+                {
+                    console.log("SFEFSE",itm[0],this.tree.selectedItem);
+                    debugger;
+                }
+                this.store.deleteItem(itm[0]);
+                this.store.save();
+                this.onLocalDeleteNode(itm[1], itm[2], true,itm[3]);
+            }
+            //if (document.getElementById("ps").value=="pause")
+            //    this.collab.resumeSync();
+            this.collab.resumeSync();
 		},
 		
 		_editNode: function(){
@@ -292,34 +434,89 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 				alert('Node label cannot be left blank');
 				return false;
 			}
+			var parentItem = this.tree.selectedNode.getParent().item;
+            var parentId, pos;
+            if (parentItem) {
+                parentId = parentItem.id[0];
+                for(var i=0; i<parentItem.children.length; i++){
+                    if(parentItem.children[i].id[0] == targetItem.id[0])
+                        pos = i;
+                }
+            } else {
+                parentId = this.superRootId;
+                pos = 0;
+            }
 			// Modify item in store and save
 			this.store.setValue(targetItem,'name',name);
 			this.store.save();
 			// Trigger local callback
 			this.onLocalUpdateNode({
 				id: targetItem.id[0],
+                parentId : parentId,
+                pos : pos,
 				name: name
 			});
 		},
+
+        _dndStart: function(source, nodes, copy) {
+            // I wish the dnd API would just tell me what node was being dnd-ed.
+            if (1 != nodes.length)
+                return;
+            var targetNode, targetID, obj, p;
+            targetNode = this.tree.selectedNode;
+            targetID = targetNode.item.id[0];
+            if (!this.dndOps[targetID]) {
+                p = targetNode.getParent().item;
+                obj = this.dndOps[targetID] = {
+                    targetNode : targetNode,
+                    prevParentID : p.id[0],
+                    domNode : nodes[0],
+                    targetID : targetID
+                };
+                array.some(p.children, function(at, i) {
+                    if (at.id[0] == targetID) {
+                        obj.prevPos = i;
+                        return true;
+                    }
+                    return false;
+                });
+            }
+        },
 		
-		_dnd: function(){
-			setTimeout(dojo.hitch(this,function(){
-				// Get last op object from DnD queue (dojo hackiness)
-				var ops = this.dndOps[this.dndOps.length-1];
-				// Get new children, new position, and new parent ID
-				var newChildren = this.tree.selectedNode.getParent().item.children;
-				var pos;
-				for(var i=0; i<newChildren.length; i++){
-					if(newChildren[i].id[0] == ops['targetID'])
-						pos = i;
-				}
-				ops['newPos'] = pos;
-				ops['newParentID'] = this.tree.selectedNode.getParent().item.id[0];
-				// Trigger local callback
-				this.onLocalMoveNode(ops);
-				// Clear DnD queue
-				this.dndOps = [];
-			}),1000);
+		_dndDrop: function(source, nodes, copy, target) {
+            if (1 != nodes.length)
+                return;
+            // It would be easier if the dnd API told me where the node was dropped.
+            setTimeout(dojo.hitch(this, function(node) {
+                var i, op, dndIdx;
+                // Following is O(n)....but n *should* always be super tiny.
+                dndOp = false;
+                for (i in this.dndOps) {
+                    if (node == this.dndOps[i].domNode) {
+                        dndIdx = i;
+                        op = this.dndOps[i];
+                        break;
+                    }
+                }
+                if (!op)
+                    return;
+                var p = op.targetNode.getParent().item;
+                var newChildren = p.children;
+                var pos;
+                array.some(p.children, function(at, i) {
+                    if (at.id[0] == op.targetID) {
+                        op.newPos = i;
+                        return true;
+                    }
+                    return false;
+                });
+                op.newParentID = p.id[0];
+                delete op.targetNode;
+                delete op.domNode;
+                // Trigger local callback
+                this.onLocalMoveNode(op);
+                delete this.dndOps[dndIdx];
+            }, nodes[0]), 500);
 		},
 		
 		_getData: function(){
@@ -339,9 +536,9 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			// Iterate over children looking for id
 			for(var i=0; i<this.store._arrayOfAllItems.length; i++){
 				if(this.store._arrayOfAllItems[i] && this.store._arrayOfAllItems[i].id[0] == id)
-					selectedItem = this.store._arrayOfAllItems[i];
+					return this.store._arrayOfAllItems[i];
 			}
-			return selectedItem;
+			return false;
 		},
 		
 		_refreshTree: function(){
@@ -363,22 +560,7 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 				dndController:dndSource,
 				openOnDblClick: true,
 				autoExpand: true,
-				onClick: dojo.hitch(this, '_click'),
-				checkItemAcceptance: dojo.hitch(this, function(target, src, pos){
-					var targetID = this.tree.selectedNode.item.id[0];
-					var prevChildren = this.tree.selectedNode.getParent().item.children;
-					var pos;
-					for(var i=0; i<prevChildren.length; i++){
-						if(prevChildren[i].id[0] == targetID)
-							pos = i;
-					}
-					this.dndOps.push({
-						targetID: targetID,
-						prevParentID: this.tree.selectedNode.getParent().item.id[0],
-						prevPos: pos
-					});
-					return true;
-				})
+				onClick: dojo.hitch(this, '_click')
 			});
 			tree.placeAt(dojo.byId('treeContainer'));
 			return tree;
@@ -423,7 +605,8 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		},
 		
 		_connectEvents: function(){
-			dojo.subscribe("/dnd/drop", dojo.hitch(this, '_dnd'));
+			dojo.subscribe("/dnd/drop", dojo.hitch(this, '_dndDrop'));
+			dojo.subscribe("/dnd/start", dojo.hitch(this, '_dndStart'));
 			dojo.connect(window,'resize',this,'_resize');
 			dojo.connect(dijit.byId('addDialog'),'isValid',this,'_addNode');
 			dojo.connect(dijit.byId('addDialog'),'hide',this,'_hideDialog');
