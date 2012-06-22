@@ -8,29 +8,36 @@
 //
 /*global define dojo*/
 define([
-    'dojo',
-    'coweb/main'
-], function(dojo,coweb) {
+    "dojo",
+    "coweb/main",
+    "dojo/data/ItemFileWriteStore"
+], function(dojo, coweb, ItemFileWriteStore) {
+
+    // Try to create a unique ID across all clients.
+    function uniqueId() {
+        return String(Math.random()).substr(2) + String((new Date()).getTime());
+    }
+
     // reference to a regular dojo.data.ItemFileWriteStore instance
     var CoopItemFileWriteStore = function(args) {
         this.dataStore = args.dataStore;
         this.id = args.id;
-        if(!this.dataStore || !this.id) {
+        this.grid = args.grid;
+        this.colist = args.colist;
+        if(!this.dataStore || !this.id || !this.grid || !this.colist) {
             throw new Error('missing dataStore or id argument');
         }
+
+        this.subscribers = [this];
+        /* As frustrating as this is, I cannot for the life of me figure out how to insert
+           rows into a DataGrid at specific positions. Thus, I'll keep track of the list
+           data in an array, and update the ItemFileWriteStore *every* time an operation
+           occurs. */
+        this.bgData = [];
         // stores dojo.connect handles for observers of the data store
         this.dsHandles = {};
-        // maps data store events to methods on this instance for ease of
-        // connecting and disconnecting data store listeners
-        this.typeToFuncs = {
-            update: {ds : 'onSet', coop: 'onLocalUpdate'},
-            insert: {ds : 'onNew', coop: 'onLocalInsert'},
-            'delete': {ds : 'onDelete', coop: 'onLocalDelete'}
-        };
-        // subscribe to local datastore events to start
-        this._dsConnect(true, 'insert');
-        this._dsConnect(true, 'update');
-        this._dsConnect(true, 'delete');
+        this.removed = {};
+        this.connectAll();
         // initialize collab interface using the dojo widget id as the
         // id for the collab instance
         this.collab = coweb.initCollab({id : this.id});
@@ -38,7 +45,7 @@ define([
         // this widget; the change messages include item ids to allow coweb to
         // check consistency on a per-item basis, rather than per-grid, so we
         // include the * here to listen to all change messages
-        this.collab.subscribeSync('change.*', this, 'onRemoteChange');
+        this.collab.subscribeSync('change', this, 'onRemoteChange');
         // listen for requests from remote applications joining the session
         // when they ask for the full state of this widget
         this.collab.subscribeStateRequest(this, 'onGetFullState');
@@ -47,8 +54,29 @@ define([
         // state
         this.collab.subscribeStateResponse(this, 'onSetFullState');
     };
+    // Static members.
+    // maps data store events to methods on this instance for ease of
+    // connecting and disconnecting data store listeners
+    CoopItemFileWriteStore.typeToFuncs = {
+        update: {ds : 'onSet', coop: 'onLocalUpdate'},
+        insert: {ds : 'onNew', coop: 'onLocalInsert'},
+        'delete': {ds : 'onDelete', coop: 'onLocalDelete'}
+    };
+
     var proto = CoopItemFileWriteStore.prototype;
+
+    proto.disconnectAll = function() {
+        this._dsConnect(false, "insert");
+        this._dsConnect(false, "update");
+        this._dsConnect(false, "delete");
+    }
     
+    proto.connectAll = function() {
+        this._dsConnect(true, "insert");
+        this._dsConnect(true, "update");
+        this._dsConnect(true, "delete");
+    }
+
     /**
      * Connects or disconnects the observer method on this instance to one
      * of the data store events.
@@ -59,7 +87,7 @@ define([
     proto._dsConnect = function(connect, type) {
         if(connect) {
             // get info about the data store and local functions
-            var funcs = this.typeToFuncs[type];
+            var funcs = CoopItemFileWriteStore.typeToFuncs[type];
             // do the connect
             var h = dojo.connect(this.dataStore, funcs.ds, this, funcs.coop);
             // store the connect handle so we can disconnect later
@@ -95,16 +123,7 @@ define([
      * @param params Object with properties for the ready event (see doc)
      */
     proto.onGetFullState = function(token) {
-        // collect all items
-        var rows = [];
-        this.dataStore.fetch({
-            scope: this,
-            onItem: function(item) {                
-                var row = this._itemToRow(item);
-                rows.push(row);
-            }
-        });
-        this.collab.sendStateResponse(rows, token);
+        this.collab.sendStateResponse(this.bgData, token);
     };
     
     /**
@@ -114,15 +133,25 @@ define([
      *
      * @param rows Array of row objects to be inserted as items
      */
-    proto.onSetFullState = function(rows) {
-        // stop listening to local insert events from the data store else
-        // we'll end up echoing all of the insert back to others in the session
-        // via our onLocalInsert callback
-        this._dsConnect(false, 'insert');
-        // add all rows to the data store as items
-        dojo.forEach(rows, this.dataStore.newItem, this.dataStore);
-        // now resume listening for inserts
-        this._dsConnect(true, 'insert');
+    proto.onSetFullState = function(bgData) {
+        this.bgData = bgData;
+        this.buildList();
+    };
+
+    proto.buildList = function() {
+        this.disconnectAll();
+        var emptyData = {data:{identifier:"id", label:"name", items:[]}};
+        var store = new ItemFileWriteStore(emptyData);
+        dojo.forEach(this.bgData, function(at) {
+            store.newItem(at);
+        });
+
+        // Replace data store and reconnect listeners.
+        dojo.forEach(this.subscribers, function(at) {
+            at.dataStore = store;
+        });
+        this.grid.setStore(store);
+        this.connectAll();
     };
     
     /**
@@ -138,15 +167,17 @@ define([
     proto.onLocalUpdate = function(item, attr, oldValue, newValue) {
         // get all attribute values
         var row = this._itemToRow(item);
+
         // store whole row in case remote needs to reconstruct after delete
         // but indicate which attribute changed for the common update case
         var value = {};
         value.row = row;
         value.attr = attr;
-	    // name includes row id for conflict resolution
+
 	    var id = this.dataStore.getIdentity(item);
-	    var name = 'change.'+id;
-	    this.collab.sendSync(name, value, 'update');
+        var pos = this.grid.getItemIndex(item);
+        this.bgData[pos][attr] = row[attr];
+	    this.collab.sendSync("change", value, 'update', pos);
     };
     
     /**
@@ -159,12 +190,12 @@ define([
     proto.onLocalInsert = function(item, parentInfo) {
         // get all attribute values
         var row = this._itemToRow(item);
-        var value = {};
-        value.row = row;
-	    // name includes row id for conflict resolution
+        var value = {row:row};
+
 	    var id = this.dataStore.getIdentity(item);
-	    var name = 'change.'+id;
-	    this.collab.sendSync(name, value, 'insert');
+        var pos = this.grid.getItemIndex(item);
+        this.bgData.splice(pos, 0, row);
+	    this.collab.sendSync("change", value, 'insert', pos);
     };
     
     /**
@@ -175,11 +206,12 @@ define([
      */
     proto.onLocalDelete = function(item) {
         // get all attribute values
-        var value = {};
 	    // name includes row id for conflict resolution
 	    var id = this.dataStore.getIdentity(item);
-	    var name = 'change.'+id;
-	    this.collab.sendSync(name, value, 'delete');
+        var pos = this.removed[id];
+        delete this.removed[id];
+        this.bgData.splice(pos, 1);
+	    this.collab.sendSync("change", null, 'delete', pos);
     };
     
     /**
@@ -190,14 +222,15 @@ define([
      */
     proto.onRemoteChange = function(args) {
         var value = args.value;
+        var r = value?value['name']:null;
+        console.log("Remote %s [%d]=%s",args.type,args.position, r);
         // retrieve the row id from the name
-        var id = args.name.split('.')[1];
         if(args.type === 'insert') {
-            this.onRemoteInsert(id, value);
+            this.onRemoteInsert(value, args.position);
         } else if(args.type === 'update') {
-            this.onRemoteUpdate(id, value);
+            this.onRemoteUpdate(value, args.position);
         } else if(args.type === 'delete') {
-            this.onRemoteDelete(id);
+            this.onRemoteDelete(args.position);
         }
     };
     
@@ -208,12 +241,10 @@ define([
      * @param id Identity assigned to the item in the creating data store
      * @param value Item data sent by remote data store
      */
-    proto.onRemoteInsert = function(id, value) {
-        // stop listening to local inserts
-        this._dsConnect(false, 'insert');
-        this.dataStore.newItem(value.row);
-        // resume listening to local inserts
-        this._dsConnect(true, 'insert');
+    proto.onRemoteInsert = function(value, position) {
+        // This is the unfortunate case we must rebuild the data grid (since I can't insert at arbitrary position...).
+        this.bgData.splice(position, 0, value.row);
+        this.buildList();
     };
     
     /**
@@ -224,20 +255,16 @@ define([
      * @param id Identity of the item that changed
      * @param value Item data sent by remote data store
      */
-    proto.onRemoteUpdate = function(id, value) {
+    proto.onRemoteUpdate = function(value, position) {
         // fetch the item by its id
-        this.dataStore.fetchItemByIdentity({
-            identity : id, 
-            scope : this,
-            onItem : function(item) {
-                // stop listening to local updates
-                this._dsConnect(false, 'update');
-                var attr = value.attr;
-                this.dataStore.setValue(item, attr, value.row[attr]);
-                // resume listening to local updates
-                this._dsConnect(true, 'update');
-            }
-        });
+        var item = this.grid.getItem(position);
+        this._dsConnect(false, 'update');
+        var attr = value.attr;
+        var newVal = value.row[attr];
+        this.bgData[position][attr] = newVal;
+        this.dataStore.setValue(item, attr, newVal);
+        // resume listening to local updates
+        this._dsConnect(true, 'update');
     };
     
     /**
@@ -246,20 +273,25 @@ define([
      *
      * @param id Identity of the item that was deleted
      */
-    proto.onRemoteDelete = function(id) {
-        // fetch the item by its id
-        this.dataStore.fetchItemByIdentity({
-            identity : id, 
-            scope : this,
-            onItem : function(item) {
-                // stop listening to local deletes
-                this._dsConnect(false, 'delete');
-                this.dataStore.deleteItem(item);
-                // resume listening to local deletes
-                this._dsConnect(true, 'delete');
-            }
-        });
+    proto.onRemoteDelete = function(position) {
+        var item = this.grid.getItem(position);
+        // stop listening to local deletes
+        this._dsConnect(false, 'delete');
+        this.bgData.splice(position, 1);
+        this.dataStore.deleteItem(item);
+        // resume listening to local deletes
+        this._dsConnect(true, 'delete');
     };
+
+    proto.removedRow = function(item) {
+        this.removed[this.dataStore.getIdentity(item)] = this.grid.getItemIndex(item);
+    }
+
+    /* Anytime the dataStore of this object changes to a new value, all subscribers
+       will have their dataStore object set also. */
+    proto.subscribeDataStoreChanges(obj) {
+        this.subscribers.push(obj);
+    }
 
     return CoopItemFileWriteStore;
 });

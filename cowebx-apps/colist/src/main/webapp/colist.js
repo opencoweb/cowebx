@@ -32,8 +32,9 @@ define([
 
             // instantiate our cooperative datastore extension, giving it a 
             // reference to the dojo.data.ItemFileWriteStore object
-            var args = {dataStore : this.dataStore, id : 'colist_store'};
-            var coopDataStore = new CoopItemFileWriteStore(args);
+            var args = {dataStore : this.dataStore, id : 'colist_store', grid:this.grid, colist: this};
+            this.coopDataStore = new CoopItemFileWriteStore(args);
+            this.coopDataStore.subscribeDataStoreChange(this);
 
             // instantiate our cooperative grid extension, giving it a reference
             // to the dojox.grid.DataGrid widget
@@ -73,6 +74,10 @@ define([
          * Removes all selected rows from the grid.
          */
         onRemoveRow: function() {
+            var selected = this.grid.selection.getSelected();
+            dojo.forEach(selected, dojo.hitch(this, function(item) {
+                this.coopDataStore.removedRow(item);
+            }));
             this.grid.removeSelectedRows();
         },
         
