@@ -104,6 +104,9 @@ public class CotreeModerator extends DefaultSessionModerator {
 			jsonObj = tmpChild;
 			parent = findNode(arr, (String)value.get("newParentID"));
 		}
+		if (null == parent) {
+			return;
+		}
 		// Stick the newNode / tmpChild in an array and add to
 		// parent's children array
 		Object[] children = (Object[])(parent.get("children"));
@@ -120,6 +123,9 @@ public class CotreeModerator extends DefaultSessionModerator {
 		// Get parent by prevParentID
 		}else{
 			parent = findNode(arr, (String)value.get("prevParentID"));
+		}
+		if (null == parent) {
+			return;
 		}
 		Object[] children = (Object[])(parent.get("children"));
 	    tmpChild = (Map)children[pos];

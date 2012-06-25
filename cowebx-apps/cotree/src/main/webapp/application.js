@@ -5,9 +5,15 @@
 // 
 //
 
-// TODO remove code that sends targetID as part of the sync
+/*
+   TODO remove code that sends targetID as part of the sync
+   TODO update tutorial page and make moderator/non-moderator app tutorials different
 
-function honor(x) { console.log("can't honor request",x); }
+   FIXME onStateRequest gives bad data sometimes, so no new clients can join.
+   FIXME moving nodes around really quickly leads to out of sync, even though sync events are correct.
+         probably an implementation bug of onRemoteMove not faithfully honoring remote events.
+
+*/
 
 define([
 	'dojo',
@@ -93,7 +99,6 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
                 this.store.setValue(parentItem,'children',children);
                 this.store.save();
             }else{
-                honor(obj);
                 /* We can't honor the insert operation since the parent was already deleted. By assumption,
                    other clients will also delete this parent at some point, thereby negating their
                    insert of the desired node. Thus, we ignore this insert request. */
@@ -124,12 +129,9 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
             // Get targeted item by synced id
             var p = this._getItemById(obj.value.parentId);
             if (!p) {
-                honor(obj);
-                return; // TODO
+                return;
             }
             var targetItem = p.children[obj.position];
-            if (targetItem != this._getItemById(obj.value.id))
-                console.log("wrong");
             // Delete targeted item from store & save
             this.store.deleteItem(targetItem);
             this.store.save();
@@ -173,18 +175,20 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
         },
         
         onRemoteMoveNode: function(obj){
-            console.log("Remote move %d[%d] = %d   -> %d[%d]", obj.value.prevParentID,
-                    obj.value.prevPos, obj.value.targetID, obj.value.newParentID, obj.value.newPos);
+            console.log("Remot move %d[%d] = %d   -> %d[%d] %s", obj.value.prevParentID,
+                    obj.value.prevPos, obj.value.targetID, obj.value.newParentID, obj.value.newPos,obj.type);
             if(obj.type == 'delete'){
                 // Get parent item's children
                 var prevParent = this._getItemById(obj.value.prevParentID);
                 if (!prevParent) {
-                honor(obj);
-                    return; // TODO
+                    return;
                 }
                 var children = prevParent.children;
                 // Remove target item from children
-                children.splice(obj.value.prevPos, 1);
+                children = children.slice(0);
+                children.splice(obj.position, 1);
+                if (obj.position != obj.value.prevPos)
+                    console.log("delete positions changed");
                 // Update store & save
                 this.store.setValue(prevParent,'children',children);
                 this.store.save();
@@ -192,18 +196,21 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
                 // Get parent item's children
                 var newItem = this._getItemById(obj.value.targetID);
                 var newParent = this._getItemById(obj.value.newParentID);
-                if (!newParent) {
-                honor(obj);
-                    return; // TODO
+                if (!newItem || !newParent) {
+                    return;
                 }
                 var children = newParent.children;
                 // Add target item to children in proper pos
                 if(children == undefined)
                     children = [];
-                children = children.slice(0,obj.value.newPos).concat([newItem].concat(children.slice(obj.value.newPos)));
+                else {
+                    children = slice(0);
+                    children.splice(obj.position, 0, newItem);
+                }
+                if (obj.position != obj.value.newPos)
+                    console.log("insert positions changed");
                 if (!this.validate(children)) {
-                    debugger;
-                    console.log("oop");
+                    console.log("Children subforest not valid.");
                 }
                 // Update store & save
                 this.store.setValue(newParent,'children',children);
@@ -227,7 +234,6 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
             } else {
                 p = this._getItemById(obj.value.parentId);
                 if (!p) {
-                honor(obj);
                     /* We can't honor the update operation since the parent was already deleted. By assumption,
                        other clients will also delete this parent at some point, thereby negating their
                        update of the desired node. Thus, we ignore this update request. */
@@ -267,14 +273,12 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
         },
 		
 		onStateRequest: function(token){
-			console.log('onStateRequest');
 			var obj = this._itemToJS(this.store, this.store._arrayOfTopLevelItems[0]);
 			var state = { d: obj};
 			this.collab.sendStateResponse(state, token);
 		},
 		
 		onStateResponse: function(state){
-			console.log('onStateResponse');
 			var d = {
 				identifier: 'id',
 				label: 'name',
