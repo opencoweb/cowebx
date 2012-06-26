@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html>
   	<head>
 		<title>OpenCoweb Application with Persistence</title>
@@ -8,46 +8,45 @@
 		<script type="text/javascript" src="google-code-prettify/prettify.js"></script>
   	</head>
 	<body onload="prettyPrint()">
-		<div class="title">OpenCoweb Application with Persistence</div>
-		<div class="entry titleSub">A step-by-step walkthrough on making a collaborative application with persistence using the Open Cooperative Web Framework. There are two parts to the guide - the <a href="#client"><b>client</b></a> and the <a href="#server"><b>server</b></a>.</div>
+		<div class="title">Tree Structured OpenCoweb Application</div>
+		<div class="entry titleSub">A step-by-step walkthrough on making a collaborative application based on tree structured data. We also have an extended tutorial to make this application <a href="./persistent.html">persistent</a>.
+		</div>
 
-		<a name="client"></a>
-		<div class="bigTitle">The Client</div>
 		<div class="subTitle">1. The Data</div>
 		<div class="entry">
 			The underlying JSON structure of your data should follow the following schema. If you choose to visually model the data in some way, the widget you choose is totally up to you.
 		</div>
 <pre class="prettyprint code">
-  id: 'root', 
-  name:'Phonebook', 
+  id: 'root',
+  name:'Phonebook',
   children: [
-    { 
-      id: '0', 
-      name:'Person', 
+    {
+      id: '0',
+      name:'Person',
       children: [
-        { 
-          id: '1', 
-          name:'firstname', 
+        {
+          id: '1',
+          name:'firstname',
           children:[
-            { 
-              id: '2', 
+            {
+              id: '2',
               name:'Paul',
               children:[]
             }
-          ] 
+          ]
         }
       ]
     }
   ]
 </pre>
-	<br><br>
+	<br /><br />
 
 		<div class="subTitle">2. The Setup</div>
 		<div class="entry">
 			The first step to making a complex collaborative data structure is to initiate a Coweb session from within the JavaScript application. This needs to be done before any sync events are sent or received.
 		</div>
 <pre class="prettyprint code">
-this.collab = coweb.initCollab({id:'foobar'});
+this.collab = coweb.initCollab({id:'phonebook'});
 </pre>
 		<div class="entry">
 			Next, we want to subscribe to the Coweb topic <i>change.*</i> and register a callback for it. We'll also register a callback for <i>stateRequest</i> and <i>stateResponse</i>. We'll discuss the purpose of each subscription in the Callbacks section below.
@@ -57,7 +56,7 @@ this.collab.subscribeSync('change.*', this, 'onRemoteChange');
 this.collab.subscribeStateRequest(this, 'onStateRequest');
 this.collab.subscribeStateResponse(this, 'onStateResponse');
 </pre>
-		<br><br>
+		<br /><br />
 
 		<div class="subTitle">3. The Sync Events</div>
 		<div class="entry">
@@ -66,65 +65,69 @@ this.collab.subscribeStateResponse(this, 'onStateResponse');
 		<div class="h2">Adding a node</div>
 		<div class="entry">
 			When a node is added locally, we make a sendSync( ) call with the following parameters:
-			<ul>
-			1. op parameter is 'insert'<br>
-			2. topic parameter is 'change.' + parent node ID, e.g. 'change.23'<br>
-			3. value parameter is an object containing necessary information to build a new node. Even though the node has already been created locally, this information will be used in the callback for the sync event of all other members in the session to build an identical node.<br>
-			4. position parameter is the int position of the added node in its parent node's "children" array
-			</ul>
+			<ol>
+			<li>op parameter is 'insert'</li>
+			<li>topic parameter is 'change.' + parent node ID, e.g. 'change.23'</li>
+			<li>value parameter is an object containing necessary information to build a new node. Even though the node has already been created locally, this information will be used in the callback for the sync event of all other members in the session to build an identical node. In addition, we set an attribute 'force' to true indicating we are adding a <i>new</i> node (as opposed to a move operation, described below).</li>
+			<li>position parameter is the int position of the added node in its parent node's "children" array</li>
+			</ol>
 <pre class="prettyprint code">
 this.collab.sendSync('change.'+parentNodeID, {nodeID: 7, value: 'Paul Bouchon'}, 'insert', 2);
 </pre>
 		</div>
-		<div class="h2">Deleting a node</div>		
+		<div class="h2">Deleting a node</div>	
 		<div class="entry">
 			When a node is deleted locally, we make a sendSync( ) call with the following parameters:
-			<ul>
-			1. op parameter is 'delete'<br>
-			2. topic parameter is 'change.' + parent node ID, e.g. 'change.71'<br>
-			3. value parameter is an object containing necessary information to find the node in the data (e.g. just an ID). Even though the node has already been deleted locally, this information will be used in the callback for the sync event of all other members in the session to find and delete the proper node.<br>
-			4. position parameter is the int position of the deleted node in its parent node's "children" array
-			</ul>
+			<ol>
+			<li>op parameter is 'delete'</li>
+			<li>topic parameter is 'change.' + parent node ID, e.g. 'change.71'</li>
+			<li>value parameter is an object containing necessary information to find the node in the data (e.g. just an ID). Even though the node has already been deleted locally, this information will be used in the callback for the sync event of all other members in the session to find and delete the proper node. In addition, we set an attribute 'force' to true indicating we have no intention of reusing the deleted node (as opposed to a move operation, described below).</li>
+			<li>position parameter is the int position of the deleted node in its parent node's "children" array</li>
+			</ol>
 <pre class="prettyprint code">
 this.collab.sendSync('change.'+parentNodeID, {nodeID: 14}, 'delete', 2);
 </pre>
 		</div>
-		<div class="h2">Updating a node</div>		
+		<div class="h2" style="color: red;">Important!</div>	
+		<div class="entry">
+		    When deleting nodes, you must make sure to only delete leaf nodes. Deleting a non-leaf node requires doing, for example, a post order traversal to delete all children first, before deleting the non-leaf node. Following this pattern helps the OpenCoweb API detect conflicts among other remote collaborative clients. See more about using OpenCoweb with <a href="#tree-pitfalls">tree structured data.</a>.
+		</div>
+		<div class="h2">Updating a node</div>	
 		<div class="entry">
 			When a node is updated locally, we make a sendSync( ) call with the following parameters:
-			<ul>
-			1. op parameter is 'update'<br>
-			2. topic parameter is 'change.' + node ID (note: not parent node ID), e.g. 'change.13'<br>
-			3. value parameter is an object containing necessary information to find the node (e.g. just an ID) and the new node value. Even though the node has already been updated locally, this information will be used in the callback for the sync event of all other members in the session to find and update the proper node.<br>
-			4. position parameter is always 0
-			</ul>
+			<ol>
+			<li>op parameter is 'update'</li>
+			<li>topic parameter is 'change.' + parent node ID, e.g. 'change.13'</li>
+			<li>value parameter is a the new node value. Even though the node has already been updated locally, this information will be used in the callback for the sync event of all other members in the session to find and update the proper node.</li>
+			<li>position parameter is the int position of the updated node in its parent node's "children" array</li>
+			</ol>
 <pre class="prettyprint code">
-this.collab.sendSync('change.'+nodeID, {nodeID: 14}, 'delete', 2);
+this.collab.sendSync('change.'+nodeID, {value: 'Chris'}, 'update', 2);
 </pre>
 		</div>
-		<div class="h2">Moving a node</div>		
+		<div class="h2">Moving a node</div>
 		<div class="entry">
-			When a node is moved locally, we actually have two operations occurring: a deletion of the node from its current parent node, and an insertion of the node on its new parent node.<br><br>
+			When a node is moved locally, we actually have two operations occurring: a deletion of the node from its current parent node, and an insertion of the node on its new parent node.<br /><br />
 			The first op is a delete, so we make a sendSync( ) call with the following parameters:
-			<ul>
-			1. op parameter is 'delete'<br>
-			2. topic parameter is 'change.' + current parent node ID, e.g. 'change.81'<br>
-			3. value parameter is an object containing necessary information to find the node (e.g. a node ID). We should also include a flag in the value object, such as 'shallow' : true, indicating to all other members in the session to only remove the node from its current parent node's "children" array and keep the node around. This is so we don't have to deep copy the node in order to insert it on its new parent node's "children" array.<br>
-			4. position parameter is the int position of the deleted node in its current parent node's "children" array
-			</ul>
+			<ol>
+			<li>op parameter is 'delete'</li>
+			<li>topic parameter is 'change.' + current parent node ID, e.g. 'change.81'</li>
+			<li>value parameter is an object containing necessary information to find the node (e.g. a node ID). We should also include a flag in the value object, such as 'force' : false, indicating to all other members in the session to only remove the node from its current parent node's "children" array and keep the node around. This is so we don't have to deep copy the node in order to insert it on its new parent node's "children" array.</li>
+			<li>position parameter is the int position of the deleted node in its current parent node's "children" array</li>
+			</ol>
 			The next op is an insert, so we make a sendSync( ) call with the following parameters:
-			<ul>
-			1. op parameter is 'insert'<br>
-			2. topic parameter is 'change.' + new parent node ID, e.g. 'change.115'<br>
-			3. value parameter is an object containing necessary information to find the node (e.g. a node ID). We should also include a flag in the value object, such as 'shallow' : true, indicating to all other members in the session to only add the node to its new parent node's "children" array. There's no need to build a new node since we didn't actually delete the node with the previous shallow delete.<br>
-			4. position parameter is the int position of the deleted node in its parent node's "children" array
-			</ul>
+			<ol>
+			<li>op parameter is 'insert'</li>
+			<li>topic parameter is 'change.' + new parent node ID, e.g. 'change.115'</li>
+			<li>value parameter is an object containing necessary information to find the node (e.g. a node ID). We should also include a flag in the value object, such as 'force' : false, indicating to all other members in the session to only add the node to its new parent node's "children" array. There's no need to build a new node since we didn't actually delete the node with the previous shallow delete.</li>
+			<li>position parameter is the int position of the deleted node in its parent node's "children" array</li>
+			</ol>
 <pre class="prettyprint code">
 this.collab.sendSync('change.'+currentParentNodeID, {nodeID: 7, 'shallow' : true}, 'delete', 3);
 this.collab.sendSync('change.'+newParentNodeID, {nodeID: 7, 'shallow' : true}, 'insert', 1);
 </pre>
 		</div>
-		<br><br>
+		<br /><br />
 
 		<div class="subTitle">4. The Callbacks</div>
 		<div class="entry">
@@ -133,11 +136,11 @@ this.collab.sendSync('change.'+newParentNodeID, {nodeID: 7, 'shallow' : true}, '
 <pre class="prettyprint code">
 onRemoteChange: function(obj){
   // Normal insert
-  if(obj.type == 'insert' && !obj.value['shallow'])
+  if(obj.type == 'insert' &amp;&amp; obj.value['force'])
     this.onRemoteAddNode(obj);
 
   // Normal delete
-  else if(obj.type == 'delete' && !obj.value['shallow'])
+  else if(obj.type == 'delete' &amp;&amp; obj.value['force'])
     this.onRemoteDeleteNode(obj);
 
   // Normal update
@@ -145,101 +148,165 @@ onRemoteChange: function(obj){
     this.onRemoteUpdateNode(obj);
 
   // Shallow insert (used when moving a node)
-  else if(obj.type == 'insert' && obj.value['shallow'])
-    this.onRemoteShallowInsertNode(obj);
+  else if(obj.type == 'insert' &amp;&amp; !obj.value['force'])
+    this.onRemoteMoveNode(obj);
 
   // Shallow delete (used when moving a node)
-  else if(obj.type == 'delete' && obj.value['shallow'])
-    this.onRemoteShallowDeleteNode(obj);
+  else if(obj.type == 'delete' &amp;&amp; !obj.value['force'])
+    this.onRemoteMoveNode(obj);
 },
-</pre>			
+</pre>		
 		<div class="h2">Adding a node</div>
 		<div class="entry">
 			When a node is added remotely, the above <i><b>onRemoteChange</b></i> function will route the incoming sync event to an <i><b>onRemoteAddNode</b></i> function. In that function we do the following:
-			<ul>
-				1. Make a new node using the information that the callback receives<br>
-				2. Find the parent node and update its "children" array by adding this new item at the position specified in information the callback receives
-			</ul>
+			<ol>
+				<li>Make a new node using the information that the callback receives</li>
+				<li>Find the parent node and update its "children" array by adding this new item at the position specified in information the callback receives</li>
+			</ol>
+<pre class="prettyprint code">
+onRemoteAddNode: function(obj) {
+	// Get parent item from synced parentId
+	var parentItem = this._getItemById(obj.value.parentId);
+	// If parent item found...
+	if(parentItem){
+		// add the new item to data store
+		var newItem = this.store.newItem({ id: obj.value.id, name:obj.value.value});
+		var parentId = obj.value.parentId;
+		// update parent node's children in store &amp; save
+		var children = parentItem.children;
+		if(children == undefined)
+			children = [newItem];
+		else {
+			children = children.slice(0); // Must make a copy for this to work with dojo tree.
+			children.splice(obj.position, 0, newItem);
+		}
+		this.store.setValue(parentItem,'children',children);
+		this.store.save();
+	} else {
+		/* We can't honor the insert operation since the parent was already deleted. By assumption,
+		   other clients will also delete this parent at some point, thereby negating their
+		   insert of the desired node. Thus, we ignore this insert request. */
+	}
+},
+</pre>
 		</div>
-		<div class="h2">Deleting a node</div>		
+		<div class="h2">Deleting a node</div>	
 		<div class="entry">
 			When a node is deleted remotely, the above <i><b>onRemoteChange</b></i> function will route the incoming sync event to an <i><b>onRemoteDeleteNode</b></i> function. In that function we do the following:
-			<ul>
-				1. Find node in data using information that callback receives & delete it<br>
-				2. Update parent node's "children" array by deleting the item
-			</ul>
+			<ol>
+				<li>Find node in data using information that callback receives &amp; delete it</li>
+				<li>Update parent node's "children" array by deleting the item</li>
+			</ol>
+<pre class="prettyprint code">
+onRemoteDeleteNode: function(obj){
+	var prevSelectedItemId = null;
+	// Remove node focus temporarily &amp; save ref
+	if(this.tree.selectedItem) {
+		prevSelectedItemId = this.tree.selectedItem.id[0];
+		// Hide UI buttons temporarily 
+		this.tree.attr('selectedItem','_null');
+		dojo.place('buttonContainer',document.body,'last');
+		dojo.style('buttonContainer','display','none');
+	}
+	// Get targeted item by synced id
+	var p = this._getItemById(obj.value.parentId);
+	if (!p) {
+		return;
+	}
+	var targetItem = p.children[obj.position];
+	// Delete targeted item from store &amp; save
+	this.store.deleteItem(targetItem);
+	this.store.save();
+	// Re-focus prevSelectedItem if it exists
+	if (prevSelectedItemId)
+		this.tree.attr('selectedItem',prevSelectedItemId);
+	// Try to show buttons again
+	this._click();
+},
+</pre>
 		</div>
 		<div class="h2">Updating a node</div>
 		<div class="entry">
 			When a node's value is updated remotely, the above <i><b>onRemoteChange</b></i> function will route the incoming sync event to an <i><b>onRemoteUpdateNode</b></i> function. In that function we do the following:
-			<ul>
-				1. Find the node in the data & update it's value using the information that the callback receives
-			</ul>
-		</div>
-		<div class="h2">Moving a node</div>		
-		<div class="entry">
-			When a node is moved remotely, we actually have two operations occurring: a deletion of the node from its current parent node, and an insertion of the node on its new parent node. Thus, the above <i><b>onRemoteChange</b></i> function will receive the first incoming sync event, which as specified in the Sync Event section above will have a 'shallow' : true flag set in the sync value object. It will then route this first sync to an <i><b>onRemoteShallowDeleteNode</b></i>. In that function, we do the following:
-			<ul>
-			1. Update parent node's "children" array by deleting the node from the array, making sure to keep the node itself around for the coming insert.
-			</ul>
-			The above <i><b>onRemoteChange</b></i> function will then receive the second incoming event, which as specified in the Sync Event section above will have a 'shallow' : true flag set in the sync value object. It will then route this second sync to an <i><b>onRemoteShallowAddNode</b></i>. In that function, we do the following:
-			<ul>
-			1. Simply add the node that we kept around during the previous delete operation to the new parent node's "children" array at the position specified in information the callback receives
-			</ul>
-		</div>
-		
-		
-		
-		
-		
-		<br><br>
-		<a name="server"></a>
-		<div class="bigTitle">The Server</div>
-		<div class="subTitle">1. Build Java Moderator Class</div>
-		<div class="entry">
-			The next step is to write the actual Moderator class for your application. It should extend the <b>DefaultSessionModerator</b> class that is found within <b>coweb/servers/java/coweb-server/src/main/java/org/coweb</b>. Methods should be overridden to suit your application's needs. A list of the methods available to you is below. For full documentation on the Moderator API, <a href="#">click here</a>.
-		</div>
+			<ol>
+				<li>Find the node in the data &amp; update it's value using the information that the callback receives</li>
+			</ol>
 <pre class="prettyprint code">
-public boolean onSync(Map<String, Object> data) { }
-
-public Object[] getLateJoinState() { }
-
-public boolean canClientJoinSession(ServerSession client) { }
-
-public void onClientJoinSession(ServerSession client) { }
-
-public void onClientLeaveSession(ServerSession client) { }
-
-public boolean canClientSubscribeService(ServerSession client) { }
-
-public boolean canClientMakeServiceRequest(ServerSession client, Message botMessage) { }
-
-public void onServiceResponse(Message botResponse) { }
-
-public void onSessionEnd() { }
+onRemoteUpdateNode: function(obj){
+	// Get targeted item by synced id
+	var targetItem, p;
+	if (obj.value.parentId == this.superRootId) {
+		/* parentId is set to superRootId, some preset global, before calling onLocalUpdate.
+		   This is ok because we don't allow the root to be deleted. */
+		targetItem = this._getItemById(obj.value.id);
+	} else {
+		p = this._getItemById(obj.value.parentId);
+		if (!p) {
+			/* We can't honor the update operation since the parent was already deleted. By assumption,
+			   other clients will also delete this parent at some point, thereby negating their
+			   update of the desired node. Thus, we ignore this update request. */
+			return;
+		}
+		targetItem = p.children[obj.position];
+	}
+	// Set new name, update store & save
+	var name = obj.value.name;
+	this.store.setValue(targetItem,'name',name);
+	this.store.save();
+},
 </pre>
-		<br><br>
-		<div class="subTitle">2. Turn On Moderator Model</div>
-		<div class="entry">
-			Next, we need to activate this moderator model, and tell the application that this class will be the updater for late-joiners. This is done by simply adding a simple .json file called <b>cowebConfig.json</b> to your application's WEB-INF folder, with the following name/value pairs.
 		</div>
+		<div class="h2">Moving a node</div>	
+		<div class="entry">
+			When a node is moved remotely, we actually have two operations occurring: a deletion of the node from its current parent node, and an insertion of the node on its new parent node. Thus, the above <i><b>onRemoteChange</b></i> function will receive the first incoming sync event, which as specified in the Sync Event section above will have a 'shallow' : true flag set in the sync value object. It will then route this first sync to an <i><b>onRemoteMoveNode</b></i>. In that function, we do the following:
+			<ol>
+			<li>Update parent node's "children" array by deleting the node from the array, making sure to keep the node itself around for the coming insert.</li>
+			</ol>
+			The above <i><b>onRemoteChange</b></i> function will then receive the second incoming event, which as specified in the Sync Event section above will have a 'shallow' : true flag set in the sync value object. It will then route this second sync to an <i><b>onRemoteMoveNode</b></i>. In that function, we do the following:
+			<ol>
+			<li>Simply add the node that we kept around during the previous delete operation to the new parent node's "children" array at the position specified in information the callback receives</li>
+			</ol>
 <pre class="prettyprint code">
-{ 
-  // Full java classname of moderator class
-  "sessionModerator"   : "org.coweb.CotreeModerator",
-  // Turns on moderator model
-  "moderatorIsUpdater" : true,
-  // Events are transformed
-  "operationEngine"    : true,
-  // An array of bot configs (optional)
-  "bots": [] 
-}
+onRemoteMoveNode: function(obj){
+	if(obj.type == 'delete'){
+		// Get parent item's children
+		var prevParent = this._getItemById(obj.value.prevParentID);
+		if (!prevParent) {
+			return;
+		}
+		var children = prevParent.children;
+		// Remove target item from children
+		children = children.slice(0);
+		children.splice(obj.position, 1);
+		// Update store &amp; save
+		this.store.setValue(prevParent,'children',children);
+		this.store.save();
+	}else if(obj.type == 'insert'){
+		// Get parent item's children
+		var newItem = this._getItemById(obj.value.targetID);
+		var newParent = this._getItemById(obj.value.newParentID);
+		if (!newItem || !newParent) {
+			return;
+		}
+		var children = newParent.children;
+		// Add target item to children in proper pos
+		if(children == undefined)
+			children = [];
+		else {
+			children = children.slice(0);
+			children.splice(obj.position, 0, newItem);
+		}
+		// Update store &amp; save
+		this.store.setValue(newParent,'children',children);
+		this.store.save();
+	}
+},
 </pre>
-	<br><br>
-	<div class="subTitle">3. Celebrate</div>
-	<div class="entry">
-		That's it. All events now go through your Moderator class, allowing you to keep state server-side however you see fit for your application, whether it's maintaining a complex object, as in the Cotree demo, or pushing syncs into a remote database. Either way, when a new member comes into the session, your Moderator can give that user whatever state you choose.
-	</div>
-<br><br>
+		</div>
+		<div class="subTitle">5. Adding Persistence</div>
+		<div class="entry">
+		See our extended tutorial for making this application <a href="./persistent.html">persistent</a>.
+		</div>
+		<br /><br /><br />
   	</body>
 </html>

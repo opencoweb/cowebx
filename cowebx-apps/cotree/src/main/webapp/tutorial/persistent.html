@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  	<head>
+		<title>OpenCoweb Application with Persistence</title>
+		<link href="http://fonts.googleapis.com/css?family=Amaranth:400,700" rel="stylesheet" type="text/css" />
+		<link rel="stylesheet" href="about.css" type="text/css" />
+		<link href="google-code-prettify/prettify.css" type="text/css" rel="stylesheet" />
+		<script type="text/javascript" src="google-code-prettify/prettify.js"></script>
+  	</head>
+	<body onload="prettyPrint()">
+		<div class="title">OpenCoweb Application with Persistence</div>
+		<div class="entry titleSub">A guide for adding persistence to an OpenCoweb application. You might be interested in seeing our tutorial on developing a <a href="about.html">tree structured</a> OpenCoweb application first.
+		</div>
+	
+		<br /><br />
+		<a name="server"></a>
+		<div class="bigTitle">The Server</div>
+		<div class="subTitle">1. Build Java Moderator Class</div>
+		<div class="entry">
+			The next step is to write the actual Moderator class for your application. It should extend the <b>DefaultSessionModerator</b> class that is found within <b>coweb/servers/java/coweb-server/src/main/java/org/coweb</b>. Methods should be overridden to suit your application's needs. A list of the methods available to you is below. For full documentation on the Moderator API, <a href="#">click here</a>.
+		</div>
+<pre class="prettyprint code">
+public boolean onSync(Map<String, Object> data) { }
+
+public Object[] getLateJoinState() { }
+
+public boolean canClientJoinSession(ServerSession client) { }
+
+public void onClientJoinSession(ServerSession client) { }
+
+public void onClientLeaveSession(ServerSession client) { }
+
+public boolean canClientSubscribeService(ServerSession client) { }
+
+public boolean canClientMakeServiceRequest(ServerSession client, Message botMessage) { }
+
+public void onServiceResponse(Message botResponse) { }
+
+public void onSessionEnd() { }
+</pre>
+		<br /><br />
+		<div class="subTitle">2. Turn On Moderator Model</div>
+		<div class="entry">
+			Next, we need to activate this moderator model, and tell the application that this class will be the updater for late-joiners. This is done by simply adding a simple .json file called <b>cowebConfig.json</b> to your application's WEB-INF folder, with the following name/value pairs.
+		</div>
+<pre class="prettyprint code">
+{
+  // Full java classname of moderator class
+  "sessionModerator"   : "org.coweb.CotreeModerator",
+  // Turns on moderator model
+  "moderatorIsUpdater" : true,
+  // Events are transformed
+  "operationEngine"    : true,
+  // An array of bot configs (optional)
+  "bots": []
+}
+</pre>
+	<br /><br />
+	<div class="subTitle">3. Celebrate</div>
+	<div class="entry">
+		That's it. All events now go through your Moderator class, allowing you to keep state server-side however you see fit for your application, whether it's maintaining a complex object, as in the Cotree demo, or pushing syncs into a remote database. Either way, when a new member comes into the session, your Moderator can give that user whatever state you choose.
+	</div>
+<br /><br />
+</body>
+</html>

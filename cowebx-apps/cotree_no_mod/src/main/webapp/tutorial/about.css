@@ -46,6 +46,12 @@ a{
 
 .h2{
 	font-family: 'Amaranth', sans-serif;
+	font-size:18px;
+	margin-top:10px;
+	font-weight:bold;
+}
+.h3{
+	font-family: 'Amaranth', sans-serif;
 	font-size:16px;
 	margin-top:10px;
 	font-weight:bold;
