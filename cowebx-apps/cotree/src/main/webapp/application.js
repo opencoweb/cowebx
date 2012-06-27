@@ -269,15 +269,14 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		
 		onStateRequest: function(token){
 			var obj = this._itemToJS(this.store, this.store._arrayOfTopLevelItems[0]);
-			var state = { d: obj};
-			this.collab.sendStateResponse(state, token);
+			this.collab.sendStateResponse(obj, token);
 		},
 		
 		onStateResponse: function(state){
 			var d = {
 				identifier: 'id',
 				label: 'name',
-				items: [state.d]
+				items: [state]
 			};
 			this.store = new Store({data:d});
 			this._refreshTree();

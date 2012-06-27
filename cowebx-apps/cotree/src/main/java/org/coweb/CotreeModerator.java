@@ -157,12 +157,10 @@ public class CotreeModerator extends DefaultSessionModerator {
 	}
 	
 	@Override
-	public Object[] getLateJoinState() {
-		String s = "[{\"topic\":\"coweb.state.set.phonebook\",\"value\":{\"d\":"+
-            JSON.toString(arr)+"}},{\"topic\":\"coweb.engine.state\",\"value\""+
-            ":[[[0,1],[0,1]],[],1,[0]]},{\"topic\":\"coweb.pause.state\",\"value\":[]}]";
-		Object[] tmp = (Object[])JSON.parse(s);
-		return tmp;
+	public Map<String, Object> getLateJoinState() {
+		HashMap<String, Object> hm = new HashMap<String, Object>();
+		hm.put("phonebook", arr);
+		return hm;
 	}
 
 	@Override
