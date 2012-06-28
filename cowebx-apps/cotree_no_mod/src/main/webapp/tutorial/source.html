@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  	<head>
+		<title>OpenCoweb CoTree CotreeModeratore.java Source</title>
+		<link href="http://fonts.googleapis.com/css?family=Amaranth:400,700" rel="stylesheet" type="text/css" />
+		<link rel="stylesheet" href="about.css" type="text/css" />
+		<link href="google-code-prettify/prettify.css" type="text/css" rel="stylesheet" />
+		<script type="text/javascript" src="google-code-prettify/prettify.js"></script>
+<script type="text/javascript">
+
+function begin() {
+
+    var elm = document.getElementById("sourceCode");
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "./CotreeModerator.java");
+    xhr.onreadystatechange = function() {
+        if (3 == xhr.readyState) {
+            elm.innerHTML = xhr.responseText;
+            prettyPrint();
+        }
+    };
+    xhr.send();
+    elm.innerHTML = "/**\n *\n */\npackage org.coweb;\n";//int *i = new int[3];";
+
+}
+
+</script>
+  	</head>
+	<body onload="begin();">
+		<div class="title">CotreeModerator.java</div>
+		<div class="entry">
+    <pre class="prettyprint code" id="sourceCode">
+    </pre>
+    </div>
+</body>
+</html>

@@ -12,54 +12,62 @@
 		<div class="entry titleSub">A guide for adding persistence to an OpenCoweb application. You might be interested in seeing our tutorial on developing a <a href="about.html">tree structured</a> OpenCoweb application first.
 		</div>
 	
-		<br /><br />
-		<a name="server"></a>
-		<div class="bigTitle">The Server</div>
-		<div class="subTitle">1. Build Java Moderator Class</div>
+		<div class="subTitle">1. The OpenCoweb Moderator</div>
 		<div class="entry">
-			The next step is to write the actual Moderator class for your application. It should extend the <b>DefaultSessionModerator</b> class that is found within <b>coweb/servers/java/coweb-server/src/main/java/org/coweb</b>. Methods should be overridden to suit your application's needs. A list of the methods available to you is below. For full documentation on the Moderator API, <a href="#">click here</a>.
+			The OpenCoweb framework allows application programmers to write a custom Java class that lives on the server and receives remote sync events. The moderator class is responsible for honoring all remote sync events, and is responsible for sending its application state to new session clients (as opposed to other browser clients sending their application state via <a href="http://opencoweb.org/ocwdocs/js/extra.html?highlight=onstaterequest#CowebWrapper.onStateRequest">onStateRequest</a>.
+			<br /><br />
+			The cool feature is that even after all browser clients have left the session, the moderator instance will continue to persist on the server (including whatever application state it has managed). Whenever a new client open the application with the same session key, the application will be loaded from the moderator state. Every collaborative session remains persistent on the server.
+		</div>
+		<br /><br />
+		<div class="subTitle">2. The SessionModerator Class</div>
+		<div class="entry">
+			Below are the extendable methods of <b>DefaultSessionModerator</b> (which itself extends <b>SessionModerator</b>). The most interesting method to override will likely be <b>onSync</b>. For a more complete documentation, see the <a href="#">SessionModerator javadocs</a>.
 		</div>
 <pre class="prettyprint code">
-public boolean onSync(Map<String, Object> data) { }
+import org.cometd.bayeux.Message;
+import org.cometd.bayeux.server.ServerSession;
+import java.util.Map;
 
-public Object[] getLateJoinState() { }
+public boolean onSync(Map&lt;String, Object&gt; data);
 
-public boolean canClientJoinSession(ServerSession client) { }
+public Map&lt;String, Object&gt; getLateJoinState();
 
-public void onClientJoinSession(ServerSession client) { }
+public boolean canClientJoinSession(ServerSession client);
 
-public void onClientLeaveSession(ServerSession client) { }
+public void onClientJoinSession(ServerSession client);
 
-public boolean canClientSubscribeService(ServerSession client) { }
+public void onClientLeaveSession(ServerSession client);
 
-public boolean canClientMakeServiceRequest(ServerSession client, Message botMessage) { }
+public boolean canClientSubscribeService(ServerSession client);
 
-public void onServiceResponse(Message botResponse) { }
+public boolean canClientMakeServiceRequest(ServerSession client, Message botMessage);
 
-public void onSessionEnd() { }
+public void onServiceResponse(Message botResponse);
+
+public void onSessionEnd();
 </pre>
 		<br /><br />
-		<div class="subTitle">2. Turn On Moderator Model</div>
+		<div class="subTitle">3. Turning the Moderator On</div>
 		<div class="entry">
-			Next, we need to activate this moderator model, and tell the application that this class will be the updater for late-joiners. This is done by simply adding a simple .json file called <b>cowebConfig.json</b> to your application's WEB-INF folder, with the following name/value pairs.
-		</div>
+		    Use the OpenCoweb <a href="#">configuration file</a> to make your custom moderator as the updater for new clients. The three important configuration options are <i>sessionModerator></i>, <i>moderatorIsUpdater</i> and <i>operationEngine</i>. An example file is shown for the persistent CoTree.
 <pre class="prettyprint code">
 {
   // Full java classname of moderator class
   "sessionModerator"   : "org.coweb.CotreeModerator",
-  // Turns on moderator model
+  // The moderator instance will send the full application state to new clients.
   "moderatorIsUpdater" : true,
-  // Events are transformed
+  // Use an OperationEngine on the server (moderatorIsUpdater automatically implies operationEngine anyway)
   "operationEngine"    : true,
   // An array of bot configs (optional)
   "bots": []
 }
 </pre>
+		</div>
+		<br /><br />
+		<div class="subTitle">4. Adding a Moderator to CoTree</div>
+		<div class="entry">
+        Most of the above information should be enough to motivate you to write the custom moderator; take a look at the <a href="./source.html">source</a>, and the comments will describe the important details.
+		</div>
 	<br /><br />
-	<div class="subTitle">3. Celebrate</div>
-	<div class="entry">
-		That's it. All events now go through your Moderator class, allowing you to keep state server-side however you see fit for your application, whether it's maintaining a complex object, as in the Cotree demo, or pushing syncs into a remote database. Either way, when a new member comes into the session, your Moderator can give that user whatever state you choose.
-	</div>
-<br /><br />
 </body>
 </html>

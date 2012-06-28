@@ -49,14 +49,14 @@ public void onSessionEnd();
 		<br /><br />
 		<div class="subTitle">3. Turning the Moderator On</div>
 		<div class="entry">
-			
+		    Use the OpenCoweb <a href="#">configuration file</a> to make your custom moderator as the updater for new clients. The three important configuration options are <i>sessionModerator></i>, <i>moderatorIsUpdater</i> and <i>operationEngine</i>. An example file is shown for the persistent CoTree.
 <pre class="prettyprint code">
 {
   // Full java classname of moderator class
   "sessionModerator"   : "org.coweb.CotreeModerator",
   // The moderator instance will send the full application state to new clients.
   "moderatorIsUpdater" : true,
-  // Events are transformed (moderatorIsUpdater automatically implies operationEngine anyway)
+  // Use an OperationEngine on the server (moderatorIsUpdater automatically implies operationEngine anyway)
   "operationEngine"    : true,
   // An array of bot configs (optional)
   "bots": []
@@ -66,12 +66,8 @@ public void onSessionEnd();
 		<br /><br />
 		<div class="subTitle">4. Adding a Moderator to CoTree</div>
 		<div class="entry">
+        Most of the above information should be enough to motivate you to write the custom moderator; take a look at the <a href="./source.html">source</a>, and the comments will describe the important details.
 		</div>
 	<br /><br />
-	<div class="subTitle">3. Celebrate</div>
-	<div class="entry">
-		That's it. All events now go through your Moderator class, allowing you to keep state server-side however you see fit for your application, whether it's maintaining a complex object, as in the Cotree demo, or pushing syncs into a remote database. Either way, when a new member comes into the session, your Moderator can give that user whatever state you choose.
-	</div>
-<br /><br />
 </body>
 </html>
