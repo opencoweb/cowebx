@@ -22,7 +22,7 @@ define([], function() {
     };
     
 	proto.ld = function(a, b){
-        return this.ld_offset(a, b, 0);
+        return this.ld(a, b, 0);
     }
 	
 	proto.ld_offset = function(a, b, offset){

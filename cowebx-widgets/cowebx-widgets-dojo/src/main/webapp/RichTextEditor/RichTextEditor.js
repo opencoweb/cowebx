@@ -2,9 +2,6 @@
 // TODO remove once Chris's changes are tested.
 var DEBUG = false;
 function curVal() { return dojo.query(".nicEdit-main")[0].innerHTML; }
-var QWE;
-
-// TODO refactor code
 
 define([
     'dojo',
@@ -14,6 +11,7 @@ define([
 	"dojo/text!./TextEditor.html",
 	'coweb/main',
 	'coweb/ext/attendance',
+    './ld',
     './AttendeeList',
     './ShareButton',
     'dijit/Dialog',
@@ -21,27 +19,37 @@ define([
 	'./lib/niceEdit/niceEdit-latest',
 	'dojo/text!./TextEditor.css',
     'dojo/dom-construct',
-    'dojo/_base/array',
-    './TreeTools',
 	'dojox/mobile/parser',
     'dijit/layout/ContentPane',
     'dijit/layout/BorderContainer',
 	'./lib/rangy/uncompressed/rangy-core',
 	'./lib/rangy/uncompressed/rangy-selectionsaverestore',
     './lib/diff_match_patch'
-], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors, css, domConstruct, array, EditorTree){
+], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors, css, domConstruct){
 
-    function preprocessTree(t) {
-        /* Make sure the root is the exact node: `<div></div>`
-           The assumption is that the only case where the roots don't initially match for the editor
-           is when the innerHTML is something like `<div>..text...text..</div>`. */
-        var tmp;
-        if (null !== t.text) {
-            tmp = new EditorTree(t);
-            tmp.text = t.text;
-            t.text = null;
-            t.children = [tmp];
-        }
+    /* Take two strings and determine how many characters they share in both directions. 
+       Returns an object with two integers.  TODO keep this as long as we keep doDiff_ld. */
+    function determineLdBounds(a, b) {
+        // First, figure out how far in each direction the strings match.
+        var i;
+        var alen = a.length;
+        var blen = b.length;
+        var alen1 = alen - 1;
+        var blen1 = blen - 1;
+        var forwards, backwards;
+        for (i = 0; i < alen && i < blen && a[i] == b[i]; ++i)
+            ; // Continue while the strings match.
+        forwards = i;
+        for (i = 0; i < alen && i < blen && a[alen1 - i] == b[blen1 - i]; ++i)
+            ; // Continue while the strings match.
+        backwards = i;
+
+        // If the ranges overlap, scale back the backwards range.
+        if (forwards + backwards > alen)
+            backwards = alen - forwards;
+        if (forwards + backwards > blen)
+            backwards = blen - forwards;
+        return { fwds : forwards, bwds : backwards};
     }
 
 	return dojo.declare("RichTextEditor", [_Widget, _TemplatedMixin, _Contained], {
@@ -73,6 +81,7 @@ define([
 			this._buildToolbar();                
 			this._footer		= this._buildFooter();
 	        this._attendeeList 	= new AttendeeList({domNode:this.innerList, id:'_attendeeList'});
+            this.util 			= new ld({});
             this._shareButton 	= new ShareButton({
                 'domNode':this.infoDiv,
                 'listenTo':this._textarea,
@@ -80,8 +89,6 @@ define([
 				'displayButton':false
             });
             this.divChecker = domConstruct.create("div");
-            this.oldDiv = domConstruct.create("div");
-            this.newDiv = domConstruct.create("div");
             this.differ = new diff_match_patch();
             
             //3. parameters
@@ -89,18 +96,17 @@ define([
             this.oldSnapshot 	= this.snapshot();
             this.newSnapshot 	= null;
             this.t 				= null;
+            this.q 				= [];
             this.value 			= '';
             this.valueNoRangy   = '';
             this.interval		= 100;
 			this.title          = 'Untitled Document';
+			this._POR			=	{start:0, end:0};
+			this._prevPOR		=	{start:0, end:0};
             this.firstSpan      = null;
             this.secondSpan     = null;
             this._skipRestore   = false;
-
-            //3b new tree parameters.
-            this.syncQueue      = [];
-            this.domTree        = null;
-            this.domTree_map    = null;
+            this.doDiff         = this.doDiff_fast;
 
             //4. Style / connect
 			this._style();
@@ -132,116 +138,7 @@ define([
 	        this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
 	    },
 
-        // Most of the syncing code that follows comes from the CoTree demo.
-
-        onRemoteAddNode : function(data) {
-            var value = data.value;
-            var newNode = EditorTree.applyIns(value.x, this.domTree_map[value.parentId], data.position, value.newId);
-            this.domTree_map[value.newId] = newNode;
-        },
-        onRemoteDeleteNode : function(data) {
-            // The sync event tells us to delete a node from its parent.
-            var toDelete = this.domTree_map[data.value.oldParent].children[data.position];
-            EditorTree.applyDel(toDelete, data.position);
-            delete this.domTree_map[toDelete.id];
-        },
-        onRemoteMoveNode : function(data) {
-            // Unfortunately, we can't use applyMov because the coweb API must use an insert/delete pair.
-            var node;
-            var p;
-            if ("insert" == data.type) {
-                node = this.domTree_map[data.value.id];
-                p = this.domTree_map[data.value.newParent];
-                node.parent = p;
-                node.depth = p.depth + 1;
-                if (p.children)
-                    p.children.splice(data.position, 0, node);
-                else
-                    p.children = [node];
-            } else if ("delete" == data.type) {
-                p = this.domTree_map[data.value.oldParent];
-                // Remove node from parent's children array.
-                p.children.splice(data.position, 1);
-                if (0 == p.children.length)
-                    p.children = null;
-            }
-        },
-        onRemoteUpdateNode : function(data) {
-            var node = this.domTree_map[data.value.pid].children[data.position];
-            EditorTree.applyUpd(node, data.value.val);
-        },
-
-        onTreeUpdate : function(obj) {
-            this.syncQueue.push(obj);
-        },
-
-        applySyncs : function() {
-            array.forEach(this.syncQueue, dojo.hitch(this, function(obj) {
-                if(obj.type == 'insert' && obj.value['force']) {
-                    this.onRemoteAddNode(obj);
-                } else if(obj.type == 'delete' && obj.value['force']) {
-                    this.onRemoteDeleteNode(obj);
-                } else if(obj.type == 'insert') {
-                    this.onRemoteMoveNode(obj);
-                } else if(obj.type == 'delete') {
-                    this.onRemoteMoveNode(obj);
-                } else if(obj.type == 'update') {
-                    this.onRemoteUpdateNode(obj);
-                }
-            }));
-            this._textarea.innerHTML = this.toHTML();
-            this.syncQueue = [];
-        },
-
-        doTreeDiff : function(oldTree, newHTML) {
-            var newTree, diffs;
-            this.newDiv.innerHTML = newHTML;
-            newTree = EditorTree.createTreeFromElement(this.newDiv);
-            preprocessTree(oldTree);
-            preprocessTree(newTree);
-
-            // Get diffs, then send syncs.
-            var s=oldTree.toHTML()+"\n"+newTree.toHTML();
-            diffs = EditorTree.treeDiff(oldTree, newTree, this.domTree_map);
-            if (oldTree.toHTML() !=newTree.toHTML()) {
-                console.error("diff broke");
-                console.log(s);
-                console.log(oldTree.toHTML());
-                console.log(newTree.toHTML());
-            }
-            /* In rare certain cases, EditorTree.createTreeFromElement and toHTML
-               return a different string than newHTML. The visual output *should* be
-               the same, but just to be sure, match this._textarea.innerHTML to whatever
-               is returned by toHTML. Documented cases appear below.
-             
-               1. "&nbsp" is converted to a single space character by toHTML.
-
-               TODO It would be better if we could avoid this step somehow (ex: make
-               createTreeFromElement always be the same as the input).
-             */
-            var html = this.toHTML();
-            if (html != newHTML)
-                this._textarea.innerHTML = html;
-            return diffs;
-        },
-
-        generateDomTreeMap : function() {
-            this.domTree_map = {};
-            var map = this.domTree_map;
-            map[null]  = null;
-            this.domTree.levelOrder(function(at) {
-                console.log(at.id);
-                map[at.id] = at;
-            });
-        },
-
 	    iterate : function() { 
-            if (null === this.domTree) { // First client, so construct dom tree here.
-                this.newDiv.innerHTML = "";
-                this.newDiv.innerHTML = this._textarea.innerHTML;
-                this.domTree = EditorTree.createTreeFromElement(this.newDiv);
-                this.generateDomTreeMap();
-            }
 	        this.iterateSend();
 	        this.iterateRecv();
 	    },
@@ -263,74 +160,113 @@ define([
                 rangy.restoreSelection(sel);
         },
 
+        doDiff_ld : function(oldS, newS) {
+            // Optimization: don't examine common prefix and suffix.
+            var bnds, subA, subB, diffs;
+            bnds = determineLdBounds(oldS, newS);
+            oldSub = oldS.substring(bnds.fwds, oldS.length - bnds.bwds);
+            newSub = newS.substring(bnds.fwds, newS.length - bnds.bwds);
+            diffs = this.util.ld_offset(oldSub, newSub, bnds.fwds); // Careful with O(n^2) algo...
+            return diffs;
+        },
+
+        doDiff_fast : function(oldS, newS) {
+            /* The diff-match-patch library is much faster than the above
+               levenshtein distance algorithm.
+
+               To put a hard limit on the time this function takes, set the
+               diff_match_patch.Diff_Timeout property to the number of seconds
+               before a timeout occurs. The results returned are guaranteed to
+               be a valid difference, though possibly suboptimal.
+             
+               The diff generated by this library is based on inserts and
+               deletes only (no updates). Thus, the diff array returned by this
+               function will be greater than or equal to (in size) that returned
+               by doDiff_ld.
+             
+               Tests show that the increase in number of commands sent to the
+               server is increased by 2-4% at a maximum compared to using
+               doDiff_ld. This data increase is worth it for the large speed
+               increase over doDiff_ld. */
+
+            function convertInsert(q, s, off) {
+                var i;
+                for (i = 0; i < s.length; ++i)
+                    q.push({ty:'insert', pos:i+off, ch:s[i]});
+            }
+            function convertDelete(q, s, off) {
+                var i;
+                for (i = 0; i < s.length; ++i)
+                    q.push({ty:'delete', pos:off, ch:null});
+            }
+            var q, rawDiffs;
+            var i = 0, off = 0;
+
+            rawDiffs = this.differ.diff_main(oldS, newS);
+            q = [];
+            for ( ; i < rawDiffs.length; ++i)
+            {
+                switch(rawDiffs[i][0]) {
+                    case 0:
+                        off += rawDiffs[i][1].length;
+                        break;
+                    case 1:
+                        convertInsert(q, rawDiffs[i][1], off);
+                        off += rawDiffs[i][1].length;
+                        break;
+                    case -1:
+                        convertDelete(q, rawDiffs[i][1], off);
+                        break;
+                }
+            }
+            return q;
+        },
+
         iterateSend : function() {
-            var syncs = null;
+            var syncs;
+            var ldOffset;
             this.newSnapshot = this.snapshot();
-            if (null !== this.oldSnapshot && null !== this.newSnapshot) {
-                if (this.oldSnapshot != this.newSnapshot) {
+            if(null !== this.oldSnapshot && null !== this.newSnapshot) {
+                if(this.oldSnapshot != this.newSnapshot) {
                     this.normalizeHTML();
                     this.newSnapshot = this.snapshot();
                     if (this.oldSnapshot != this.newSnapshot) {
-                        syncs = this.syncs.concat(this.doTreeDiff(this.domTree, this.newSnapshot));
-                        console.log("FIRST");array.forEach(syncs, function(at) { console.log(at); });
+                        syncs = this.syncs.concat(this.doDiff(this.oldSnapshot, this.newSnapshot));
                     }
                 }
-                if (syncs) {
-                    array.forEach(syncs, dojo.hitch(this, function(dd) {
-                        var args = dd.args;
-                        var obj;
-                        // TODO refactor this...make the edit script give us exactly what we want to send.
-                        switch (dd.ty) {
-                            case "insert": // {x=new node data, y=parent, k=position, newId=new id}
-                                obj = {};
-                                obj.parentId = args.y;
-                                obj.x = args.data;
-                                obj.newId = args.newId;
-                                obj.force = true;
-                                DEBUG?console.log("sync(insert)",obj):null;
-                                this.collab.sendSync("change." + args.y, obj, "insert", args.k);
-                                break;
-                            case "delete": // {x=node to delete, k=position of x in x.parent.children}
-                                obj = {force:true, oldParent:args.parentId};
-                                DEBUG?console.log("sync(delete)",obj):null;
-                                this.collab.sendSync("change." + args.parentId, obj, "delete", args.k);
-                                break;
-                            case "update": // {x=node to update, val=node to copy from}
-                                obj = {val:args.val, k:args.k, pid:args.pid};
-                                DEBUG?console.log("sync(update)",obj):null;
-                                // TODO do we ever update the root? we shouldnt allow it (or find a workaround)!
-                                this.collab.sendSync("change." + args.pid, obj, "update", args.k);
-                                break;
-                            case "move": // {x=node to move, y=new parent, k=new position, oldK=old position}
-                                obj = {oldParent:args.oldParent, id:args.x, newParent:args.y};
-                                DEBUG?console.log("sync(del-move)",obj):null;
-                                this.collab.sendSync("change." + args.oldParent, obj, "delete", args.oldK);
-                                DEBUG?console.log("sync(ins-move)",obj):null;
-                                this.collab.sendSync("change." + args.y, obj, "insert", args.k);
-                                break;
+                if(syncs){
+                    var s = '';
+                    DEBUG ? console.log("WAS=%s", this.oldSnapshot):null;
+                    DEBUG ? console.log("NOW=%s", this.newSnapshot):null;
+                    for(var i=0; i<syncs.length; i++){
+                        if(syncs[i] != undefined){
+                               this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
+                            s = s+syncs[i].ty+' '+syncs[i].ch+' '+syncs[i].pos+'\n';
                         }
-                    }));
+                    }
+                    DEBUG ? console.log("diffs=%s",s):null;
                 }
             }
         },
 
         iterateRecv : function() {
-            // Get local typing syncs.
+            //Get local typing syncs
             this.syncs = [];
             var currentSnap = this.snapshot();
             if (this.newSnapshot != currentSnap)
-            {
-                this.syncs = this.doTreeDiff(this.domTree, currentSnap);
-                console.log("SECOND");array.forEach(this.syncs, function(at) { console.log(at); });
-            }
+                this.syncs = this.doDiff(this.newSnapshot, currentSnap);
 
             this.collab.resumeSync();
             this.collab.pauseSync();
-            if (this.syncQueue.length > 0)
-                this.applySyncs();
+            if (this.q.length > 0)
+                this.tryUpdate();
             this.oldSnapshot = this.snapshot();
             this.t = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
         },
+
+	    onRemoteChange : function(obj){
+	        this.q.push(obj);
+	    },
 
 	    onUserChange : function(params) {
 	        //Break if empty object
@@ -345,7 +281,8 @@ define([
 	        }
 	    },
 
-        removeRangySpans : function() {
+        removeRangySpans : function()
+        {
             /* The Rangy span will be one of search# or search#a (or neither). */
             var val = this.value;
             var search1 = '<span style="line-height: 0; display: none;" id="1sel';
@@ -362,7 +299,8 @@ define([
             var start = val.indexOf(search1);
             if (-1 == start)
                 start = val.indexOf(search1a);
-            if (-1 != start) {
+            if (-1 != start)
+            {
                 end = val.indexOf(search2);
                 if (-1 == end)
                     end = val.indexOf(search2a);
@@ -370,7 +308,8 @@ define([
                     return;
 
                 // Guaranteed both spans exist.
-                if (start > end) {
+                if (start > end)
+                {
                     var tmp = end;
                     end = start;
                     start = tmp;
@@ -388,7 +327,9 @@ define([
                 // Order is important below!
                 this.value = this.value.substring(0, end) + this.value.substring(end + markerLength);
                 this.value = this.value.substring(0, start) + this.value.substring(start + markerLength);
-            } else {
+            }
+            else
+            {
                 // Collapsed selection.
                 end = val.indexOf(search2);
                 if (-1 == end)
@@ -411,6 +352,101 @@ define([
             if (!data || data.skip)
                 return;
             this.value = this.value.substring(0, data.pos) + data.text + this.value.substring(data.pos);
+        },
+
+        tryUpdate : function() {
+            DEBUG ? console.log("BEGIN UPDATE"):null;
+            // Process the queue and check that the changes are valid.
+            this.sel = rangy.saveSelection();
+            this._skipRestore = false;
+            this.value = this._textarea.innerHTML;
+            /* We will actually remove Rangy's invisible markers, perform the remote operations,
+               then add the markers back in. We track remote changes to update the position of the
+               markers - this makes performing the operations easier (faster) and removes the bug
+               of Rangy's markers invalidating the HTML.
+                */
+                    // TODO remove
+            if (DEBUG) {
+                var s = '';
+                for(var i=0; i<this.q.length; i++){
+                    if(this.q[i] != undefined){
+                        s = s+this.q[i].type+' '+this.q[i].value+' '+this.q[i].position+'\n';
+                    }
+                }
+                DEBUG ? console.log("this.q diffs=%s",s):null;
+            }
+            DEBUG ? console.log("this.q.length=%d", this.q.length):null;
+            DEBUG ? console.log("this.value    spans=%s",this.value):null;
+            this.removeRangySpans();
+            DEBUG ? console.log("this.value no spans=%s",this.value):null;
+            for(var i=0; i<this.q.length; i++){
+                if(this.q[i].type == 'insert')
+                    this.insertChar(this.q[i].value, this.q[i].position);
+                if(this.q[i].type == 'delete')
+                    this.deleteChar(this.q[i].position);
+                if(this.q[i].type == 'update')
+                    this.updateChar(this.q[i].value, this.q[i].position);
+            }
+            DEBUG ? console.log("changes=%s", this.value):null;
+            if (!this.willHTMLChange(this.value)) {
+                // If HTML is valid, update textarea and clear the queue.
+                // Order important for below operations!
+                this.valueNoRangy = this.value;
+                if (!this._skipRestore) {
+                    this.restoreRangySpan(this.secondSpan);
+                    this.restoreRangySpan(this.firstSpan);
+                }
+                DEBUG ? console.log("spanses=%s",this.value):null;
+                /* Recheck HTML - the rangy solution for remembering caret position is not perfect.
+                   It sometimes fails when the caret is located inbetween remote edit operations.
+                   In this case, we don't try to restore the caret and let the caret reset itself. */
+                if (this.willHTMLChange(this.value))
+                {
+                    DEBUG?console.warn("CHANGED SECOND %s", this.value):null;
+                    this.value = this.valueNoRangy;
+                    this.clearSelection();
+                }
+                this._textarea.innerHTML = this.value;
+                this.q = [];
+            } // Else, do nothing and wait for more remote changes.
+            else { DEBUG ? console.warn("HTML WOULD HAVE CHANGED"):null}
+            if (!this._skipRestore && this.sel)
+                rangy.restoreSelection(this.sel);
+            DEBUG?console.log("END UPDATE"):null;
+        },
+
+        insertChar : function(c, p) {
+            this.fixPos(p, 1);
+            this.value = this.value.substr(0, p) + c + this.value.substr(p);
+        },
+
+        deleteChar : function(p) {
+            this.fixPos(p, -1);
+            this.value = this.value.substr(0, p) + this.value.substr(p+1);
+        },
+
+        updateChar : function(c, p) {
+            this.value = this.value.substr(0, p) + c + this.value.substr(p+1);
+        },
+        
+        fixPos : function(pos, dx) {
+            // If either span reach the beginning, clear the selection.
+
+            if (this.firstSpan && pos <= this.firstSpan.pos) {
+                this.firstSpan.pos += dx;
+                if (0 === this.firstSpan.pos || this.firstSpan.pos >= this.value.length) {
+                    this.clearSelection();
+                    this.firstSpan.skip = true;
+                }
+            }
+            if (this.secondSpan && pos <= this.secondSpan.pos) {
+                this.secondSpan.pos += dx;
+                if (0 === this.secondSpan.pos || this.secondSpan.pos >= this.value.length) {
+                    this.clearSelection();
+                    this.secondSpan.skip = true;
+                }
+            }
+
         },
 
 	    clearSelection: function(){
@@ -445,7 +481,7 @@ define([
 	    connect : function(){
 	        this.collab = coweb.initCollab({id : this.id});  
 	        this.collab.subscribeReady(this,'onCollabReady');
-            this.collab.subscribeSync('change.*', this, 'onTreeUpdate');
+	        this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
 			this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
 	        this.collab.subscribeStateRequest(this, 'onStateRequest');
 	    	this.collab.subscribeStateResponse(this, 'onStateResponse');
@@ -458,58 +494,22 @@ define([
 	        //     dojo.publish("shareClick", [{}]);
 	        // });
 	        attendance.subscribeChange(this, 'onUserChange');
-            QWE = this;
 	    },
 
 	    onStateRequest : function(token){
-            /* Need to make domTree non-circular in order to send it. Just remove all parent
-               references and other clients can re construct that information later. */
-            var map = this.domTree_map;
-            this.domTree.levelOrder(function(at) {
-                if (at.parent)
-                    at.parent = at.parent.id;
-            });
 	        var state = {
 	            snapshot: this.newSnapshot,
-                domTree : this.domTree,
 	            attendees: this._attendeeList.attendees,
 				title: this.title
 	        };
 	        this.collab.sendStateResponse(state,token);
-            this.domTree.levelOrder(function(at) {
-                at.parent = map[at.parent];
-            });
 	    },
-
-        reconstructTree : function(rawObj) {
-            var at, rawAt, q, tree, tmp, map;
-            map = {};
-            tree = new EditorTree(null);
-            q = [{at:tree, rawAt:rawObj}];
-            while (q.length > 0) {
-                at = q[0].at;
-                rawAt = q.shift().rawAt;
-                at.id = rawAt.id;
-                at.copyFrom(rawAt);
-                map[at.id] = at;
-                if (rawAt.children)
-                    at.children = [];
-                array.forEach(rawAt.children, function(child) {
-                    var ntree = new EditorTree(at);
-                    at.children.push(ntree);
-                    q.push({at:ntree, rawAt:child});
-                });
-            }
-            this.domTree_map = map;
-            return tree;
-        },
 
 	    onStateResponse : function(obj){
 			this._textarea.innerHTML = '';
-            this.domTree = this.reconstructTree(obj.domTree);
-	        this._textarea.innerHTML = this.toHTML();
-            // TODO check incompatible client  by doing a divChecker validation.
-	        this.newSnapshot = this._textarea.innerHTML;
+	        this._textarea.innerHTML = obj.snapshot;
+	        this.newSnapshot = obj.snapshot;
+	        this.oldSnapshot = obj.snapshot;    
 			this.title = obj.title;
 			this._title.value = this.title;
 	        for(var i in obj.attendees){
@@ -523,13 +523,6 @@ define([
 	            this._attendeeList.onRemoteUserJoin(o);
 	        }
 	    },
-
-        toHTML : function() {
-            /* We don't want the outermost <div>. The assumption is that domTree
-               always has the outer <div> elements. */
-            var HTML = this.domTree.toHTML();
-            return HTML.substring(5, HTML.length - 6);
-        },
  
 	    _getValue : function() {
 	        return this._textarea.innerHTML;
