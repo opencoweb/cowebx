@@ -7,8 +7,8 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>cotree</artifactId>
-    <name>OpenCoweb Extras :: Demos :: Co-Tree</name>
+    <artifactId>coeditDom</artifactId>
+    <name>OpenCoweb Extras :: Demos :: DOM Based Co-Editor</name>
     <packaging>war</packaging>
 
     <build>
@@ -20,7 +20,7 @@
                 <configuration>
                     <scanIntervalSeconds>1</scanIntervalSeconds>
                     <webAppConfig>
-                        <contextPath>/cotree</contextPath>
+                        <contextPath>/coeditDom</contextPath>
                     </webAppConfig>
                 </configuration>
             </plugin>
@@ -58,16 +58,6 @@
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.6.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.6.1</version>
-        </dependency>
         <dependency>
             <groupId>org.opencoweb</groupId>
             <artifactId>coweb-bots</artifactId>
