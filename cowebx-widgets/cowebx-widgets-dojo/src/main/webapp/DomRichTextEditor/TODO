@@ -1,4 +1,6 @@
 
+  * Remove dependency on ld.js
+
   * Bug noticed - when copying and pasting the entire stackoverflow.com homepage
     into the editor, and after about ten simultaneous edits with two browsers,
     the editor crashed (one client tried to delete a non-leaf node).
