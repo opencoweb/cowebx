@@ -23,11 +23,6 @@ define([
 	"dijit/layout/ContentPane"
 ], function(dojo, dijit, coweb, CoopGrid, DataGrid, ItemFileWriteStore, BusyDialog, arrays) {
 
-	// Try to create an ID that is unique across all clients.
-	function uniqueId() {
-		return String(Math.random()).substr(2) + String((new Date()).getTime());
-	}
-
 	function getURLParams() {
 		var urlParams = {};
 		var searchText = window.location.search.substring(1);
@@ -48,6 +43,7 @@ define([
 		dojo.parser.parse();
 
 		this.grid = dijit.byId("grid");
+		this.grid.canSort = function() { return false; } // Disable column sorting.
 		this.dataStore = null; // This will be set each time by buildList.
 		this.dsHandles = {}; // See _dsConnect.
 
@@ -73,6 +69,9 @@ define([
 
 		// Get a session instance.
 		var sess = coweb.initSession();
+		sess.onStatusChange = function(status) {
+			console.log(status);
+		}
 		BusyDialog.createBusy(sess); // This is a widget in cowebx-widgets-dojo. Make sure to have the dependency in the pom.xml.
 		var urlParams = getURLParams();
 		var updaterType = urlParams["updaterType"] === undefined  ? "default" : urlParams["updaterType"];
@@ -80,20 +79,20 @@ define([
 
 	};
 
-    /**
-     * Serializes a flat item in the data store to a regular JS object with 
-     * name/value properties.
-     *
-     * @param item Item from the data store
-     * @return row Object
-     */
-    proto._itemToRow = function(item) {
-        var row = {};
-        arrays.forEach(this.dataStore.getAttributes(item), function(attr) {
-            row[attr] = this.dataStore.getValue(item, attr);
-        }, this);
-        return row;
-    };
+	/**
+	 * Serializes a flat item in the data store to a regular JS object with 
+	 * name/value properties.
+	 *
+	 * @param item Item from the data store
+	 * @return row Object
+	 */
+	proto._itemToRow = function(item) {
+		var row = {};
+		arrays.forEach(this.dataStore.getAttributes(item), function(attr) {
+			row[attr] = this.dataStore.getValue(item, attr);
+		}, this);
+		return row;
+	};
 
 	/**
 	 * Called when a new item appears in the local data store. Sends the new
@@ -152,6 +151,11 @@ define([
 		var pos = this.removed[id];
 		delete this.removed[id];
 		this.bgData.splice(pos, 1);
+		// Update this.removed data structure in case any positions need to be re-aligned.
+		for (var k in this.removed) {
+			if (this.removed[k] > pos)
+				--this.removed[k];
+		}
 		this.collab.sendSync("change", null, "delete", pos);
 	};
 
@@ -342,6 +346,7 @@ define([
 	 */
 	proto.onRemoveRow = function() {
 		var selected = this.grid.selection.getSelected();
+		// Remember the positions of the removed elements.
 		arrays.forEach(selected, function(item) {
 			this.removed[this.dataStore.getIdentity(item)] = this.grid.getItemIndex(item);
 		}, this);
