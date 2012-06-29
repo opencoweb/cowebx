@@ -43,7 +43,7 @@ define([
 	};
 
 	var proto = CoListApp.prototype;
-	proto.init = function(){
+	proto.init = function() {
 		// Parse declarative widgets.
 		dojo.parser.parse();
 
@@ -58,8 +58,8 @@ define([
 		this.bgData = [];
 		this.buildList()
 
-		// TODO doc
-		this.removed = [];
+		// Map from DataGrid row ID to its position in the grid. See onRemoveRow and onLocalDelete.
+		this.removed = {};
 
 		// Instantiate our cooperative grid extension, giving it a reference to the dojox.grid.DataGrid widget.
 		args = {grid : this.grid, id : "colist_grid"};
@@ -365,7 +365,6 @@ define([
 	};
 
 	var app = new CoListApp();
-	// have to wrap class decl in ready when using dojo xd loader
 	dojo.ready(function() {
 		app.init();
 	});
