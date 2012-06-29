@@ -17,8 +17,10 @@ The structure of this directory is extremely straight forward. The following fil
 
 * ```index.html``` : serves as the main html file of the application
 * ```colist.js``` : serves as the main javascript file of the application
+* ```CoopGrid.js``` : extends the colist application with a second collab object that tracks where remote users' grid row focus
 * ```colist.css``` : serves as the main CSS of the application
-* ```main.js``` : serves as the bootstrap file for the application (holds dependency list)
+* ```main.js``` : serves as the bootstrap file for the application (holds dependency list) and has OCW configuration settings
+* ```config.js``` : important dojo settings
 
 ##License
 
