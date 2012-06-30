@@ -1,0 +1,14 @@
+
+  * Remove dependency on ld.js
+
+  * Bug noticed - when copying and pasting the entire stackoverflow.com homepage
+    into the editor, and after about ten simultaneous edits with two browsers,
+    the editor crashed (one client tried to delete a non-leaf node).
+
+    Discover a reproducible test case, and find out the underlying issue.
+
+  * Remember user caret selection position(s).
+
+  * Add support for other browsers. Currently, only Chrome works - `createTreeFromElement`
+    isn't browser independent.
+

@@ -1,0 +1,59 @@
+
+<script src="config.js"></script>
+<script type="text/javascript" src="http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojo/dojo.js"></script>
+<script src="tree_regtest.js"></script>
+
+<div style="display: none;"i id="test_set">
+<!-- Place tests inside here. -->
+<div id="testa">
+    <div id="testa_old">&nbsp;</div>
+    <div id="testa_new">&nbsp;</div>
+</div>
+<div id="test0">
+    <div id="test0_old">qwe</div>
+    <div id="test0_new"><b>qwe</b></div>
+</div>
+
+<div id="test1">
+    <div id="test1_old">qwe</div>
+    <div id="test1_new">qw</div>
+</div>
+
+<div id="test2">
+    <div id="test2_old"><i><u><span><div></div></span></u></i></div>
+    <div id="test2_new"><b><i><u><span><div></div></span></u></i></b></div>
+</div>
+
+<div id="test3">
+    <div id="test3_old"><br>C</div>
+    <div id="test3_new"><br>C<br></div>
+</div>
+
+<div id="test4">
+    <div id="test4_old"><div>A<br>B</div></div>
+    <div id="test4_new"><div>A<br>B<br><br></div></div>
+</div>
+
+<div id="test5">
+    <div id="test5_old"><br>B<br><br></div>
+    <div id="test5_new"><br>B<br>C</div>
+</div>
+
+<div id="test6">
+    <div id="test6_old"><div><i>sdf</i><div><i><br></i></div><div><i>s</i><i>df</i></div><div><i><b><br></b></i></div><div><i><b><br></b></i></div><div><i><b>sd</b></i><i><b>we</b></i></div><div><i><b>we</b>ff</i></div><div><i>ew</i></div></div></div>
+    <div id="test6_new"><div><i>sdf</i><div><i><br></i></div><div><i>s</i><i>df</i></div><div><div><i>df</i></div><div><i><b><br></b></i></div><div><i><b><br></b></i></div><div><i><b>sd</b></i></div></div><div><i><b><br></b></i></div><div><i><b>sd</b></i><i><b>we</b></i></div><div><i><b>we</b>ff</i></div><div><i>ew</i></div></div></div>
+</div>
+
+<!-- template
+<div id="test">
+    <div id="test_old"></div>
+    <div id="test_new"></div>
+</div>
+-->
+
+<!-- End test set. -->
+</div>
+
+<div id="good" style="display: none; color: green; font-size: 48pt;">All tests passed!</div>
+<div id="bad" style="display: none; color: red; font-size: 28pt;"></div>
+

@@ -1,0 +1,501 @@
+.editor_table{
+    width:100%;
+    border-spacing:0px;
+    border-collapse:true;
+    background:lightgrey;
+}
+
+.editorRow{
+    height:100%;
+}
+
+.listContainer{
+    width:200px;
+    height:100%;
+    vertical-align:top;
+    border-left:1px solid #CACACA;
+    background:white;
+    padding:0px; 
+}
+
+.outerDiv{
+    padding:0px;
+	vertical-align:top;
+}
+
+.divContainer{
+    height:100%;
+    padding:0px;
+	position:relative;
+}
+
+.divContainerBody{
+	overflow-y:auto;
+}
+
+.infoDiv{
+    height:145px;
+    border-top:1px solid #CACACA;
+}
+
+.textareaContainer{
+    margin-left:auto !important;
+    margin-right:auto !important;
+    margin-top:40px !important;
+    padding:50px !important;
+    background:white !important;
+    width:720px !important;
+   /* height:100% !important;*/
+	min-height:700px;
+	margin-bottom:20px;
+	border:1px solid #BBBBBB !important;
+}
+
+.textarea{
+    width:720px !important;    
+    height:100% !important;
+    margin:0px !important;
+    outline:0px solid transparent !important;
+    font: 14px arial !important;
+	min-height:666px !important;
+}
+
+.textarea:focus{
+    width:720px !important;   
+    height:100% !important;
+    margin:0px !important;
+    outline:0px solid transparent !important;
+}
+
+.attendee{
+    font: 18px arial;
+    padding:5px;
+    margin-left:auto;
+    margin-right:auto;
+    border-bottom:1px solid #CACACA;
+    height:27px;
+}
+
+.attendeeText{
+    width:120px;
+    display:inline-block;
+    cursor:hand;cursor:pointer;
+    background: grey;
+    font-weight:bold;
+    color: white;
+    font: 18px arial;
+    border:0px;
+}
+
+.attendeeColor{
+    width:20px;
+    height:20px;
+    border:1px solid white;
+    display:inline-block;
+    position:relative;
+    top:5px;
+    margin-right:5px;
+}
+
+.localUser{
+    background: grey;
+    font-weight:bold;
+    color: white;
+	z-index:10;
+}
+
+.userEditIcon{
+    width:18px;
+    height:23px;
+    float:right;
+    position:relative;
+    top:3px;
+}
+
+.collabTitle{
+    height:29px;
+    font:18px arial;
+    color:white;
+    background:grey;
+    padding-top:8px;
+    padding-left:5px;
+}
+
+.collabSubTitle{
+    font:12px arial;
+    color:grey;
+    margin-top:5px;
+    text-align:center;
+}
+
+.url{
+    width:180px;
+    font:14px arial;
+    min-height:15px;
+    margin-left:auto;
+    margin-right:auto;
+    border:1px solid #CACACA;
+    outline:0px solid transparent;
+    margin-top:20px;
+    padding:5px;
+	overflow:hidden;
+}
+
+.url:focus{
+    outline:0px solid transparent;
+}
+
+.nameColorPalette{
+	position:fixed;
+	display:none;
+	right:220px;
+	top:2px;
+	z-index:1000;
+}
+
+.gradient {
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.33, rgb(0,0,0)),
+        color-stop(0.67, rgb(64,64,64)),
+        color-stop(0.84, rgb(102,102,102))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgb(0,0,0) 33%,
+        rgb(64,64,64) 67%,
+        rgb(102,102,102) 84%
+    );
+}
+
+.shareButton{
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    text-shadow:1px 1px #666;
+    cursor:hand;cursor:pointer;
+    font: 13px arial;
+    background-color: darkred;
+    color: white;
+    padding-top:10px;
+    padding-bottom:10px;
+    padding-left:5px;
+    padding-right:5px;
+    position:relative;
+}
+
+.shareButton:hover{
+    -webkit-transition: background-color .25s linear;
+    transition: background-color .25s linear;
+    background-color:red;
+}
+
+.emailBox{
+	height:50px;          
+	border:1px solid #BBBBBB;
+    background:white;
+    font: 12px arial;
+	font-weight:bold;
+    padding-top:12px;
+    padding-bottom:6px;
+	padding-left:10px;
+    z-index:1001;
+    width:260px;
+    position:absolute;
+    top:37px;
+    left:30px;
+}
+
+.sendButton{
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    text-shadow:1px 1px #666;
+    cursor:hand;cursor:pointer;
+    font: 14px arial;
+    background-color: darkred;
+    color: white;
+    padding:5px;
+    margin-left:5px;
+}
+
+.sendButton:hover{
+    -webkit-transition: background-color .25s linear;
+    transition: background-color .25s linear;
+    background-color:red;
+}
+
+.footer {
+    width:100%;
+    height:25px;
+    background:#EFEFEF;
+    position:absolute;
+    bottom:0;
+    z-index:100;     
+    border-top:1px solid #BBBBBB;
+	background:#EFEFEF;
+}
+
+.title{
+    -moz-border-radius:3px;
+    -webkit-border-radius:3px;
+    font:12px arial;
+    width:150px;
+    color:black;
+    float:left;
+    position:relative;
+    top:5px;
+    background:lightgrey;
+	border:1px solid #AAAAAA;
+    padding-top:2px;
+    padding-left:5px;
+    margin-left:4px;
+    height:12px;
+    cursor:hand;cursor:pointer;
+    margin-right:5px;
+    overflow:hidden;       
+}
+
+.editIcon {
+    width:18px;
+    height:23px;
+}    
+
+.rulerContainer{
+    position:absolute;
+    width:100%;
+    height:30px;
+    background: lightgrey;  
+    text-align:center;
+	top:37px;
+}
+
+.toolbarButton{
+	margin-left:1px !important;
+	margin-right:1px !important;   
+	margin-top:4px !important;
+	width:28px !important;
+	height:28px!important;
+}  
+
+.toolbarButtonCustom{
+	margin-left:1px !important;
+	margin-right:1px !important;   
+	margin-top:4px !important;
+	width:28px !important;
+	height:28px!important; 
+	display:inline-block;float:left; 
+	background-position:center;
+	cursor:hand;cursor:pointer;
+	border:1px solid transparent !important;
+	background-repeat:no-repeat;
+}
+
+.toolbarButtonCustom:hover{
+	border:1px solid #444444 !important;
+}
+
+.toolbarDiv{
+	height:20px;
+	width:1px;
+	display:inline-block;
+	float:left;
+	background:lightgrey;
+	position:relative;
+	top:10px; 
+	margin-left:6px !important;
+	margin-right:6px !important;
+}
+
+.ruler{
+    margin-top:10px;
+}
+
+.editor_node{
+    width:100%;
+    height:100%;
+    margin-left:auto;
+    margin-right:auto;
+    display:block;
+    opacity:0;
+    position:relative;
+}
+
+.splash {
+     background:darkgrey;
+     width:600px;
+     margin-left:auto;
+     margin-right:auto;
+     height:510px;
+     border-radius:5px;
+     -moz-border-radius:5px;
+     -webkit-border-radius:5px;
+     position:relative;
+     margin-top:80px;
+     display:none;
+}
+
+.splashInner {
+    background: #eee;
+    background: -webkit-linear-gradient(#fff, #ccc);
+    background:    -moz-linear-gradient(#fff, #ccc);
+    background:     -ms-linear-gradient(#fff, #ccc);
+    background:      -o-linear-gradient(#fff, #ccc);
+    opacity: .9;
+    height:405px;
+    width:100%;
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    box-shadow: 0px 0px 2px 2px rgba(0, 0, 0, 0.3);
+}
+ 
+.newContainer {
+    border-top: 1px solid #999;
+    width: 600px;
+    text-align: center;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    background: #eee;
+    background: -webkit-linear-gradient(#fff, #ccc);
+    background:    -moz-linear-gradient(#fff, #ccc);
+    background:     -ms-linear-gradient(#fff, #ccc);
+    background:      -o-linear-gradient(#fff, #ccc);
+    opacity: .9;
+    box-shadow: 0px 0px 2px 2px rgba(0, 0, 0, 0.3);
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    position: absolute; bottom: 0;
+}
+
+.newDoc {
+    margin: 0 auto;
+    border-radius: 3px;
+    text-align: center;
+    font: 36px verdana,arial,sans-serif;
+    color: white;
+    text-shadow: 0 -1px 0 rgba(0,0,0,.8);
+    height: 70px;
+    line-height: 70px;
+    width: 300px;
+    background: #555;
+    background: -webkit-linear-gradient(#5F5F5F, #565656 50%, #4C4C4C 51%, #373737);
+    background:    -moz-linear-gradient(#5F5F5F, #565656 50%, #4C4C4C 51%, #373737);
+    background:     -ms-linear-gradient(#5F5F5F, #565656 50%, #4C4C4C 51%, #373737);
+    background:      -o-linear-gradient(#5F5F5F, #565656 50%, #4C4C4C 51%, #373737);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.9);
+} 
+             
+.newDoc:hover {
+    cursor: pointer;
+    background: #666;
+    background: -webkit-linear-gradient(#707070, #666666 50%, #5B5B5B 51%, #474747);
+    background:    -moz-linear-gradient(#707070, #666666 50%, #5B5B5B 51%, #474747);
+    background:     -ms-linear-gradient(#707070, #666666 50%, #5B5B5B 51%, #474747);
+    background:      -o-linear-gradient(#707070, #666666 50%, #5B5B5B 51%, #474747);
+}
+             
+.newDoc:active {
+    box-shadow: inset 0 1px 12px rgba(0, 0, 0, 0.9);
+    background: #444;
+}
+
+.splashTable {
+    height:300px;
+    width:100%;
+    border-spacing:10px;
+    position:absolute;bottom:110px;
+    right:0px
+}
+
+.splashCell {
+    width:180px;
+    height:150px;
+    background:darkgrey;
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    background:white;
+    box-shadow: 0px 1px 8px rgba(0, 0, 0, 0.3);
+    vertical-align:top;
+    padding-right:3px;
+}
+
+.splashTitle {
+    padding:10px;
+    position: relative;  
+    font-size: 70px; 
+    height:100%;
+    font-family: arial;
+    color:white;
+    text-decoration: none;  
+    color: white;             
+    position: absolute;  
+    font-weight:bold;   
+    text-shadow: grey 2px -2px 5px; 
+}
+
+.splashTop {
+    width:100%;
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    height:95px;
+    background:#FF9900;
+}
+
+.splashWhy{
+    font: 24px arial;
+    color:black;
+    font-weight:bold;
+    display:inline;
+    height:100%;
+    position:relative;
+    margin:5px;
+}
+
+.featureDiv {
+    font:arial;
+}
+
+.splashSubtitle {
+    color:white;
+    font: 14px arial;
+    position:absolute;
+    top:80px;
+    width:585px;
+    background:#FF9900;
+    padding-left:15px;
+    border-bottom:1px solid black;
+    font-weight:bold;
+}
+
+.featureEntry {
+    margin-left:6px;
+    font:12px arial;
+    margin-bottom:7px;
+}
+
+a:link{
+    color:black;
+}
+
+a:visited{
+    color:black;
+}
+
+a:active{
+    color:black;
+}
+
+.featureEntryTitle {
+    margin-left:6px;
+    font:14px arial;
+    font-weight:bold;
+    color:#2b6bad;
+}

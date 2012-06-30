@@ -50,7 +50,6 @@ public class CotreeModerator extends DefaultSessionModerator {
 			update(value, value.containsKey("force"));			
 		}
 		
-		
 		return true;
 	}
 	

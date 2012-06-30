@@ -1,4 +1,5 @@
 { 
+	"logLevel": 0,
 	"sessionModerator": "org.coweb.CotreeModerator",
 	"moderatorIsUpdater": true,
 	"operationEngine": true,

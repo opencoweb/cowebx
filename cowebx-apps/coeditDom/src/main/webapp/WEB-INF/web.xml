@@ -3,8 +3,8 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          version="2.5"
-         id="cotree">
-  <display-name>cotree</display-name>
+         id="coedit">
+  <display-name>DOM Based CoEditor</display-name>
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>
@@ -13,7 +13,7 @@
     <servlet-class>org.cometd.server.CometdServlet</servlet-class>
     <init-param>
       <param-name>logLevel</param-name>
-      <param-value>1</param-value>
+      <param-value>0</param-value>
     </init-param>
     <init-param>
       <param-name>timeout</param-name>
@@ -37,10 +37,10 @@
   <servlet>
     <servlet-name>admin</servlet-name>
     <servlet-class>org.coweb.servlet.AdminServlet</servlet-class>
-	<init-param>
+    <init-param>
 	  <param-name>ConfigURI</param-name>
 	  <param-value>/WEB-INF/cowebConfig.json</param-value>
-	</init-param>
+    </init-param>
     <load-on-startup>2</load-on-startup>
   </servlet>
   <servlet-mapping>
