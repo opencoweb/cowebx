@@ -395,8 +395,8 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 				this.store.save();
 				this.onLocalDeleteNode(itm[1], itm[2], true, itm[3]);
 			}, this);
-			if (document.getElementById("ps").value=="pause")
-				this.collab.resumeSync();
+			//if (document.getElementById("ps").value=="pause")
+			//	this.collab.resumeSync();
 			this.collab.resumeSync();
 		},
 
