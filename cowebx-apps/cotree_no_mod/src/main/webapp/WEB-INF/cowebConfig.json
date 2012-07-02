@@ -1,5 +1,4 @@
 { 
-	"sessionModerator": "org.coweb.CotreeModerator",
 	"moderatorIsUpdater": false,
 	"operationEngine": true,
 	"captureOutgoing" : "/tmp/outgoing.txt",
