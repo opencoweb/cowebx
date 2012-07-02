@@ -261,6 +261,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 				dojo.connect(this.container, "mousedown", this, "_handleMouseStart");
 			}
 			dojo.connect(this.container, "onclick", this, "_handleClick");
+			dojo.connect(window, "onresize", this, "_handleResize");
 		},
 		_distance: function(x1, y1, x2, y2) {
 			return Math.abs(Math.sqrt(Math.pow(x1-x2, 2)+Math.pow(y1-y2, 2)));
@@ -372,6 +373,15 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 						}
 					}
 				}
+			}
+		},
+		_handleResize: function(evt) {
+			if (this.attached) {
+				var width = dojo.style(this.attachee, "width");
+				var height = dojo.style(this.attachee, "height");
+				this.surface.setDimensions(width, height);
+				dojo.style(this.container, "width", width);
+				dojo.style(this.container, "height", height);
 			}
 		},
 		clear: function(distribute) {
