@@ -361,6 +361,15 @@ define([
 	//var emptyTagList = ["br", "hr", "img", "link", "input", "area", "param", "col", "meta", "base", "embed"];
 	var emptyTagList = ["br", "hr", "img"];
 	EditorTree.createTreeFromElement = function(id) {
+		/* Some versions of Firefox don't support node.outerHTML, so use this workaround. It probably
+		   isn't particularly fast, though. Firefox 11 began supporting outerHTML natively. */
+		function getOuterHTML(node) {
+			if (node.outerHTML)
+				return node.outerHTML;
+			var div = document.createElement("div");
+			div.appendChild(node.cloneNode(true));
+			return div.innerHTML;
+		}
 		function extractHTML(domNode, treeNode) {
 			/* Extracts the first tag and its contents. The results are stored in `node`.
 			   Example: extractHTML("<b class='big'><u>hello</u></b>", tree) sets
@@ -371,7 +380,7 @@ define([
 			   Returns true if this node is a pseudo leaf - a DOM node with a single TEXT_NODE child, false otherwise.
 			   */
 			var end, outer, tagLen, innerLen, child;
-			outer = domNode.outerHTML;
+			outer = getOuterHTML(domNode);
 			treeNode.nodeType = domNode.nodeType;
 			if (emptyTagList.indexOf(domNode.tagName.toLowerCase()) >= 0) {
 				treeNode.beginTag = outer.substring(0, domNode.tagName.length + 2);
