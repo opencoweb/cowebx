@@ -40,7 +40,7 @@ public class CotreeModerator extends DefaultSessionModerator {
 	  *
 	  * @param data incoming sync message
 	  */
-	public boolean onSync(Map<String, Object> data) {
+	public synchronized boolean onSync(Map<String, Object> data) {
 		// Get the value of the sync and determine the op to perform on tree
 		Map value = (Map)data.get("value");
 		String ty = data.get("type").toString();
@@ -69,7 +69,7 @@ public class CotreeModerator extends DefaultSessionModerator {
 
 	/* The following private methods are helper methods for onSync. */
 
-	private void update(Map value, int pos){
+	private void update(Map value, int pos) {
 		// Get the targeted node, update the value in the tree
 		Map parent = findNode(arr, (String)value.get("parentId"));
 		if (null == parent) {
@@ -77,6 +77,10 @@ public class CotreeModerator extends DefaultSessionModerator {
 			return;
 		}
 		Object[] children = (Object[])(parent.get("children"));
+		if (pos >= children.length) {
+			System.err.printf("update: %d.children[%d] doesn't exist.\n", value.get("parentId"), pos);
+			return;
+		}
 		Map target = (Map)children[pos];
 		target.put("name", value.get("name"));
 	}
@@ -121,6 +125,10 @@ public class CotreeModerator extends DefaultSessionModerator {
 		// Stick the newNode / tmpChild in an array and add to
 		// parent's children array
 		Object[] children = (Object[])(parent.get("children"));
+		if (children.length < pos) {
+			System.err.printf("insert(force=%b): %d.children[%d] does not exist.\n", force, parent.get("id"), pos);
+			return;
+		}
 		children = arrayInsertAt(children, jsonObj, pos);
 		parent.put("children",children);
 	}
@@ -139,6 +147,10 @@ public class CotreeModerator extends DefaultSessionModerator {
 			return;
 		}
 		Object[] children = (Object[])(parent.get("children"));
+		if (children.length <= pos) {
+			System.err.printf("delete(force=%b): %d.children[%d] does not exist.\n", force, parent.get("id"), pos);
+			return;
+		}
 		tmpChild = (Map)children[pos];
 		children = arrayDeleteAt(children, pos);
 		parent.put("children", children);
