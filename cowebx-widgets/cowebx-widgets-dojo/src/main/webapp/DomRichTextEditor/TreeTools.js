@@ -1,8 +1,16 @@
 
-// TODO see if we can optimize the indexOf's? is it worth it?
-var COUNTER={};
-COUNTER.option1=1;
-COUNTER.option2=1;
+/**
+  * TreeTools.js contains two major components:
+  *   1) Tools for creating and working with a DOM element using a custom tree.
+  *   2) A tree-based diff algorithm that created a sequence of operations to
+  *      transform one tree to another.
+  *
+  * The two components logically should be separate, although in this file they are
+  * tightly coupled. Future work should loosen (by a large amount) this coupling
+  * so that generic applications can compare and diff tree structures.
+  *
+  */
+
 var DEBUG1 = false;
 
 function checkPoison(x) {
@@ -17,11 +25,10 @@ function checkPoison(x) {
 define([
 	"dojo/dom",
 	"dojo/_base/array",
-	"./ld",
 	"./lib/diff_match_patch"
-], function(dom, array, LD) {
+], function(dom, array) {
 
-	// IE doesn't have Node.
+	// Internet Explorer doesn't have Node.
 	if (!window["Node"]) {
 		window.Node = new Object();
 		Node.ELEMENT_NODE = 1;
@@ -38,7 +45,6 @@ define([
 		Node.NOTATION_NODE = 12;
 	}
 
-	var ld = new LD(); // Used to calculate leaf node similarity.
 	var differ = new diff_match_patch();
 
 	// Global variables are fine since JavaScript is reentrant.
@@ -50,8 +56,6 @@ define([
 	   There is an exception - empty HTML elements (ex: "<b></b>") will be a leaf node.
 	   Use the nodeType member to determime the type of node (either Node.ELEMENT_NODE
 	   or Node.TEXT_NODE).
-
-	   TODO remove depth comptuation.
 
 	   The constructor simple sets all members to null. `parent` is null only for the root.
 	   */
@@ -77,52 +81,6 @@ define([
 		this.text       = null;
 	};
 
-	// TODO is this correct?
-	EditorTree.equalsDeep = function(x, y) {
-		if (!x && !y) {
-			console.error("both x,y false");
-			return true;
-		}
-		if ((!x && y) || x && !y)
-		{
-			console.error("one of x,y false",x,y);
-			return false;
-		}
-		if (x.beginTag == y.beginTag && x.text == y.text) {
-			if (x.depth == y.depth)
-				return true;
-			else
-				return false;
-		} else {
-			return false;
-		}
-	};
-
-	EditorTree.compare = function(x, y) {
-		return EditorTree.equalsDeep(x,y) ? 0 : 1;
-	};
-
-	// For the matching algorithm, we only  TODO add cache for indexOf
-	EditorTree.equalMatch = function(x, y) {
-		if (!x && !y) {
-			console.error("both x,y false");
-			return true;
-		}
-		if ((!x && y) || x && !y)
-		{
-			console.error("one of x,y false",x,y);
-			return false;
-		}
-		if (x.beginTag == y.beginTag && x.text == y.text) {
-			if (x.depth == y.depth)
-				return true;
-			else
-				return false;
-		} else {
-			return false;
-		}
-	};
-
 	var proto = EditorTree.prototype;
 
 	proto.data =  function() {
@@ -138,8 +96,12 @@ define([
 	/*  */
 	proto.sanityCheck = function() {
 		var ret = true;
-		if (this.parent && this.parent.children.indexOf(this) < 0) {
+		if (this.parent && !this.parent.children) {
 			console.error("sanity 1 failed");
+			return false;
+		}
+		if (this.parent && this.parent.children.indexOf(this) < 0) {
+			console.error("sanity 2 failed");
 			return false;
 		}
 		array.forEach(this.children, function(at, i) {
@@ -262,10 +224,6 @@ define([
 		}
 	};
 
-	proto.equalsDeep = function(o) {
-		return EditorTree.equalsDeep(this, o);
-	};
-
 	proto.copyFrom = function(o) {
 		this.beginTag = o.beginTag;
 		this.endTag = o.endTag;
@@ -280,32 +238,36 @@ define([
 			return 1.0;
 		if (0 == Math.min(a.length, b.length))
 			return 1.0;
-		if (!COUNTER.option2) {
-			if (a == b)
-				dist = 0;
-			else {
-				// TODO use smart ld bounds.
-				dist = ld.ld(a, b).length;
-				COUNTER.ldcalls++;
+		/* Note that levenshtein distance is more accurate for calculating
+		   similarity, but it is much slower than diff-match-patch.
+		   */
+		diffs = differ.diff_main(a, b);
+		dist = 0;
+		array.forEach(diffs, function(at) {
+			switch(at[0]) {
+				case 1:
+				case -1:
+					dist += at[1].length;
+					break;
 			}
-		} else {
-			diffs = differ.diff_main(a, b);
-			dist = 0;
-			array.forEach(diffs, function(at) {
-				switch(at[0]) {
-					case 1:
-					case -1:
-						dist += at[1].length;
-						break;
-				}
-			});
-		}
+		});
 		return 1.0 - dist / max;
 	}
 
+	// For debugging.
+	function checkAll() {
+		for (var i in arguments) {
+			if (!arguments[i].sanityCheck())
+				return false;
+		}
+		return true;
+	}
 	// y - parent, k - child position, x - data to copy.
 	// Only insert leaves.
 	EditorTree.applyIns = function(x, y, k, newId) {
+		if (!checkAll(y)) {
+			console.log("applyIns sanitycheck", x,y,k,newId);
+		}
 		toAdd = new EditorTree(y);
 		toAdd.id = newId;
 		toAdd.inOrder = false; // TODO is this correct?
@@ -316,6 +278,9 @@ define([
 			y.children = [toAdd];
 		} else
 			y.children.splice(k, 0, toAdd);
+		if (!checkAll(y,toAdd)) {
+			console.log("applyIns sanitycheck", x,y,k,newId);
+		}
 		return toAdd;
 	};
 
@@ -325,6 +290,9 @@ define([
 
 	// Assumes x is a leaf node.
 	EditorTree.applyDel = function(x, k) {
+		if (!checkAll(x)) {
+			console.log("applyDeli sanitycheck", x,k);
+		}
 		var siblings, p;
 		p = x.parent;
 		siblings = p.children;
@@ -333,9 +301,15 @@ define([
 		siblings.splice(k, 1);
 		if (0 == siblings.length)
 			p.children = null;
+		if (!checkAll(p)) {
+			console.log("applyDel sanitycheck", x,k);
+		}
 	};
 
 	EditorTree.applyMov = function(x, y, k, oldK) {
+		if (!checkAll(x,y)) {
+			console.log("applyMov sanitycheck", x,y,k,oldK);
+		}
 		var xparent;
 		xparent = x.parent;
 		xparent.children.splice(oldK, 1);
@@ -349,6 +323,9 @@ define([
 			y.children = [x];
 		} else
 			y.children.splice(k, 0, x);
+		if (!checkAll(x,y)) {
+			console.log("applyMov sanitycheck", x,y,k,oldK);
+		}
 	};
 
 	/* Creates a custom tree representation of a DomNode. The structure of the custom
@@ -420,9 +397,6 @@ define([
 						newNode.nodeType = Node.TEXT_NODE;
 						newNode.text = child.nodeValue;
 						break;
-					default: // TODO remove
-						console.error("nodeType is ",child.nodeType, child);
-						break;
 				}
 				at.children.push(newNode);
 			});
@@ -436,8 +410,8 @@ define([
 		return tree;
 	}
 
-	// http://ilpubs.stanford.edu:8090/115/1/1995-46.pdf
-	// TODO there is a faster match algorithm.
+	// Algorithm `Match` from http://ilpubs.stanford.edu:8090/115/1/1995-46.pdf
+	// TODO there is a faster match algorithm (fastMatch, changeDistillingMatch)
 	function getPartialMatches(t1, t2) {
 		if(DEBUG1){
 		console.log(t1.toString());
@@ -462,8 +436,6 @@ define([
 			});
 			return idx;
 		}
-		COUNTER.findmatch=0;
-		COUNTER.ldcalls = 0;
 		var M = {};
 		var t1Queue;
 		var t2List;
@@ -500,6 +472,8 @@ define([
 		return M;
 	}
 
+	/* Improved version of getPartialMatches. See http://ilpubs.stanford.edu:8090/115/1/1995-46.pdf 
+	   TODO not yet implemented. */
 	function fastMatch(t1, t2) {
 		var in1, in2, leafLabels, internalLabels;
 		in1 = [];
@@ -549,11 +523,13 @@ define([
 		return qwe;
 	}
 
+	/* A better version of fastMatch or getPartialMatches. See
+       http://www.ifi.uzh.ch/pax/uploads/pdf/publication/704/fluri-tse2007.pdf
+	   TODO as yet unimplemented/untested */
 	function changeDistillingMatch(t1, t2) {
 		var fThreshold = .6; // TODO tune this?
 		var tThreshold = .6;
 		var tThresholdExtra = .8;
-		// TODO inline this.
 		function match1(x, y) {
 			// Return false if no match, otherwise return the value similarity.
 			var sim = similarity(x.getValue(), y.getValue());
@@ -563,10 +539,6 @@ define([
 				return false;
 		}
 		function match2(x, y) {
-			// TODO which one?
-			/*return (x.getLabel() == y.getLabel() &&
-					similarity(x.getValue(), y.getValue()) >= fThreshold &&
-					common(x, y) >= tThreshold); */
 			var sim, com;
 			if (x.getLabel() == y.getLabel()) {
 				sim = similarity(x.getValue(), y.getValue());
@@ -592,7 +564,6 @@ define([
 		});
 		Mtmp = [];
 		array.forEach(leaves1, function(a) {
-			// TODO might need to find "best match," not first match.
 			array.forEach(leaves2, function(b) {
 				var sim = match1(a, b);
 				if (false !== sim) {
@@ -602,7 +573,7 @@ define([
 				return false;
 			});
 		});
-		// Now, sort the leaves based on sim. TODO do this online with a [balanced] BST.
+		// Now, sort the leaves based on sim. TODO do this online with a [balanced] BST (or dont use insertion sort).
 		var i, j, tmp;
 		for (i = 1; i < Mtmp.length-1; ++i) {
 			tmp = Mtmp[i];
@@ -662,7 +633,7 @@ define([
 	   this LCS computation.
 
 	   Important note: the LCS returned is set to references of `s1`, not of `s2`! */
-	// TODO do away with me!
+	// TODO replace with Myer's LCS
 	function LCS(s1, s2, equal) {
 		function longest(i, j) {
 			var arr;
@@ -698,20 +669,25 @@ define([
 		return longest(n1, n2);
 	}
 
-	// TODO doc
-	// A big assumption is that root(t1) == root(t2).
+	/**
+	  * The assumption is that t1 and t2 share identical roots. If not, the caller should add another level
+	  * by creating new roots for each tree that are identical.
+	  *
+	  * Based on http://ilpubs.stanford.edu:8090/115/1/1995-46.pdf
+	 */
 	EditorTree.treeDiff = function(t1, t2, map) {
+		/* M is for the initial matching set, Mp is the matching set as the algorithm creates an edit script,
+		   E is the edit script itself. */
 		var M, Mp, E;
 		var seed, counter;
 		var tmp;
 
 		// If the roots are not equal, add another level with identical roots.
-		if (!t1.equalsDeep(t2)) {
+		if (t1.beginTag != t2.beginTag || t1.text != t2.text || t1.depth != t2.depth) {
 			console.error("heads not equal");
 			return false;
 		}
 
-		// TODO should inline?
 		function doMatch(x, y) {
 			// Checking .matched might save a lookup of Mp which might be costly (just a guess).
 			return x.matched && y.matched && Mp[x.diffId].diffId == y.diffId;
@@ -823,13 +799,9 @@ define([
 			at.matched = false;
 			at.inOrder = 0xdeadbeef;
 		});
-		if (1) {
-			M = getPartialMatches(t1, t2);
-			DEBUG1?console.log("M1=",(function(){var x=0; for (i in M){console.log(i+"="+M[i]);++x;}return x;})()):null;
-		}else{
-			M = changeDistillingMatch(t1, t2);
-			DEBUG1?console.log("M2=",(function(){var x=0; for (i in M){console.log(i+"="+M[i]);++x;}return x;})()):null;
-		}
+		/* getPartialMatches is a very naive matching algorithm. changeDistillingMatch is a (as yet unimplemented) better
+		   matching algorith that should improve the performance of treeDiff. */
+		M = getPartialMatches(t1, t2);
 		Mp = {};
 		for (tmp in M)
 			Mp[tmp] = M[tmp];
@@ -844,7 +816,7 @@ define([
 			w = Mp[x.diffId];
 			if (!w) {
 				k = findPos(x);
-				z = Mp[y.diffId]; // TODO always exists? what?
+				z = Mp[y.diffId];
 				newId = globalIdCounter++;
 				E.push({ty:"insert", args:{data:x.data(), x:x.id, y:z.id, k:k, newId:newId}});
 				w = EditorTree.applyIns(x, z, k, newId);
@@ -872,7 +844,7 @@ define([
 					EditorTree.applyUpd(w, x);
 				}
 				if (!doMatch(y, v)) {
-					z = Mp[y.diffId]; // TODO always exists? what?
+					z = Mp[y.diffId];
 					DEBUG1?console.warn("case 2b"):null;
 					k = findPos(x);
 					oldK = w.parent.children.indexOf(w);
@@ -900,8 +872,6 @@ define([
 			var pos;
 			if (!Mp[w.diffId]) {
 				pos = w.parent.children.indexOf(w);
-				if (pos<0) // TODO remove
-					console.error("idx bad applyDel!",siblings.indexOf(x));
 				E.push({ty:"delete", args:{parentId:w.parent.id,k:pos}});
 				EditorTree.applyDel(w, pos);
 				map ? (delete map[w.id]) : null;
