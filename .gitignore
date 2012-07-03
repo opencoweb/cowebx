@@ -4,3 +4,4 @@ target/
 .project
 .settings/
 .pydevproject
+cowebx-widgets/bundles
