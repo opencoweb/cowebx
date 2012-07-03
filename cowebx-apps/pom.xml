@@ -5,7 +5,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.opencoweb.cowebx</groupId>
-	<version>0.8.2</version>
+	<version>0.8.3</version>
     <artifactId>cowebx-apps</artifactId>
     <packaging>pom</packaging>
     <name>OpenCoweb Extras Demos</name>
@@ -57,7 +57,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <coweb-version>0.8.2</coweb-version>
+        <coweb-version>0.8.3</coweb-version>
         <jetty-version>7.6.0.v20120127</jetty-version>
         <jetty-plugin-version>${jetty-version}</jetty-plugin-version>
     </properties>

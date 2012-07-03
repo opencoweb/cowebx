@@ -8,7 +8,7 @@
     <name>OpenCoweb Extras :: Widgets</name>
     <packaging>pom</packaging>
 	<description>Example widgets using the OpenCoweb Framework</description>
-    <version>0.8.2</version>
+    <version>0.8.3</version>
 
     <url>http://opencoweb.org</url>
     <inceptionYear>2011</inceptionYear>
@@ -57,7 +57,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <coweb-version>0.8.2</coweb-version>
+        <coweb-version>0.8.3</coweb-version>
         <jetty-version>7.6.0.v20120127</jetty-version>
         <jetty-plugin-version>${jetty-version}</jetty-plugin-version>
     </properties>
