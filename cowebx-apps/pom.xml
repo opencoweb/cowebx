@@ -1,18 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<parent>
-        <groupId>org.opencoweb.cowebx</groupId>
-        <artifactId>cowebx</artifactId>
-        <version>0.8.2</version>
-    </parent>
+	
 
     <modelVersion>4.0.0</modelVersion>
+    <groupId>org.opencoweb.cowebx</groupId>
+	<version>0.8.2</version>
     <artifactId>cowebx-apps</artifactId>
     <packaging>pom</packaging>
     <name>OpenCoweb Extras Demos</name>
-    <description>Example applications and widgets using the OpenCoweb Framework</description>
+    <description>Example applications using the OpenCoweb Framework</description>
+    <url>http://opencoweb.org</url>
+    <inceptionYear>2011</inceptionYear>
+    <organization>
+        <name>The Dojo Foundation</name>
+        <url>http://dojofoundation.org</url>
+    </organization>
     
+    <licenses>
+        <license>
+            <name>The New BSD License</name>
+            <url>http://www.opensource.org/licenses/bsd-license.html</url>
+        </license>
+        <license>
+            <name>The Academic Free License, v. 2.1</name>
+            <url>http://en.wikipedia.org/wiki/Academic_Free_License</url>
+        </license>
+    </licenses>
+    
+    <developers>
+        <developer>
+            <id>parente</id>
+            <name>Peter Parente</name>
+            <email>pparent@us.ibm.com</email>
+            <organization>IBM Corporation</organization>
+        </developer>
+        <developer>
+            <id>bpburns</id>
+            <name>Brian Burns</name>
+            <email>bburns@us.ibm.com</email>
+            <organization>IBM Corporation</organization>
+        </developer>
+        <developer>
+            <id>vinomaster</id>
+            <name>Dan Gisolfi</name>
+            <email>gisolfi@us.ibm.com</email>
+            <organization>IBM Corporation</organization>
+        </developer>
+    </developers>
+    
+    <scm>
+        <connection>scm:git:git@github.com:opencoweb/cowebx.git</connection>
+        <developerConnection>scm:git:git@github.com:opencoweb/cowebx.git</developerConnection>
+        <url>git@github.com:opencoweb/cowebx.git</url>
+    </scm>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <coweb-version>0.8.2</coweb-version>
+        <jetty-version>7.6.0.v20120127</jetty-version>
+        <jetty-plugin-version>${jetty-version}</jetty-plugin-version>
+    </properties>
+
     <modules>
         <module>cotree</module>
         <module>comap</module>
@@ -23,5 +72,56 @@
         <module>launcher</module>
         <module>cotree_no_mod</module>
     </modules>
+
+	<build>
+        <defaultGoal>install</defaultGoal>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.7</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>2.3.2</version>
+                    <configuration>
+                        <source>1.6</source>
+                        <target>1.6</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.1</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
