@@ -75,6 +75,10 @@ require(["dojo/dom", "dojo/_base/array", "TreeTools", "dojo/domReady!"], functio
         if (!deepEquals(tree1, tree2)) {
             Failures.push(id1.substring(0, id1.length - 4));
         }
+		if (tree1.toHTML() != tree2.toHTML()) {
+            Failures.push(id1.substring(0, id1.length - 4));
+        }
+
 
         // Now, apply diffs to tree1 (EditorTree.treeDiff changes tree1 as it proceeds).
         var tree1_tochange = EditorTree.createTreeFromElement(id1);

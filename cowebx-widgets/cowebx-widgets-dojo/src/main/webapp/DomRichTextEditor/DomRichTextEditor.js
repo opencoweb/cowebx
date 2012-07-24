@@ -21,16 +21,16 @@ define([
 	"dojo/text!./TextEditor.css",
 	"dojo/dom-construct",
 	"dojo/_base/array",
+	"dojo/_base/declare",
 	"./TreeTools",
+	"./EditorData",
 	"dojox/mobile/parser",
 	"dijit/layout/ContentPane",
 	"dijit/layout/BorderContainer",
-	"./lib/rangy/uncompressed/rangy-core",
-	"./lib/rangy/uncompressed/rangy-selectionsaverestore",
 	"./lib/diff_match_patch"
 ], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb,
 		attendance, AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors,
-		css, domConstruct, array, EditorTree) {
+		css, domConstruct, array, declare, EditorTree, EditorData) {
 
 	function preprocessTree(t) {
 		/* Make sure the root is the exact node: `<div></div>`
@@ -46,49 +46,7 @@ define([
 		}
 	}
 
-	/* Search for all characters with code point in U+E000 to U+F8FF, and find
-	   a code point that is not in use, then return it.
-	   Returns a code point or -1 if none are available.
-	   */
-	function findUnusedCharCode(str) {
-		var used = {};
-		var code, i;
-		var l = str.length;
-		for (i = 0; i < l; ++i) {
-			code = str.charCodeAt(i);
-			if (0xE000 <= code && code <= 0xF8FF)
-				used[code] = true;
-		}
-		// TODO is ther a more clever way to find a free slot?
-		// 6400 is the number of code points in U+E000 to U+F8FF.
-		for (i = 0; i < 6400; ++i) {
-			if (true !== used[0xE000 + i])
-				return i;
-		}
-		return -1; // Should NEVER happen in production...who has 6400 users?
-	}
-
-	/* Encapsulates the editor content. This object can be considered in three
-	   different forms:
-	     * Dom tree
-		 * HTML string with private Unicode code points denoting cursor
-		   positions of all active users
-		 * HTML string that is displayed in the browser - no cursor information
-
-		 Going back and forth between the three forms occurs so frequently that
-		 maintaining a single object and requesting the different forms whenever
-		 appropriate is the easier way to manage the collaborative editor.
-
-		 */
-	var EditorData = function() {
-		this.syncQueue      = [];
-		this.domTree        = null;
-		this.domTree_map    = null;
-	};
-	var proto = EditorData.prototype;
-	proto.setSyncQueue = function(q) { this.syncQueue = q; }
-
-	return dojo.declare("DomRichTextEditor",
+	return declare("DomRichTextEditor",
 			[_Widget, _TemplatedMixin, _Contained],
 {
 	// widget template
@@ -101,7 +59,7 @@ define([
 		dojo.fadeIn({node:this.editorNode,duration:1000}).play();
 	},
 
-	buildEditor: function(){
+	buildEditor: function() {
 		//1. Process args
 		window.foo          = this;
 		if (!this.collabID || this.collabID==undefined)
@@ -131,23 +89,15 @@ define([
 		this.differ = new diff_match_patch();
 
 		//3. parameters
+		this._editorData = new EditorData(this._textarea);
 		this.syncs          = [];
-		this.oldSnapshot 	= this.snapshot();
-		this.newSnapshot 	= null;
-		this.t 				= null;
-		this.value 			= "";
-		this.valueNoRangy   = "";
-		this.interval		= 100;
+		this.oldSnapshot    = this.snapshot();
+		this.newSnapshot    = null;
+		this.timeoutId      = null;
+		this.interval       = 100;
 		this.title          = "Untitled Document";
 		this._skipRestore   = false;
-
-		//3b new tree parameters.
-		this._editorData = new EditorData();
-
-		//3c cursor parameters.
-		this._hasPlacedCursor = false;
-		this._cursorCodeL = -1;
-		this._cursorCodeR = -1;
+		this._ready = false;
 
 		//4. Style / connect
 		this._style();
@@ -170,13 +120,14 @@ define([
 	},
 
 	onCollabReady : function(){
+		this._ready = true;
 		this.collab.pauseSync();
 		this.resize();
 	},
 
 	listenInit : function(){
 		this.collab.pauseSync();
-		this.t = setTimeout(dojo.hitch(this, "iterate"), this.interval);
+		this.timeoutId = setTimeout(dojo.hitch(this, "iterate"), this.interval);
 	},
 
 	domTree : function() {
@@ -193,8 +144,10 @@ define([
 
 	onRemoteAddNode : function(data) {
 		var value = data.value;
-		var newNode = EditorTree.applyIns(value.x,
-				this.domMap()[value.parentId], data.position,
+		var newNode = EditorTree.applyIns(
+				value.x,
+				this.domMap()[value.parentId],
+				data.position,
 				value.newId);
 		this.domMap()[value.newId] = newNode;
 	},
@@ -250,7 +203,10 @@ define([
 				this.onRemoteUpdateNode(obj);
 			}
 		}, this);
-		this._textarea.innerHTML = this.toHTML();
+		this._editorData.generateCursorHTML();
+		console.log("applySyncs first:"+this.domTree().toHTML());
+		this._textarea.innerHTML = this._editorData.generateLocalHTML();
+		console.log("applysyncs seond:"+this._editorData.getLocalHTML());
 		this._editorData.setSyncQueue([]);
 	},
 
@@ -264,7 +220,7 @@ define([
 		// Get diffs, then send syncs.
 		var s=oldTree.toHTML()+"\n"+newTree.toHTML();
 		diffs = EditorTree.treeDiff(oldTree, newTree, this.domMap());
-		if (oldTree.toHTML() !=newTree.toHTML()) {
+		if (oldTree.toHTML() != newTree.toHTML()) {
 			console.error("diff broke");
 			console.log(s);
 			console.log(oldTree.toHTML());
@@ -281,27 +237,34 @@ define([
 		   TODO It would be better if we could avoid this step somehow
 		   (eg. make createTreeFromElement always be the same as the input).
 		 */
-		var html = this.toHTML();
-		if (html != newHTML)
-			this._textarea.innerHTML = html;
+		var html = this._editorData.getLocalHTML();
+		if (html != newHTML) {
+			// TODO this._textarea.innerHTML = html;
+		}
+		this._editorData.generateCursorHTML();
 		return diffs;
 	},
 
-	generateDomTreeMap : function() {
-		this._editorData.domTree_map = {};
-		var map = this.domMap();
-		map[null]  = null;
-		this.domTree().levelOrder(function(at) {
-			map[at.id] = at;
-		});
-	},
-
 	iterate : function() {
-		if (null === this.domTree()) { // First user, construct dom tree now.
+		if (!this._ready) {
+			this.timeoutId = setTimeout(
+					dojo.hitch(this, "iterate"), this.interval);
+			return;
+		}
+		if (null === this.domTree()) {
+			this._editorData.setUniqueId(0); /* First user gets id 0. */
+			/* Add local cursor position to construct Dom tree which contains
+			   everyone's cursor information (from current-html => cursor-html
+			   => tree). */
+			var value = this._editorData.addLocalCursorSpan();
+			if (false === value)
+				throw Error("Cursor data not available."); // TODO what to do...
+
 			this.newDiv.innerHTML = "";
-			this.newDiv.innerHTML = this._textarea.innerHTML;
-			this._editorData.domTree = EditorTree.createTreeFromElement(this.newDiv);
-			this.generateDomTreeMap();
+			this.newDiv.innerHTML = value; // cursor-html
+			this._editorData.setDomTree( // cursor-tree
+					EditorTree.createTreeFromElement(this.newDiv));
+			this._editorData.generateDomTreeMap();
 		}
 		this.iterateSend();
 		this.iterateRecv();
@@ -318,12 +281,12 @@ define([
 	   innerHTML works without modification on this client, it will work on
 	   all clients. However, this is likely not 100 percent correct. */
 	normalizeHTML : function() {
-		var sel = rangy.saveSelection();
+		//var sel = rangy.saveSelection();
 		this.divChecker.innerHTML = "";
 		this.divChecker.innerHTML = this._textarea.innerHTML;
 		this._textarea.innerHTML = this.divChecker.innerHTML;
-		if (sel)
-			rangy.restoreSelection(sel);
+		//if (sel)
+		//	rangy.restoreSelection(sel);
 	},
 
 	eachDiff : function(dd) {
@@ -369,77 +332,39 @@ define([
 		}
 	},
 
-	/* Assumes rangy's spans are in the editor. */
-	placeCursor : function() {
-		var spans = {};
-		this.value = this.snapshot();
-		this.removeRangySpans(spans);
-		/* If the first span exists, move the second span over by one for the
-		   first span's special code point character. */
-		if (spans.firstSpan)
-			++spans.secondSpan.pos;
-		this.value
-		this.restoreRangySpan(spans.firstSpan);
-		this.restoreRangySpan(spans.secondSpan);
-	},
-
-	removeCodePoints : function(str) {
-		var idx, codeStr, len;
-		if (-1 !== this._cursorCodeL) {
-			codeStr = String.fromCharCode(this._cursorCodeL);
-			idx = str.indexOf(codeStr);
-			if (-1 !== idx) {
-				len = str.length;
-				str = str.substr(0, idx) + str.substr(idx + 1, len);
-			}
-		}
-		if (-1 !== this._cursorCodeR) {
-			codeStr = String.fromCharCode(this._cursorCodeR);
-			idx = str.indexOf(codeStr);
-			if (-1 !== idx) {
-				len = str.length;
-				str = str.substr(0, idx) + str.substr(idx + 1, len);
-			}
-		}
-		return str;
-	},
-
 	iterateSend : function() {
-		//this.value = this.snapshot();
-		// First, remove our cursor code points.
-		//this.value = this.removeCodePoints(this.value);
-		//var sel = rangy.saveSelection();
-		//this.placeCursor();
+		/* First, check if the cursor has moved, and if it has, update the
+		   custom cursor spans. */
+		var value = this._editorData.addLocalCursorSpan();
+		if (false === value)
+			throw Error("Cursor data not available."); // TODO what to do...
+
 		var syncs = null;
-		this.newSnapshot = this.snapshot();
+		this.newSnapshot = value;
 		if (null !== this.oldSnapshot && null !== this.newSnapshot) {
 			if (this.oldSnapshot != this.newSnapshot) {
-				this.normalizeHTML();
-				this.newSnapshot = this.snapshot();
+				// TODO this.normalizeHTML();
+				value = this._editorData.addLocalCursorSpan();
+				if (false === value)
+					throw Error("Cursor data not available."); // TODO
+				this.newSnapshot = value;
 				if (this.oldSnapshot != this.newSnapshot) {
 					syncs = this.syncs.concat(this.doTreeDiff(this.domTree(),
 								this.newSnapshot));
-					if(DEBUG){console.log("FIRST");array.forEach(syncs,
-							function(at) { console.log(at); });}
 				}
 			}
 			if (syncs) {
 				array.forEach(syncs, this.eachDiff, this);
 			}
 		}
-		//if (sel)
-		//	rangy.restoreSelection(sel);
 	},
 
 	iterateRecv : function() {
 		// Get local typing syncs.
 		this.syncs = [];
 		var currentSnap = this.snapshot();
-		if (this.newSnapshot != currentSnap)
-		{
+		if (this.newSnapshot != currentSnap) {
 			this.syncs = this.doTreeDiff(this.domTree(), currentSnap);
-			if(DEBUG){console.log("SECOND");array.forEach(this.syncs,
-					function(at) { console.log(at); });}
 		}
 
 		this.collab.resumeSync();
@@ -447,7 +372,8 @@ define([
 		if (this.syncQueue().length > 0)
 			this.applySyncs();
 		this.oldSnapshot = this.snapshot();
-		this.t = setTimeout(dojo.hitch(this, "iterate"), this.interval);
+		this.timeoutId = setTimeout(dojo.hitch(this, "iterate"), this.interval);
+		this._editorData.placeLocalCursor();
 	},
 
 	onUserChange : function(params) {
@@ -463,100 +389,6 @@ define([
 		}
 	},
 
-	removeRangySpans : function(spans) {
-		/* The Rangy span will be one of search# or search#a (or neither). */
-		var val = this.value;
-		var search1 = '<span style="line-height: 0; display: none;" id="1sel';
-		var search1a = '<span id="1sel';
-		var search2 = '<span style="line-height: 0; display: none;" id="2sel';
-		var search2a = '<span id="2sel';
-		var start, end;
-		/* I think WebKit inserts a weird character inside the span. */
-		var markerLength = (dojo.isWebKit) ? 78 : 77;
-
-		spans.firstSpan = null;
-		spans.secondSpan = null;
-		// Non-collapsed selection?
-		var start = val.indexOf(search1);
-		if (-1 == start)
-			start = val.indexOf(search1a);
-		if (-1 != start) {
-			end = val.indexOf(search2);
-			if (-1 == end)
-				end = val.indexOf(search2a);
-			if (-1 == end)
-				return;
-
-			// Guaranteed both spans exist.
-			if (start > end) {
-				var tmp = end;
-				end = start;
-				start = tmp;
-			}
-			spans.firstSpan = {
-				pos : start,
-				text : val.substring(start, start + markerLength),
-				skip : false
-			};
-			spans.secondSpan = {
-				pos : end - markerLength,
-				text : val.substring(end, end + markerLength),
-				skip : false
-			};
-			// Order is important below!
-			this.value = this.value.substring(0, end) +
-				this.value.substring(end + markerLength);
-			this.value = this.value.substring(0, start) +
-				this.value.substring(start + markerLength);
-		} else {
-			// Collapsed selection.
-			end = val.indexOf(search2);
-			if (-1 == end)
-				end = val.indexOf(search2a);
-			if (-1 == end) {
-				return;
-			}
-			// Guaranteed only second span exists.
-			spans.secondSpan = {
-				pos : end,
-				text : val.substring(end, end + markerLength),
-				skip : false
-			};
-			this.value = this.value.substring(0, end) +
-				this.value.substring(end + markerLength);
-		}
-
-	},
-
-	restoreRangySpan : function(data) {
-		/* data = {
-			 .skip = shouldn't restore rangy span HTML?
-			 .pos = position of cursor element
-			 .text = rangy span HTML
-		   }
-		   */
-		if (!data || data.skip)
-			return;
-		this.value = this.value.substring(0, data.pos) + data.text +
-			this.value.substring(data.pos);
-	},
-
-	clearSelection: function() {
-		this._skipRestore = true;
-		var sel, range;
-		if (window.getSelection) {
-			sel = window.getSelection();
-			if (sel.rangeCount) {
-				range = sel.getRangeAt(0);
-				sel.collapse(range.startContainer, range.startOffset);
-			}
-		} else if ((sel = document.selection) && sel.type == "Text") {
-			range = sel.createRange();
-			range.collapse(true);
-			range.select();
-		}
-	},
-
 	willHTMLChange : function(html) {
 		this.divChecker.innerHTML = "";
 		this.divChecker.innerHTML = html;
@@ -567,7 +399,7 @@ define([
 	},
 
 	snapshot : function(){
-		return this._getValue();
+		return this._editorData.addLocalCursorSpan();
 	},
 
 	connect : function(){
@@ -602,7 +434,6 @@ define([
 				at.parent = at.parent.id;
 		});
 		var state = {
-			snapshot: this.newSnapshot,
 			domTree : this.domTree(),
 			attendees: this._attendeeList.attendees,
 			title: this.title
@@ -632,16 +463,17 @@ define([
 				q.push({at:ntree, rawAt:child});
 			});
 		}
-		this._editorData.domTree_map = map;
+		this._editorData.setDomTreeMap(map);
 		return tree;
 	},
 
 	onStateResponse : function(obj) {
+						  console.log("in onstate response");
 		this._textarea.innerHTML = '';
-		this._editorData.domTree = this.reconstructTree(obj.domTree);
-		this._textarea.innerHTML = this.toHTML();
-		// TODO check incompatible client  by doing a divChecker validation.
-		this.newSnapshot = this._textarea.innerHTML;
+		this._editorData.setDomTree(this.reconstructTree(obj.domTree));
+		this._textarea.innerHTML = this._editorData.toHTML();
+		// TODO check incompatible client by doing a divChecker validation.
+		this.oldSnapshot = this.newSnapshot = this.snapshot();
 		this.title = obj.title;
 		this._title.value = this.title;
 		var userCount = 0;
@@ -656,17 +488,7 @@ define([
 			};
 			this._attendeeList.onRemoteUserJoin(o);
 		}
-		this._hasPlacedCursor = false;
-		// Should be unique for each user.
-		this._cursorCodeL = 0xE000 + userCount;
-		this._cursorCodeR = 0xE000 + userCount + 1;
-	},
-
-	toHTML : function() {
-		/* We don't want the outermost <div>. The assumption is that domTree
-		   always has the outer <div> elements. */
-		var HTML = this.domTree().toHTML();
-		return HTML.substring(5, HTML.length - 6);
+		this._editorData.setUniqueId(userCount);
 	},
 
 	_getValue : function() {
@@ -726,7 +548,7 @@ define([
 
 		dojo.style(this._toolbar.parentNode,'height','37px');
 		dojo.style(this._toolbar.parentNode,'border','0px');
-		dojo.style(this._toolbar.parentNode,'borderBottom', '1px solid #BBBBBB')
+		dojo.style(this._toolbar.parentNode,'borderBottom','1px solid #BBBBBB');
 
 		dojo.style(this._toolbar,'height','37px');
 		dojo.style(this._toolbar, 'width','100%');
@@ -898,13 +720,13 @@ define([
 	},
 
 	cleanup : function() {
-		if (this.t != null) {
-			clearTimeout(this.t);
-			this. t = null;
+		if (this.timeoutId != null) {
+			clearTimeout(this.timeoutId);
+			this.timeoutId = null;
 		}
 	}
 
-}); // end dojo.declare("DomRichTextEditor")
+}); // end declare("DomRichTextEditor")
 
 }); // end define()
 
