@@ -86,7 +86,7 @@ define([
 		this.divChecker = domConstruct.create("div");
 		this.oldDiv = domConstruct.create("div");
 		this.newDiv = domConstruct.create("div");
-		this.differ = new diff_match_patch();
+		// TODO remove this.differ = new diff_match_patch();
 
 		//3. parameters
 		this._editorData = new EditorData(this._textarea);
@@ -96,8 +96,7 @@ define([
 		this.timeoutId      = null;
 		this.interval       = 100;
 		this.title          = "Untitled Document";
-		this._skipRestore   = false;
-		this._ready = false;
+		this._ready         = false;
 
 		//4. Style / connect
 		this._style();
@@ -190,7 +189,8 @@ define([
 	},
 
 	applySyncs : function() {
-		array.forEach(this.syncQueue(), function(obj) {
+		var syncs = this.syncQueue();
+		array.forEach(syncs, function(obj) {
 			if(obj.type == "insert" && obj.value["force"]) {
 				this.onRemoteAddNode(obj);
 			} else if(obj.type == "delete" && obj.value["force"]) {
@@ -203,10 +203,8 @@ define([
 				this.onRemoteUpdateNode(obj);
 			}
 		}, this);
-		this._editorData.generateCursorHTML();
-		console.log("applySyncs first:"+this.domTree().toHTML());
+		this._editorData.generateCursorHTML("2");
 		this._textarea.innerHTML = this._editorData.generateLocalHTML();
-		console.log("applysyncs seond:"+this._editorData.getLocalHTML());
 		this._editorData.setSyncQueue([]);
 	},
 
@@ -241,7 +239,7 @@ define([
 		if (html != newHTML) {
 			// TODO this._textarea.innerHTML = html;
 		}
-		this._editorData.generateCursorHTML();
+		this._editorData.generateCursorHTML("3");
 		return diffs;
 	},
 
@@ -264,7 +262,6 @@ define([
 			this.newDiv.innerHTML = value; // cursor-html
 			this._editorData.setDomTree( // cursor-tree
 					EditorTree.createTreeFromElement(this.newDiv));
-			this._editorData.generateDomTreeMap();
 		}
 		this.iterateSend();
 		this.iterateRecv();
@@ -335,20 +332,18 @@ define([
 	iterateSend : function() {
 		/* First, check if the cursor has moved, and if it has, update the
 		   custom cursor spans. */
-		var value = this._editorData.addLocalCursorSpan();
-		if (false === value)
-			throw Error("Cursor data not available."); // TODO what to do...
+		var value = this.snapshot();
 
 		var syncs = null;
 		this.newSnapshot = value;
 		if (null !== this.oldSnapshot && null !== this.newSnapshot) {
 			if (this.oldSnapshot != this.newSnapshot) {
 				// TODO this.normalizeHTML();
-				value = this._editorData.addLocalCursorSpan();
-				if (false === value)
-					throw Error("Cursor data not available."); // TODO
+				value = this.snapshot();
 				this.newSnapshot = value;
 				if (this.oldSnapshot != this.newSnapshot) {
+					console.log("old:"+this.oldSnapshot);
+					console.log("new:"+this.newSnapshot);
 					syncs = this.syncs.concat(this.doTreeDiff(this.domTree(),
 								this.newSnapshot));
 				}
@@ -468,9 +463,8 @@ define([
 	},
 
 	onStateResponse : function(obj) {
-						  console.log("in onstate response");
 		this._textarea.innerHTML = '';
-		this._editorData.setDomTree(this.reconstructTree(obj.domTree));
+		this._editorData.setDomTree(this.reconstructTree(obj.domTree), false);
 		this._textarea.innerHTML = this._editorData.toHTML();
 		// TODO check incompatible client by doing a divChecker validation.
 		this.oldSnapshot = this.newSnapshot = this.snapshot();
