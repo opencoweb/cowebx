@@ -65,13 +65,14 @@ define([
 	};
 
 	proto.generateCursorHTML = function(a) {
-		//console.log(a+":cur:"+this._cursorHTML);
 		this._cursorHTML = this.domTree.toHTML();
+		if (this._cursorHTML.indexOf("<<") >= 0) {
+			debugger;
+		}
 		/* We don't want the outermost <div>. The assumption is that domTree
 		   always has the outer <div> elements. */
 		this._cursorHTML = this._cursorHTML.substring(5,
 				this._cursorHTML.length - 6);
-		//console.log(a+":nur:"+this._cursorHTML);
 		/* Invalidate cursor position index caches. */
 		this._cacheLpos = this._cacheRpos = false;
 	};
@@ -95,7 +96,6 @@ define([
 			   local cursor data exists in cursor-html. If not, add the cursor
 			   at the beginning of the text and return that. */
 			var rpos = this.getCursorHTML().indexOf(this.rcursorHTML);
-			//console.log("oops:"+rpos);
 			if (rpos >= 0) {
 				return this.getCursorHTML();
 			} else {
@@ -103,8 +103,6 @@ define([
 				return value;
 			}
 		}
-		//console.log("span:"+spans.secondSpan.pos);
-		//console.log(value);
 		value = this._removeRangy(value, spans);
 
 		/* Order is important below! */
@@ -127,30 +125,39 @@ define([
 		var spans = {};
 		this._findRangy(value, spans);
 		value = this._removeRangy(value, spans);
-		//console.log("a:"+this.textarea.innerHTML);
-		//console.log("b:"+value);
-		//console.log(lpos, rpos);
-		//console.log("placed at %d %d",lpos,rpos);
 
 		var rangeInfo = {
 			collapsed : true,
 			markerId : this.rrangyId
 		};
+
+		var backwards = false;
+		if (lpos >= 0) {
+			/* Is the range backwards? */
+			if (lpos > rpos) {
+				backwards = true;
+				var tmp = lpos;
+				lpos = rpos;
+				rpos = tmp;
+				console.log("is backwards ",lpos, rpos);
+			}
+		}
+
 		/* Must do right cursor first, then left cursor. */
 		value = value.substring(0, rpos) + this.rrangyHTML +
 			value.substring(rpos);
-		//console.log("c:"+value);
 		if (lpos >= 0) {
 			rangeInfo.collapsed = false;
 			rangeInfo.startMarkerId = this.lrangyId;
 			rangeInfo.endMarkerId = this.rrangyId;
 			delete rangeInfo.markerId;
-			rangeInfo.backwards = false; // TODO support backwards...
+			rangeInfo.backwards = backwards;
 			value = value.substring(0, lpos) + this.lrangyHTML +
 				value.substring(lpos);
 		}
-		//console.log("d:"+value);
 		this.textarea.innerHTML = value;
+		if (this.textarea.innerHTML != value)
+			debugger;
 		
 		/* More internal rangy uncompressed v1.2.2 hacks. */
 		var rangeInfos = sel.rangeInfos;
@@ -168,13 +175,7 @@ define([
 			rangeInfos[idx] = rangeInfo;
 		}
 
-		//console.log("rest"+this.textarea.innerHTML);
 		rangy.restoreSelection(sel);
-		//console.log("tser:"+this.textarea.innerHTML);
-		sel = rangy.saveSelection();
-		//console.log("1tser:"+this.textarea.innerHTML);
-		rangy.restoreSelection(sel);
-		//console.log("2tser:"+this.textarea.innerHTML);
 	};
 
 	proto.generateDomTreeMap = function() {
@@ -201,14 +202,16 @@ define([
 	};
 
 	/* Returns -1 if the cursor span doesn't exist, otherwise the position. */
-	proto.myCursorPosition = function(which) {
+	proto.myCursorPosition = function(which, mustExist) {
+		if (undefined === mustExist)
+			mustExist = false;
 		if ("l" === which) {
 			if (false !== this._cacheLpos)
 				return this._cacheLpos;
 			this._cacheLpos = this.getCursorHTML().indexOf(this.lcursorHTML);
 			return this._cacheLpos;
 		} else {
-			if (false !== this._cacheRpos)
+			if (false !== this._cacheRpos && !mustExist)
 				return this._cacheRpos;
 			/* Must subtract left cursor string length if it exists. */
 			var lpos = this.myCursorPosition("l");
@@ -216,8 +219,11 @@ define([
 			/* If lpos >= 0, then the right cursor must exist. */
 			if (lpos >= 0)
 				this._cacheRpos -= this.lcursorHTML.length;
-			else if (this._cacheRpos < 0)
+			else if (this._cacheRpos < 0) {
+				if (mustExist)
+					return -1;
 				this._cacheRpos = 0;
+			}
 			return this._cacheRpos;
 		}
 	}
@@ -234,16 +240,15 @@ define([
 	proto.generateLocalHTML = function() {
 		var value = this.getCursorHTML();
 		var lpos = this.myCursorPosition("l");
-		var rpos = this.myCursorPosition("r");
-		//console.log("Z %d %d",lpos,rpos);
+		var rpos = this.myCursorPosition("r", true);
 		/* First remove right span, then left. */
-		//console.log("Y %d %s",this.rcursorHTML.length,value);
-		value = value.substring(0, rpos) +
-			value.substring(rpos + this.rcursorHTML.length);
-		//console.log("Y:"+value);
 		if (lpos >= 0) {
 			value = value.substring(0, lpos) +
 				value.substring(lpos + this.lcursorHTML.length);
+		}
+		if (rpos >= 0) {
+			value = value.substring(0, rpos) +
+				value.substring(rpos + this.rcursorHTML.length);
 		}
 		return value;
 	};
@@ -272,11 +277,14 @@ define([
 			end = raw.indexOf(search2);
 			if (-1 == end)
 				end = raw.indexOf(search2a);
-			if (-1 == end)
+			if (-1 == end) {
 				return false;
+			}
 
 			/* Guaranteed both spans exist. */
+			var backwards = false;
 			if (start > end) {
+				backwards = true;
 				var tmp = end;
 				end = start;
 				start = tmp;
@@ -289,6 +297,12 @@ define([
 				pos : end - markerLength,
 				text : raw.substring(end, end + markerLength),
 			};
+			if (backwards) {
+				tmp = spans.firstSpan;
+				spans.firstSpan = spans.secondSpan;
+				spans.secondSpan = tmp;
+				console.log("BACK ",spans.firstSpan.pos,spans.secondSpan.pos);
+			}
 		} else {
 			/* Collapsed selection. */
 			end = raw.indexOf(search2);

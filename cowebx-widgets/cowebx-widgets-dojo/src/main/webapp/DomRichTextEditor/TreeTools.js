@@ -5,9 +5,9 @@
   *   2) A tree-based diff algorithm that created a sequence of operations to
   *      transform one tree to another.
   *
-  * The two components logically should be separate, although in this file they are
-  * tightly coupled. Future work should loosen (by a large amount) this coupling
-  * so that generic applications can compare and diff tree structures.
+  * The two components logically should be separate, although in this file they
+  * are tightly coupled. Future work should loosen (by a large amount) this
+  * coupling so that generic applications can compare and diff tree structures.
   *
   */
 
@@ -53,11 +53,12 @@ define([
 	/* Essentially there are two types of nodes:
 		 1. Internal nodes represent a JavaScript DomNode.
 		 2. Leaf nodes contain the text of the HTML tag.
-	   There is an exception - empty HTML elements (ex: "<b></b>") will be a leaf node.
-	   Use the nodeType member to determime the type of node (either Node.ELEMENT_NODE
-	   or Node.TEXT_NODE).
+	   There is an exception - empty HTML elements (ex: "<b></b>") will be a
+	   leaf node. Use the nodeType member to determime the type of node
+	   (either Node.ELEMENT_NODE or Node.TEXT_NODE).
 
-	   The constructor simple sets all members to null. `parent` is null only for the root.
+	   The constructor simple sets all members to null. `parent` is null only
+	   for the root.
 	   */
 	var mangledObj = {wont:123,work:321};
 	var EditorTree = function(p, id) {
@@ -84,7 +85,6 @@ define([
 	var proto = EditorTree.prototype;
 
 	proto.data =  function() {
-		//return [this.beginTag, this.endTag, this.text, this.nodeType, this.id];
 		return {
 			beginTag    : this.beginTag,
 			endTag      : this.endTag,
@@ -126,7 +126,7 @@ define([
 	// TODO consider making functions non-recursive.
 	proto.toString = function(depth,test) {
 		function tabs(n) {
-			return "                                            ".substring(0, n*4);
+			return "                                        ".substring(0, n*4);
 		}
 		if (undefined === depth || null === depth)
 			depth = 0;
@@ -153,7 +153,8 @@ define([
 	// TODO consider making functions non-recursive.
 	/* Convert the tree into a raw HTML string we can use to set innerHTML. */
 	proto.toHTML = function() {
-		// JavaScript's += is apparently really fast, so no need to worry about large strings.
+		/* JavaScript's += is apparently really fast, so no need to worry
+		   about large strings. */
 		var s;
 		if (Node.ELEMENT_NODE == this.nodeType) {
 			s = this.beginTag;
@@ -191,7 +192,8 @@ define([
 		cb(this);
 	};
 
-	/* Performs a level order traversal where the levels are visited in ascending order. Ex:
+	/* Performs a level order traversal where the levels are visited in
+	   ascending order. Ex:
 		A
 		|\
 		| --
@@ -335,11 +337,13 @@ define([
 		 * children - Array of nodes.
 	   */
 	// TODO should I use a comprehensive list? might not be as fast...
-	//var emptyTagList = ["br", "hr", "img", "link", "input", "area", "param", "col", "meta", "base", "embed"];
+	/*var emptyTagList = ["br", "hr", "img", "link", "input", "area", "param",
+	  "col", "meta", "base", "embed"]; */
 	var emptyTagList = ["br", "hr", "img"];
 	EditorTree.createTreeFromElement = function(id) {
-		/* Some versions of Firefox don't support node.outerHTML, so use this workaround. It probably
-		   isn't particularly fast, though. Firefox 11 began supporting outerHTML natively. */
+		/* Some versions of Firefox don't support node.outerHTML, so use this
+		   workaround. It probably isn't particularly fast, though. Firefox 11
+		   began supporting outerHTML natively. */
 		function getOuterHTML(node) {
 			if (node.outerHTML)
 				return node.outerHTML;
@@ -348,13 +352,16 @@ define([
 			return div.innerHTML;
 		}
 		function extractHTML(domNode, treeNode) {
-			/* Extracts the first tag and its contents. The results are stored in `node`.
-			   Example: extractHTML("<b class='big'><u>hello</u></b>", tree) sets
-			   tree.beginTag = "<b class='big'>' and tree.endTag = "</b>".
+			/* Extracts the first tag and its contents. The results are stored
+			   in `node`.
+			   Example: extractHTML("<b class='big'><u>hello</u></b>", tree)
+			   sets tree.beginTag = "<b class='big'>' and tree.endTag = "</b>".
 
-			   This function makes assumptions about the structure of the raw outerHTML string.
+			   This function makes assumptions about the structure of the raw
+			   outerHTML string.
 
-			   Returns true if this node is a pseudo leaf - a DOM node with a single TEXT_NODE child, false otherwise.
+			   Returns true if this node is a pseudo leaf - a DOM node with a
+			   single TEXT_NODE child, false otherwise.
 			   */
 			var end, outer, tagLen, innerLen, child;
 			outer = getOuterHTML(domNode);

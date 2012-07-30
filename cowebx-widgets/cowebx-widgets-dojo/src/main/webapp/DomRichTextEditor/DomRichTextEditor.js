@@ -190,6 +190,8 @@ define([
 
 	applySyncs : function() {
 		var syncs = this.syncQueue();
+		console.log(syncs);
+		console.log(this._editorData.generateLocalHTML());
 		array.forEach(syncs, function(obj) {
 			if(obj.type == "insert" && obj.value["force"]) {
 				this.onRemoteAddNode(obj);
@@ -204,7 +206,14 @@ define([
 			}
 		}, this);
 		this._editorData.generateCursorHTML("2");
-		this._textarea.innerHTML = this._editorData.generateLocalHTML();
+		console.log(this._editorData.generateLocalHTML()+"\n");
+		var s = this._editorData.generateLocalHTML();
+		this._textarea.innerHTML = s;//this._editorData.generateLocalHTML();
+		if (this._textarea.innerHTML != s) {
+			console.log(syncs);
+			debugger;
+			this._editorData.generateLocalHTML();
+		}
 		this._editorData.setSyncQueue([]);
 	},
 
@@ -342,10 +351,12 @@ define([
 				value = this.snapshot();
 				this.newSnapshot = value;
 				if (this.oldSnapshot != this.newSnapshot) {
-					console.log("old:"+this.oldSnapshot);
-					console.log("new:"+this.newSnapshot);
+					//console.log(this.oldSnapshot);
+					//console.log(this.newSnapshot+"\n");
 					syncs = this.syncs.concat(this.doTreeDiff(this.domTree(),
 								this.newSnapshot));
+					console.log(syncs);
+					console.log("");
 				}
 			}
 			if (syncs) {
