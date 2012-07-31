@@ -67,7 +67,6 @@
         <module>comap</module>
         <module>colist</module>
         <module>coedit</module>
-        <module>coeditDom</module>
         <module>dailyscrum</module>
         <module>launcher</module>
         <module>cotree_no_mod</module>

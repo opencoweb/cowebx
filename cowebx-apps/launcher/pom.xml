@@ -37,11 +37,6 @@
 					        <war>${basedir}/../coedit/target/coedit-${project.version}.war</war>
 					        <contextPath>/coedit</contextPath>
 	                    </contextHandler>
-
-					    <contextHandler implementation="org.eclipse.jetty.webapp.WebAppContext">
-					        <war>${basedir}/../coeditDom/target/coeditDom-${project.version}.war</war>
-					        <contextPath>/coeditDom</contextPath>
-	                    </contextHandler>
 				
 					    <contextHandler implementation="org.eclipse.jetty.webapp.WebAppContext">
 					        <war>${basedir}/../cotree/target/cotree-${project.version}.war</war>
