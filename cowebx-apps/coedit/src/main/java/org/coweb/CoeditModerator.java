@@ -1,9 +1,14 @@
 
 package org.coweb;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerSession;
+
+import jodd.lagarto.LagartoParser;
+import jodd.lagarto.EmptyTagVisitor;
 
 public class CoeditModerator extends DefaultSessionModerator
 {
@@ -18,6 +23,7 @@ public class CoeditModerator extends DefaultSessionModerator
 
 	public CoeditModerator()
 	{
+
 		m_stable = "";
 		m_current = new StringBuilder();
 		m_attendees = new HashMap();
@@ -64,8 +70,16 @@ public class CoeditModerator extends DefaultSessionModerator
 		{
 			m_current.setCharAt(pos, value);
 		}
-		if (isValid(m_current))
-			m_stable = m_current.toString();
+		String currentAsString = m_current.toString();
+		if (isValid(currentAsString))
+		{
+			m_stable = currentAsString;
+			System.out.println("Valid: " + m_current.toString());
+		}
+		else
+		{
+			System.out.println("Invalid: " + m_current.toString());
+		}
 
 		return true;
 	}
@@ -102,9 +116,19 @@ public class CoeditModerator extends DefaultSessionModerator
 		return true;
 	}
 
-	private static boolean isValid(StringBuilder b)
+	private static boolean isValid(String s)
 	{
-		return true;
+		try
+		{
+			LagartoParser lp = new LagartoParser(s);
+			ErrorTagVisitor tv = new ErrorTagVisitor();
+			lp.parse(tv);
+			return !tv.isError;
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
 	}
 	
 	/**
@@ -122,11 +146,29 @@ public class CoeditModerator extends DefaultSessionModerator
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		map.put("snapshot", m_stable);
 		map.put("title", m_title);
-    map.put("attendees", m_attendees);
-    HashMap<String, Object> data = new HashMap<String, Object>();
-    data.put("mainEditor", map);
+		map.put("attendees", m_attendees);
+		HashMap<String, Object> data = new HashMap<String, Object>();
+		data.put("mainEditor", map);
 		return data;
 	}
 	
+	private static class ErrorTagVisitor extends EmptyTagVisitor
+	{
+		public boolean isError;
+		public ErrorTagVisitor()
+		{
+			isError = false;
+		}
+		public void error(String s)
+		{
+			System.out.println("error:"+s);
+			isError = true;
+		}
+		public void text(String s)
+		{
+			System.out.println("Text:"+s);
+		}
+	}
+
 }
 
