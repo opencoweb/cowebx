@@ -18,7 +18,6 @@ public class CoeditModerator extends DefaultSessionModerator
 
 	public CoeditModerator()
 	{
-		System.out.println("New moderator");
 		m_stable = "";
 		m_current = new StringBuilder();
 		m_attendees = new HashMap();
@@ -32,16 +31,15 @@ public class CoeditModerator extends DefaultSessionModerator
 
 		String topic = (String)data.get("topic");
 
-		System.out.println(data);
-		if ("editorUpdate".equals(topic))
+		if (topic.indexOf("editorUpdate") >= 0)
 			return this.editorUpdate(data);
-		else if ("attendeeListJoin".equals(topic))
+		else if (topic.indexOf("attendeeListJoin") >= 0)
 			return this.attendeeListJoin(data);
-		else if ("attendeeListName".equals(topic))
+		else if (topic.indexOf("attendeeListName") >= 0)
 			return this.attendeeListName(data);
-		else if ("attendeeListColor".equals(topic))
+		else if (topic.indexOf("attendeeListColor") >= 0)
 			return this.attendeeListColor(data);
-		else if ("editorTitle".equals(topic))
+		else if (topic.indexOf("editorTitle") >= 0)
 			return this.editorTitle(data);
 
 		return false;
@@ -74,16 +72,27 @@ public class CoeditModerator extends DefaultSessionModerator
 
 	private boolean attendeeListJoin(Map<String, Object> data)
 	{
+    Map value = (Map)data.get("value");
+    HashMap<String, Object> newUser = new HashMap<String, Object>();
+    newUser.put("name", value.get("name"));
+    newUser.put("color", value.get("color"));
+    m_attendees.put(value.get("site"), newUser);
 		return true;
 	}
 
 	private boolean attendeeListName(Map<String, Object> data)
 	{
+    Map value = (Map)data.get("value");
+    Map user = (Map)m_attendees.get(value.get("site"));
+    user.put("name", value.get("value"));
 		return true;
 	}
 
 	private boolean attendeeListColor(Map<String, Object> data)
 	{
+    Map value = (Map)data.get("value");
+    Map user = (Map)m_attendees.get(value.get("site"));
+    user.put("color", value.get("color"));
 		return true;
 	}
 
@@ -110,11 +119,13 @@ public class CoeditModerator extends DefaultSessionModerator
 	  */
 	public Map<String, Object> getLateJoinState()
 	{
-		HashMap map = new HashMap();
+		HashMap<String, Object> map = new HashMap<String, Object>();
 		map.put("snapshot", m_stable);
 		map.put("title", m_title);
-		System.out.println("getLateJoinState()\n\n\n"+map);
-		return map;
+    map.put("attendees", m_attendees);
+    HashMap<String, Object> data = new HashMap<String, Object>();
+    data.put("mainEditor", map);
+		return data;
 	}
 	
 }
