@@ -21,7 +21,7 @@
 		<br /><br />
 		<div class="subTitle">2. The SessionModerator Class</div>
 		<div class="entry">
-			Below are the extendable methods of <b>DefaultSessionModerator</b> (which itself extends <b>SessionModerator</b>). The most interesting method to override will likely be <b>onSync</b>. For a more complete documentation, see the <a href="#">SessionModerator javadocs</a>.
+			Below are the extendable methods of <b>DefaultSessionModerator</b> (which itself extends <b>SessionModerator</b>). The most interesting method to override will likely be <b>onSync</b>. For a more complete documentation, see the <a href="http://opencoweb.org/ocwdocs/apidocs/org/coweb/SessionModerator.html">SessionModerator javadocs</a> and a guide to the <a href="http://opencoweb.org/ocwdocs/java/moderator.html">Moderator API</a>.
 		</div>
 <pre class="prettyprint code">
 import org.cometd.bayeux.Message;
@@ -49,7 +49,8 @@ public void onSessionEnd();
 		<br /><br />
 		<div class="subTitle">3. Turning the Moderator On</div>
 		<div class="entry">
-		    Use the OpenCoweb <a href="#">configuration file</a> to make your custom moderator as the updater for new clients. The three important configuration options are <i>sessionModerator></i>, <i>moderatorIsUpdater</i> and <i>operationEngine</i>. An example file is shown for the persistent CoTree.
+		    Use the OpenCoweb <a href="http://opencoweb.org/ocwdocs/java/deploy.html#configuring-coweb-options">configuration file</a> to make your custom moderator as the updater for new clients. The three important configuration options are <i>sessionModerator></i>, <i>moderatorIsUpdater</i> and <i>operationEngine</i>. An example file is shown for the persistent CoTree.
+    System.
 <pre class="prettyprint code">
 {
   // Full java classname of moderator class
