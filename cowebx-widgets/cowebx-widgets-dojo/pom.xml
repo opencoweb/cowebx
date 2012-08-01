@@ -10,4 +10,12 @@
     <artifactId>cowebx-widgets-dojo</artifactId>
     <name>OpenCoweb Extras :: Widgets :: Dojo</name>
     <packaging>war</packaging>
+
+	<dependencies>
+		<dependency>
+            <groupId>org.jodd</groupId>
+            <artifactId>jodd</artifactId>
+            <version>3.3.7</version>
+		</dependency>
+	</dependencies>
 </project>

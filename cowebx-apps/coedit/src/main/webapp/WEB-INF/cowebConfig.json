@@ -1,4 +1,8 @@
-{
-	"moderatorIsUpdater": false,
-	"bots": []
-} 
+{ 
+	"sessionModerator": "org.coweb.CoeditModerator",
+	"moderatorIsUpdater": true,
+	"operationEngine": true,
+	"captureOutgoing" : "/tmp/outgoing.txt",
+	"captureIncoming" : "/tmp/incoming.txt",
+	"bots": [] 
+}
