@@ -29,7 +29,7 @@ public class CoeditModerator extends DefaultSessionModerator
 	public synchronized boolean onSync(Map<String, Object> data)
 	{
 
-		String topic = (String)data.get("topic");
+		String topic = (String)data.get("channel");
 
 		if (topic.indexOf("editorUpdate") >= 0)
 			return this.editorUpdate(data);
