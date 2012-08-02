@@ -54,7 +54,10 @@ public class CoeditModerator extends DefaultSessionModerator
 	private boolean editorUpdate(Map<String, Object> data)
 	{
 		// Get the value of the sync and determine the op to perform on tree
-		char value = ((String)data.get("value")).charAt(0);
+		String val = (String)data.get("value");
+		char value = 0;
+		if (null != val)
+			value = val.charAt(0);
 		String type = (String)data.get("type");
 		int pos = (Integer)data.get("position");
 
@@ -74,11 +77,6 @@ public class CoeditModerator extends DefaultSessionModerator
 		if (isValid(currentAsString))
 		{
 			m_stable = currentAsString;
-			System.out.println("Valid: " + m_current.toString());
-		}
-		else
-		{
-			System.out.println("Invalid: " + m_current.toString());
 		}
 
 		return true;
@@ -118,6 +116,7 @@ public class CoeditModerator extends DefaultSessionModerator
 
 	private static boolean isValid(String s)
 	{
+		s = "<div>" + s + "</div>";
 		try
 		{
 			LagartoParser lp = new LagartoParser(s);
@@ -161,12 +160,7 @@ public class CoeditModerator extends DefaultSessionModerator
 		}
 		public void error(String s)
 		{
-			System.out.println("error:"+s);
 			isError = true;
-		}
-		public void text(String s)
-		{
-			System.out.println("Text:"+s);
 		}
 	}
 
