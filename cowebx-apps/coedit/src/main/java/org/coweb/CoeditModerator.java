@@ -1,14 +1,15 @@
 
 package org.coweb;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerSession;
 
-import jodd.lagarto.LagartoParser;
-import jodd.lagarto.EmptyTagVisitor;
+import jodd.lagarto.dom.LagartoDOMBuilder;
+import jodd.lagarto.dom.Document;
 
 public class CoeditModerator extends DefaultSessionModerator
 {
@@ -18,16 +19,24 @@ public class CoeditModerator extends DefaultSessionModerator
 	private String m_stable;
 	private StringBuilder m_current;
 
+	//LinkedList<String> m_revisions;
+
+	/* If parsing each sync is too expensive, what we can do is queue up
+	   the past 100 versions of the document, for example, and work backwards
+	   once the queue is full looking for a stable document (using a separate
+	   thread). Any way that we can minimize the number of parses is good.
+	 */
+
 	private Map m_attendees;
 	private String m_title;
 
 	public CoeditModerator()
 	{
-
 		m_stable = "";
 		m_current = new StringBuilder();
 		m_attendees = new HashMap();
 		m_title = "Untitled Document";
+		//m_revisions = new LinkedList<String>();
 	}
 
 	/**
@@ -65,11 +74,11 @@ public class CoeditModerator extends DefaultSessionModerator
 		{
 			m_current.insert(pos, value);
 		}
-		else if ("delete".equals("type"))
+		else if ("delete".equals(type))
 		{
 			m_current.deleteCharAt(pos);
 		}
-		else if ("update".equals("type"))
+		else if ("update".equals(type))
 		{
 			m_current.setCharAt(pos, value);
 		}
@@ -116,18 +125,46 @@ public class CoeditModerator extends DefaultSessionModerator
 
 	private static boolean isValid(String s)
 	{
-		s = "<div>" + s + "</div>";
+		/* Optimization: only do a parse when open and close tags match. */
+		if (!tagsMatch(s))
+		{
+			return false;
+		}
 		try
 		{
-			LagartoParser lp = new LagartoParser(s);
-			ErrorTagVisitor tv = new ErrorTagVisitor();
-			lp.parse(tv);
-			return !tv.isError;
+			LagartoDOMBuilder builder = new LagartoDOMBuilder();
+			builder.setCollectErrors(true);
+			Document doc = builder.parse(s);
+			String result = doc.getInnerHtml();
+			if (result.equals(s))
+			{
+				return true;
+			}
+			else
+			{
+				System.out.println("x"+s+"x\nx"+result+"x");
+				return false;
+			}
 		}
 		catch (Exception e)
 		{
 			return false;
 		}
+	}
+
+	private static boolean tagsMatch(String s)
+	{
+		int begin = 0;
+		int end = 0;
+		for (int i = 0; i < s.length(); ++i) 
+		{
+			char ch = s.charAt(i);
+			if ('<' == ch)
+				++begin;
+			else if ('>' == ch)
+				++end;
+		}
+		return begin == end;
 	}
 	
 	/**
@@ -149,19 +186,6 @@ public class CoeditModerator extends DefaultSessionModerator
 		HashMap<String, Object> data = new HashMap<String, Object>();
 		data.put("mainEditor", map);
 		return data;
-	}
-	
-	private static class ErrorTagVisitor extends EmptyTagVisitor
-	{
-		public boolean isError;
-		public ErrorTagVisitor()
-		{
-			isError = false;
-		}
-		public void error(String s)
-		{
-			isError = true;
-		}
 	}
 
 }
