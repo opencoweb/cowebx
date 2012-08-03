@@ -10,7 +10,6 @@ define([
 	"dojo/text!./TextEditor.html",
 	'coweb/main',
 	'coweb/ext/attendance',
-	'./ld',
 	'./AttendeeList',
 	'./ShareButton',
 	'dijit/Dialog',
@@ -24,32 +23,8 @@ define([
 	'./lib/rangy/uncompressed/rangy-core',
 	'./lib/rangy/uncompressed/rangy-selectionsaverestore',
 	'./lib/diff_match_patch'
-], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance, ld, AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors, css, domConstruct){
-
-	/* Take two strings and determine how many characters they share in both directions.
-	   Returns an object with two integers.  TODO keep this as long as we keep doDiff_ld. */
-	function determineLdBounds(a, b) {
-		// First, figure out how far in each direction the strings match.
-		var i;
-		var alen = a.length;
-		var blen = b.length;
-		var alen1 = alen - 1;
-		var blen1 = blen - 1;
-		var forwards, backwards;
-		for (i = 0; i < alen && i < blen && a[i] == b[i]; ++i)
-			; // Continue while the strings match.
-		forwards = i;
-		for (i = 0; i < alen && i < blen && a[alen1 - i] == b[blen1 - i]; ++i)
-			; // Continue while the strings match.
-		backwards = i;
-
-		// If the ranges overlap, scale back the backwards range.
-		if (forwards + backwards > alen)
-			backwards = alen - forwards;
-		if (forwards + backwards > blen)
-			backwards = blen - forwards;
-		return { fwds : forwards, bwds : backwards};
-	}
+], function(dojo, _Widget, _TemplatedMixin, _Contained, template, coweb, attendance,
+		AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors, css, domConstruct) {
 
 	return dojo.declare("RichTextEditor", [_Widget, _TemplatedMixin, _Contained], {
 		// widget template
@@ -80,7 +55,6 @@ define([
 			this._buildToolbar();
 			this._footer		= this._buildFooter();
 		this._attendeeList 	= new AttendeeList({domNode:this.innerList, id:'_attendeeList'});
-			this.util 			= new ld({});
 			this._shareButton 	= new ShareButton({
 				'domNode':this.infoDiv,
 				'listenTo':this._textarea,
@@ -159,16 +133,6 @@ define([
 				rangy.restoreSelection(sel);
 		},
 
-		doDiff_ld : function(oldS, newS) {
-			// Optimization: don't examine common prefix and suffix.
-			var bnds, subA, subB, diffs;
-			bnds = determineLdBounds(oldS, newS);
-			oldSub = oldS.substring(bnds.fwds, oldS.length - bnds.bwds);
-			newSub = newS.substring(bnds.fwds, newS.length - bnds.bwds);
-			diffs = this.util.ld_offset(oldSub, newSub, bnds.fwds); // Careful with O(n^2) algo...
-			return diffs;
-		},
-
 		doDiff_fast : function(oldS, newS) {
 			/* The diff-match-patch library is much faster than the above
 			   levenshtein distance algorithm.
@@ -188,36 +152,48 @@ define([
 			   doDiff_ld. This data increase is worth it for the large speed
 			   increase over doDiff_ld. */
 
-			function convertInsert(q, s, off) {
+			function convertInsert(q, s, sz, off) {
 				var i;
-				for (i = 0; i < s.length; ++i)
+				for (i = 0; i < sz; ++i)
 					q.push({ty:'insert', pos:i+off, ch:s[i]});
 			}
-			function convertDelete(q, s, off) {
+			function convertDelete(q, s, sz, off) {
 				var i;
-				for (i = 0; i < s.length; ++i)
+				for (i = 0; i < sz; ++i)
 					q.push({ty:'delete', pos:off, ch:null});
+			}
+			function count(s) {
+				var cnt = 0;
+				for (var i = 0; i < s.length; ++i) {
+					if ("\n" == s[i])
+						++cnt;
+				}
+				return cnt;
 			}
 			var q, rawDiffs;
 			var i = 0, off = 0;
 
-			rawDiffs = this.differ.diff_main(oldS, newS);
+			var conversion = this.differ.diff_linesToChars_(oldS, newS);
+			rawDiffs = this.differ.diff_main(conversion.chars1, conversion.chars2, false);
+			this.differ.diff_charsToLines(rawDiffs, conversion.lineArray);
 			q = [];
 			for ( ; i < rawDiffs.length; ++i)
 			{
+				var sz = count(rawDiffs[i][1]);
 				switch(rawDiffs[i][0]) {
 					case 0:
-						off += rawDiffs[i][1].length;
+						off += sz;
 						break;
 					case 1:
-						convertInsert(q, rawDiffs[i][1], off);
-						off += rawDiffs[i][1].length;
+						convertInsert(q, rawDiffs[i][1], sz, off);
+						off += sz;
 						break;
 					case -1:
-						convertDelete(q, rawDiffs[i][1], off);
+						convertDelete(q, rawDiffs[i][1], sz, off);
 						break;
 				}
 			}
+			console.log(q);
 			return q;
 		},
 
@@ -249,8 +225,9 @@ define([
 			//Get local typing syncs
 			this.syncs = [];
 			var currentSnap = this.snapshot();
-			if (this.newSnapshot != currentSnap)
+			if (this.newSnapshot != currentSnap) {
 				this.syncs = this.doDiff(this.newSnapshot, currentSnap);
+			}
 
 			this.collab.resumeSync();
 			this.collab.pauseSync();
