@@ -5,21 +5,46 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Semaphore;
+
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerSession;
 
 import jodd.lagarto.dom.LagartoDOMBuilder;
 import jodd.lagarto.dom.Document;
 
+import jodd.log.LogFactory;
+import jodd.log.DummyLog;
+import jodd.log.Log;
+
 public class CoeditModerator extends DefaultSessionModerator
 {
+
+	static
+	{
+		LogFactory.setImplementation(new LogFactory()
+		{
+			public Log getLogger(String name)
+			{
+				return new DummyLog(name);
+			}
+		});
+	};
+
+	private static final long VALIDATE_TIMEOUT = 1000;
+	private static final long MAX_REVISIONS = 100;
 
 	/* m_stable is the most recent valid HTML string, m_current is the current
 	   object state (which might not be valid as operations are performed). */
 	private String m_stable;
 	private StringBuilder m_current;
 
-	//LinkedList<String> m_revisions;
+	long m_nextupdate;
+	Semaphore m_sem; /* Even the linux kernel has actual mutex locks... */
+	LinkedList<String> m_revisions;
+	Timer m_timer;
 
 	/* If parsing each sync is too expensive, what we can do is queue up
 	   the past 100 versions of the document, for example, and work backwards
@@ -36,7 +61,47 @@ public class CoeditModerator extends DefaultSessionModerator
 		m_current = new StringBuilder();
 		m_attendees = new HashMap();
 		m_title = "Untitled Document";
-		//m_revisions = new LinkedList<String>();
+		m_revisions = new LinkedList<String>();
+		m_nextupdate = System.currentTimeMillis() + VALIDATE_TIMEOUT;
+		m_sem = new Semaphore(1);
+		m_timer = new Timer();
+		m_timer.schedule(new TimerTask()
+		{
+			public void run()
+			{
+				CoeditModerator.this.updateStable();
+			}
+		}, 1000, 1000);
+	}
+
+	private synchronized void updateStable()
+	{
+		try
+		{
+			m_sem.acquire();
+		}
+		catch (InterruptedException ie)
+		{
+			return;
+		}
+		LinkedList<String> stack = m_revisions;
+		m_revisions = new LinkedList<String>();
+		m_sem.release();
+
+		/* Work backwards through revision history to find a valid
+		   revision. After, clear the list even if a valid revision isn't
+		   found. */
+		int i = 0;
+		for (String rev: stack)
+		{
+			++i;
+			if (isValid(rev))
+			{
+				m_stable = rev;
+				break;
+			}
+		}
+		System.out.printf("%d %d\n", i, stack.size());
 	}
 
 	/**
@@ -82,38 +147,49 @@ public class CoeditModerator extends DefaultSessionModerator
 		{
 			m_current.setCharAt(pos, value);
 		}
-		String currentAsString = m_current.toString();
-		if (isValid(currentAsString))
-		{
-			m_stable = currentAsString;
-		}
 
+		boolean shouldUpdate = false;
+		try
+		{
+			m_sem.acquire();
+		}
+		catch (InterruptedException ie)
+		{
+			return true;
+		}
+		m_revisions.push(m_current.toString());
+		if (m_revisions.size() > MAX_REVISIONS)
+			shouldUpdate = true;
+		m_sem.release();
+
+		if (shouldUpdate)
+			updateStable();
 		return true;
 	}
 
 	private boolean attendeeListJoin(Map<String, Object> data)
 	{
-    Map value = (Map)data.get("value");
-    HashMap<String, Object> newUser = new HashMap<String, Object>();
-    newUser.put("name", value.get("name"));
-    newUser.put("color", value.get("color"));
-    m_attendees.put(value.get("site"), newUser);
+		Map value = (Map)data.get("value");
+		HashMap<String, Object> newUser = new HashMap<String, Object>();
+		newUser.put("name", value.get("name"));
+		newUser.put("color", value.get("color"));
+		m_attendees.put(value.get("site"), newUser);
 		return true;
 	}
 
 	private boolean attendeeListName(Map<String, Object> data)
 	{
-    Map value = (Map)data.get("value");
-    Map user = (Map)m_attendees.get(value.get("site"));
-    user.put("name", value.get("value"));
+		Map value = (Map)data.get("value");
+		Map user = (Map)m_attendees.get(value.get("site"));
+		user.put("name", value.get("value"));
 		return true;
 	}
 
 	private boolean attendeeListColor(Map<String, Object> data)
 	{
-    Map value = (Map)data.get("value");
-    Map user = (Map)m_attendees.get(value.get("site"));
-    user.put("color", value.get("color"));
+		Map value = (Map)data.get("value");
+		Map user = (Map)m_attendees.get(value.get("site"));
+		user.put("color", value.get("color"));
 		return true;
 	}
 
@@ -133,16 +209,17 @@ public class CoeditModerator extends DefaultSessionModerator
 		try
 		{
 			LagartoDOMBuilder builder = new LagartoDOMBuilder();
-			builder.setCollectErrors(true);
 			Document doc = builder.parse(s);
 			String result = doc.getInnerHtml();
+			// Normalize...
+			result = result.replaceAll("&#039;", "'");
 			if (result.equals(s))
 			{
 				return true;
 			}
 			else
 			{
-				System.out.println("x"+s+"x\nx"+result+"x");
+				//System.out.println("x"+s+"x\nx"+result+"x");
 				return false;
 			}
 		}
@@ -166,17 +243,7 @@ public class CoeditModerator extends DefaultSessionModerator
 		}
 		return begin == end;
 	}
-	
-	/**
-	  *
-	  * Our application is relatively simple - we have one collaborative object (the phonebook)
-	  * whose internal data is already in the expected format of other clients.
-	  *
-	  * If we had more collaborative items (perhaps a collaborative notepad), we would place those
-	  * collaborative items' data into the HashMap, keyed on the collab ID.
-	  *
-	  * @return full application state
-	  */
+
 	public Map<String, Object> getLateJoinState()
 	{
 		HashMap<String, Object> map = new HashMap<String, Object>();
@@ -185,6 +252,7 @@ public class CoeditModerator extends DefaultSessionModerator
 		map.put("attendees", m_attendees);
 		HashMap<String, Object> data = new HashMap<String, Object>();
 		data.put("mainEditor", map);
+		System.out.println(data);
 		return data;
 	}
 
