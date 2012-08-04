@@ -28,6 +28,39 @@ define([
 		attendance, AttendeeList, ShareButton, Dialog, ToggleButton, nicEditors,
 		css, domConstruct, EditorTree) {
 
+	function fixNbsp(html) {
+		var last = 0;
+		var idx = html.indexOf("&nbsp;", 0);
+		while (idx >= 0) {
+			if ((idx > 0 && " " == html[idx-1]) ||
+					(idx > 5 && "&nbsp;" == html.substr(idx - 6, 6)) ||
+					(idx + 7 <= html.length && " " == html[idx+6]) ||
+					(idx + 12 <= html.length && "&nbsp;" == html.substr(idx + 6, 6))) {
+				idx = html.indexOf("&nbsp;", idx + 1);
+				continue;
+			}
+			html = html.substring(0, idx) + " " + html.substring(idx + 6);
+			idx = html.indexOf("&nbsp;", idx + 1);
+		}
+		return html;
+	}
+
+	var flatDiv = domConstruct.create("div");
+	function generateFlat(html) {
+		flatDiv.innerHTML = html;
+		var tree = EditorTree.createTreeFromElement(flatDiv);
+		var ret = tree.flatten();
+		return ret.substring(6, ret.length - 7);
+	}
+	function generateFlatArray(html) {
+		flatDiv.innerHTML = html;
+		var tree = EditorTree.createTreeFromElement(flatDiv);
+		var ret = tree.flattenToArray();
+		ret.splice(0, 1);
+		ret.splice(ret.length - 1, 1);
+		return ret;
+	}
+
 	return dojo.declare("RichTextEditor", [_Widget, _TemplatedMixin, _Contained], {
 		// widget template
 		templateString: template,
@@ -50,13 +83,13 @@ define([
 			this.go 			= true;
 
 		//2. Build stuff
-		dojo.create('textarea', {style:'width:100%;height:100%;' }, this.divContainerBody);
+			dojo.create('textarea', {style:'width:100%;height:100%;' }, this.divContainerBody);
 			nicEditors.nicEditors.allTextAreas();
 			this._textarea 		= dojo.query('.nicEdit-main')[0];
 			this._toolbar 		= dojo.query('.nicEdit-panel')[0];
 			this._buildToolbar();
 			this._footer		= this._buildFooter();
-		this._attendeeList 	= new AttendeeList({domNode:this.innerList, id:'_attendeeList'});
+			this._attendeeList 	= new AttendeeList({domNode:this.innerList, id:'_attendeeList'});
 			this._shareButton 	= new ShareButton({
 				'domNode':this.infoDiv,
 				'listenTo':this._textarea,
@@ -67,18 +100,18 @@ define([
 			this.differ = new diff_match_patch();
 
 			//3. parameters
-			this.bgData			= [];
+			this.bgData	        = [];
 			this.syncs          = [];
 			this.oldSnapshot    = this.snapshot();
 			this.newSnapshot    = null;
 			this.timeoutId      = null;
 			this.q              = [];
-			this.value          = '';
-			this.valueNoRangy   = '';
+			this.value          = [];
+			this.valueNoRangy   = [];
 			this.interval       = 100;
 			this.title          = 'Untitled Document';
 			this._POR           = {start:0, end:0};
-			this._prevPOR		= {start:0, end:0};
+			this._prevPOR       = {start:0, end:0};
 			this.firstSpan      = null;
 			this.secondSpan     = null;
 			this._skipRestore   = false;
@@ -107,19 +140,19 @@ define([
 		},
 
 		onCollabReady : function(){
-		this.collab.pauseSync();
-		this.resize();
-	},
+			this.collab.pauseSync();
+			this.resize();
+		},
 
-	listenInit : function(){
-		this.collab.pauseSync();
-		this.timeoutId = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
-	},
+		listenInit : function(){
+			this.collab.pauseSync();
+			this.timeoutId = setTimeout(dojo.hitch(this, 'iterate'), this.interval);
+		},
 
-	iterate : function() {
-		this.iterateSend();
-		this.iterateRecv();
-	},
+		iterate : function() {
+			this.iterateSend();
+			this.iterateRecv();
+		},
 
 		/* This function transforms the editor HTML into HTML that all major browsers support.
 		   This is important because iterateRecv will set _textarea.innerHTML, and doing so with
@@ -133,7 +166,8 @@ define([
 			var sel = rangy.saveSelection();
 			this.divChecker.innerHTML = "";
 			this.divChecker.innerHTML = this._textarea.innerHTML;
-			this._textarea.innerHTML = this.divChecker.innerHTML;
+			var html = fixNbsp(this.divChecker.innerHTML);
+			this._textarea.innerHTML = html;
 			if (sel)
 				rangy.restoreSelection(sel);
 		},
@@ -180,21 +214,14 @@ define([
 			var q, rawDiffs;
 			var i = 0, off = 0;
 
-			this.oldDiv.innerHTML = oldS;
-			this.newDiv.innerHTML = newS;
-			var oldTree = EditorTree.createTreeFromElement(this.oldDiv);
-			var newTree = EditorTree.createTreeFromElement(this.newDiv);
-			var oldFlat = oldTree.flatten();
-			var newFlat = newTree.flatten();
-			oldFlat = oldFlat.substring(5, oldFlat.length - 6);
-			newFlat = newFlat.substring(5, newFlat.length - 6);
+			var oldFlat = generateFlat(oldS);
+			var newFlat = generateFlat(newS);
 
 			var conversion = this.differ.diff_linesToChars_(oldFlat, newFlat);
 			rawDiffs = this.differ.diff_main(conversion.chars1, conversion.chars2, false);
 			this.differ.diff_charsToLines_(rawDiffs, conversion.lineArray);
 			q = [];
-			for ( ; i < rawDiffs.length; ++i)
-			{
+			for ( ; i < rawDiffs.length; ++i) {
 				var sz = count(rawDiffs[i][1]);
 				switch(rawDiffs[i][0]) {
 					case 0:
@@ -217,20 +244,22 @@ define([
 			var syncs;
 			var ldOffset;
 			this.newSnapshot = this.snapshot();
-			if(null !== this.oldSnapshot && null !== this.newSnapshot) {
-				if(this.oldSnapshot != this.newSnapshot) {
+			if (null !== this.oldSnapshot && null !== this.newSnapshot) {
+				if (this.oldSnapshot != this.newSnapshot) {
 					this.normalizeHTML();
 					this.newSnapshot = this.snapshot();
 					if (this.oldSnapshot != this.newSnapshot) {
-						syncs = this.syncs.concat(this.doDiff(this.oldSnapshot, this.newSnapshot));
+						syncs = this.syncs.concat(
+								this.doDiff(this.oldSnapshot, this.newSnapshot));
+						// TODO dont generateFlat too much.
+						this.bgData = generateFlatArray(this.newSnapshot);
 					}
 				}
-				if(syncs){
-					var s = '';
-					for(var i=0; i<syncs.length; i++){
-						if(syncs[i] != undefined) {
-							this.collab.sendSync('editorUpdate', syncs[i].ch, syncs[i].ty, syncs[i].pos);
-							s = s+syncs[i].ty+' '+syncs[i].ch+' '+syncs[i].pos+'\n';
+				if (syncs) {
+					for (var i = 0; i < syncs.length; ++i) {
+						if (syncs[i] != undefined) {
+							this.collab.sendSync('editorUpdate', syncs[i].ch,
+									syncs[i].ty, syncs[i].pos);
 						}
 					}
 				}
@@ -270,14 +299,21 @@ define([
 			}
 		},
 
-		removeRangySpans : function()
-		{
+		removeRangySpans : function() {
+			function indexOf(arr, str) {
+				for (var i = 0; i < arr.length; ++i) {
+					if (arr[i].indexOf(str) >= 0)
+						return i;
+				}
+				return -1;
+			}
 			/* The Rangy span will be one of search# or search#a (or neither). */
 			var val = this.value;
 			var search1 = '<span style="line-height: 0; display: none;" id="1sel';
 			var search1a = '<span id="1sel';
 			var search2 = '<span style="line-height: 0; display: none;" id="2sel';
 			var search2a = '<span id="2sel';
+
 			var start, end;
 			/* I think WebKit inserts a weird character inside the span. */
 			var markerLength = (dojo.isWebKit) ? 78 : 77;
@@ -285,54 +321,50 @@ define([
 			this.firstSpan = null;
 			this.secondSpan = null;
 			// Non-collapsed selection?
-			var start = val.indexOf(search1);
+			var start = indexOf(val, search1);
 			if (-1 == start)
-				start = val.indexOf(search1a);
-			if (-1 != start)
-			{
-				end = val.indexOf(search2);
+				start = indexOf(val, search1a);
+			if (-1 != start) {
+				end = indexOf(val, search2);
 				if (-1 == end)
-					end = val.indexOf(search2a);
+					end = indexOf(val, search2a);
 				if (-1 == end)
 					return;
 
 				// Guaranteed both spans exist.
-				if (start > end)
-				{
+				if (start > end) {
 					var tmp = end;
 					end = start;
 					start = tmp;
 				}
 				this.firstSpan = {
 					pos : start,
-					text : val.substring(start, start + markerLength),
+					text : val[start],
 					skip : false
 				};
 				this.secondSpan = {
-					pos : end - markerLength,
-					text : val.substring(end, end + markerLength),
+					pos : end - 1,
+					text : val[end],
 					skip : false
 				};
-				// Order is important below!
-				this.value = this.value.substring(0, end) + this.value.substring(end + markerLength);
-				this.value = this.value.substring(0, start) + this.value.substring(start + markerLength);
-			}
-			else
-			{
+				// Order is important below! TODO doc 3???
+				this.value.splice(end, 3);
+				this.value.splice(start, 3);
+			} else {
 				// Collapsed selection.
-				end = val.indexOf(search2);
+				end = indexOf(val, search2);
 				if (-1 == end)
-					end = val.indexOf(search2a);
+					end = indexOf(val, search2a);
 				if (-1 == end) {
 					return;
 				}
 				// Guaranteed only second span exists.
 				this.secondSpan = {
 					pos : end,
-					text : val.substring(end, end + markerLength),
+					text : val[end],
 					skip : false
 				};
-				this.value = this.value.substring(0, end) + this.value.substring(end + markerLength);
+				this.value.splice(end, 3);
 			}
 
 		},
@@ -340,27 +372,31 @@ define([
 		restoreRangySpan : function(data) {
 			if (!data || data.skip)
 				return;
-			this.value = this.value.substring(0, data.pos) + data.text + this.value.substring(data.pos);
+			this.value.splice(data.pos, 0, data.text, "", "</span>");
 		},
 
 		tryUpdate : function() {
 			// Process the queue and check that the changes are valid.
 			this.sel = rangy.saveSelection();
 			this._skipRestore = false;
-			this.value = this._textarea.innerHTML;
+			this.value = generateFlatArray(this._textarea.innerHTML);
 			/* We will actually remove Rangy's invisible markers, perform the remote operations,
 			   then add the markers back in. We track remote changes to update the position of the
 			   markers - this makes performing the operations easier (faster) and removes the bug
 			   of Rangy's markers invalidating the HTML.
 				*/
 			this.removeRangySpans();
-			for(var i=0; i<this.q.length; i++){
-				if (this.q[i].type == 'insert')
+			console.log(this.value);
+			console.log(this.bgData);
+			console.log(this.q);
+			for (var i = 0; i < this.q.length; ++i){
+				if ("insert" == this.q[i].type)
 					this.applyInsert(this.q[i].value, this.q[i].position);
-				if (this.q[i].type == 'delete')
+				if ("delete" == this.q[i].type)
 					this.applyDelete(this.q[i].position);
 			}
-			if (!this.willHTMLChange(this.value)) {
+			var html = this.value.join("");
+			if (!this.willHTMLChange(html)) {
 				// If HTML is valid, update textarea and clear the queue.
 				// Order important for below operations!
 				this.valueNoRangy = this.value;
@@ -371,35 +407,32 @@ define([
 				/* Recheck HTML - the rangy solution for remembering caret position is not perfect.
 				   It sometimes fails when the caret is located inbetween remote edit operations.
 				   In this case, we don't try to restore the caret and let the caret reset itself. */
-				if (this.willHTMLChange(this.value))
-				{
+				html = this.value.join("");
+				if (this.willHTMLChange(html)) {
 					this.value = this.valueNoRangy;
 					this.clearSelection();
 				}
-				this._textarea.innerHTML = this.value;
+				this.bgData = this.value;
+				this._textarea.innerHTML = html;
 				this.q = [];
 			} // Else, do nothing and wait for more remote changes.
+
 			if (!this._skipRestore && this.sel)
 				rangy.restoreSelection(this.sel);
 		},
 
-		insertChar : function(c, p) {
+		applyInsert : function(c, p) {
 			this.fixPos(p, 1);
-			this.value = this.value.substr(0, p) + c + this.value.substr(p);
+			this.value.splice(p, 0, c);
 		},
 
-		deleteChar : function(p) {
+		applyDelete : function(p) {
 			this.fixPos(p, -1);
-			this.value = this.value.substr(0, p) + this.value.substr(p+1);
-		},
-
-		updateChar : function(c, p) {
-			this.value = this.value.substr(0, p) + c + this.value.substr(p+1);
+			this.value.splice(p, 1);
 		},
 
 		fixPos : function(pos, dx) {
-			// If either span reach the beginning, clear the selection.
-
+			// If either span reaches the beginning, clear the selection.
 			if (this.firstSpan && pos <= this.firstSpan.pos) {
 				this.firstSpan.pos += dx;
 				if (0 === this.firstSpan.pos || this.firstSpan.pos >= this.value.length) {
@@ -417,21 +450,21 @@ define([
 
 		},
 
-	clearSelection: function(){
+		clearSelection: function(){
 			this._skipRestore = true;
 			var sel, range;
-		    if (window.getSelection) {
-		        sel = window.getSelection();
-		        if (sel.rangeCount) {
-		            range = sel.getRangeAt(0);
-		            sel.collapse(range.startContainer, range.startOffset);
-		        }
-		    } else if ( (sel = document.selection) && sel.type == "Text") {
-		        range = sel.createRange();
-		        range.collapse(true);
-		        range.select();
-		    }
-	},
+			if (window.getSelection) {
+				sel = window.getSelection();
+				if (sel.rangeCount) {
+					range = sel.getRangeAt(0);
+					sel.collapse(range.startContainer, range.startOffset);
+				}
+			} else if ( (sel = document.selection) && sel.type == "Text") {
+				range = sel.createRange();
+				range.collapse(true);
+				range.select();
+			}
+		},
 
 		willHTMLChange : function(html) {
 			this.divChecker.innerHTML = "";
@@ -442,73 +475,74 @@ define([
 				return false;
 		},
 
-	snapshot : function(){
-		return this._getValue();
-	},
+		snapshot : function(){
+			return this._getValue();
+		},
 
-	connect : function(){
-		this.collab = coweb.initCollab({id : this.id});
-		this.collab.subscribeReady(this,'onCollabReady');
-		this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
+		connect : function(){
+			this.collab = coweb.initCollab({id : this.id});
+			this.collab.subscribeReady(this,'onCollabReady');
+			this.collab.subscribeSync('editorUpdate', this, 'onRemoteChange');
 			this.collab.subscribeSync('editorTitle', this, '_onRemoteTitle');
-		this.collab.subscribeStateRequest(this, 'onStateRequest');
-		this.collab.subscribeStateResponse(this, 'onStateResponse');
-		dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
-		dojo.connect(this._textarea, 'onblur', this, '_onBlur');
-		dojo.connect(this.url,'onclick',this,function(e){ this.selectElementContents(e.target) });
-			dojo.connect(this.url,'onblur',this,function(e){ e.target.innerHTML = window.location; });
-		dojo.connect(window, 'resize', this, 'resize');
-		// dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
-		//     dojo.publish("shareClick", [{}]);
-		// });
-		attendance.subscribeChange(this, 'onUserChange');
-	},
+			this.collab.subscribeStateRequest(this, 'onStateRequest');
+			this.collab.subscribeStateResponse(this, 'onStateResponse');
+			dojo.connect(this._textarea, 'onfocus', this, '_onFocus');
+			dojo.connect(this._textarea, 'onblur', this, '_onBlur');
+			dojo.connect(this.url,'onclick',this,function(e){ this.selectElementContents(e.target) });
+				dojo.connect(this.url,'onblur',this,function(e){ e.target.innerHTML = window.location; });
+			dojo.connect(window, 'resize', this, 'resize');
+			// dojo.connect(dojo.byId('saveButton'),'onclick',this,function(e){
+			//     dojo.publish("shareClick", [{}]);
+			// });
+			attendance.subscribeChange(this, 'onUserChange');
+		},
 
-	onStateRequest : function(token){
-		var state = {
-			snapshot: this.newSnapshot,
-			attendees: this._attendeeList.attendees,
+		onStateRequest : function(token){
+			var state = {
+				bgData: this.bgData,
+				attendees: this._attendeeList.attendees,
 				title: this.title
-		};
-		this.collab.sendStateResponse(state,token);
-	},
+			};
+			this.collab.sendStateResponse(state,token);
+		},
 
-	onStateResponse : function(obj){
-			this._textarea.innerHTML = '';
-		this._textarea.innerHTML = obj.snapshot;
-		this.newSnapshot = obj.snapshot;
-		this.oldSnapshot = obj.snapshot;
+		onStateResponse : function(obj){
+			this.bgData = obj.bgData;
+			this.newSnapshot = this.bgData.join("");
+			this.oldSnapshot = this.newSnapshot;
+			this._textarea.innerHTML = "";
+			this._textarea.innerHTML = this.newSnapshot;
 			this.title = obj.title;
 			this._title.value = this.title;
-		for(var i in obj.attendees){
-			var o = {
-				value: {
-					'site':i,
-					'name':obj.attendees[i]['name'],
-					'color':obj.attendees[i]['color']
-				}
-			};
-			this._attendeeList.onRemoteUserJoin(o);
-		}
-	},
+			for(var i in obj.attendees){
+				var o = {
+					value: {
+						'site':i,
+						'name':obj.attendees[i]['name'],
+						'color':obj.attendees[i]['color']
+					}
+				};
+				this._attendeeList.onRemoteUserJoin(o);
+			}
+		},
 
-	_getValue : function() {
-		return this._textarea.innerHTML;
-	},
+		_getValue : function() {
+			return this._textarea.innerHTML;
+		},
 
 		getValue : function() {
-		return this._textarea.innerHTML;
-	},
+			return this._textarea.innerHTML;
+		},
 
-	_onFocus : function(event) {
-		this._focused = true;
-	},
+		_onFocus : function(event) {
+			this._focused = true;
+		},
 
-	_onBlur : function(event) {
-		this._focused = false;
-	},
+		_onBlur : function(event) {
+			this._focused = false;
+		},
 
-	selectElementContents: function(el){
+		selectElementContents: function(el) {
 			var range = document.createRange();
 			range.selectNodeContents(el);
 			var sel = window.getSelection();
@@ -516,27 +550,27 @@ define([
 			sel.addRange(range);
 		},
 
-	resize: function(){
+		resize: function() {
 			dojo.style(this.editorNode,'height',document.body.offsetHeight+'px');
-		dojo.style(this.editorTable,'height',this.editorTable.parentNode.offsetHeight+'px');
-		dojo.style(this.innerList,'height',(this.editorTable.parentNode.offsetHeight-this.infoDiv.offsetHeight)+'px');
-		dojo.style(this.divContainer,'height',this.editorTable.parentNode.offsetHeight+'px');
+			dojo.style(this.editorTable,'height',this.editorTable.parentNode.offsetHeight+'px');
+			dojo.style(this.innerList,'height',(this.editorTable.parentNode.offsetHeight-this.infoDiv.offsetHeight)+'px');
+			dojo.style(this.divContainer,'height',this.editorTable.parentNode.offsetHeight+'px');
 			dojo.style(this.divContainerBody,'height',(this.editorTable.parentNode.offsetHeight-61)+'px');
-	},
+		},
 
-	_loadTemplate : function(url) {
-		var e = document.createElement("link");
-		e.href = url;
-		e.type = "text/css";
-		e.rel = "stylesheet";
-		e.media = "screen";
-		document.getElementsByTagName("head")[0].appendChild(e);
-	},
+		_loadTemplate : function(url) {
+			var e = document.createElement("link");
+			e.href = url;
+			e.type = "text/css";
+			e.rel = "stylesheet";
+			e.media = "screen";
+			document.getElementsByTagName("head")[0].appendChild(e);
+		},
 
-	_style: function(){
-		//dojo.attr(this._textarea, 'innerHTML', 'To begin, just start click and start <strong>typing</strong>...');
-		//this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
-		dojo.addClass(this._textarea.parentNode, 'textareaContainer');
+		_style: function(){
+			//dojo.attr(this._textarea, 'innerHTML', 'To begin, just start click and start <strong>typing</strong>...');
+			//this._loadTemplate('../lib/cowebx/dojo/RichTextEditor/TextEditor.css');
+			dojo.addClass(this._textarea.parentNode, 'textareaContainer');
 			dojo.addClass(this._textarea, 'textarea');
 
 			dojo.style(this._toolbar.parentNode.parentNode,'width','100%');
@@ -558,139 +592,141 @@ define([
 
 
 			dojo.attr(this.url,'innerHTML',window.location);
-	},
-
-		_buildFooter: function(){
-		var footerNode = dojo.create('div',{'class':'footer gradient'},this.divContainer,'last');
-
-		//1. Title box & image
-		var title = dojo.create('input',{'class':'title',value:'Untitled Document',type:'text'},footerNode,'first');
-		var edit = dojo.create('img',{src:require.toUrl('cowebx/dojo/RichTextEditor/images/pencil.png'),'class':'editIcon'},title,'after');
-
-		//2. Connect
-		dojo.connect(title, 'onclick', this, function(e){
-			dojo.style(e.target, 'background', 'white');
-		});
-		dojo.connect(title, 'onblur', this, function(e){
-			this.title = (e.target.value.length > 0) ? e.target.value : this.title;
-			e.target.value = this.title;
-			dojo.style(e.target, 'background', '');
-			this.collab.sendSync('editorTitle', {'title':e.target.value}, null);
-		});
-		dojo.connect(title, 'onkeypress', this, function(e){
-			if(e.keyCode == 13)
-				e.target.blur();
-		});
-		this._title = title;
-
-		return footerNode;
 		},
 
-		_buildToolbar: function(){
-			dojo.place(this._toolbar.parentNode.parentNode, this.divContainer,'first');
-			for(var i=0; i<this._toolbar.childNodes.length; i++){
-				dojo.addClass(this._toolbar.childNodes[i], 'toolbarButton');
-				dojo.style(this._toolbar.childNodes[i].firstChild, 'width', '100%');
-				dojo.style(this._toolbar.childNodes[i].firstChild, 'height', '100%');
-				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild, 'width', '100%');
-				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild, 'height', '100%');
-				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'width', '100%');
-				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'height', '100%');
-				dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'backgroundPosition', 'center');
-			   	switch(i){
-				case 1:
-					dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/bold.png')+')');
-						break;
-					case 2:
-					    dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/italic.png')+')');
-						break;
-					case 3:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/underline.png')+')');
-						break;
-					case 8:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/ordered.png')+')');
-						break;
-					case 9:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/unOrdered.png')+')');
-						break;
-					case 10:
-						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
-						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/fontSize.png')+')');
-						break;
-					case 11:
-						dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
-						dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/fontFace.png')+')');
-						break;
-					case 15:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/image.png')+')');
-						break;
-					case 19:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/textColor.png')+')');
-						break;
-					case 20:
-						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/hiliteColor.png')+')');
-						break;
+			_buildFooter: function(){
+			var footerNode = dojo.create('div',{'class':'footer gradient'},this.divContainer,'last');
 
-				}
+			//1. Title box & image
+			var title = dojo.create('input',{'class':'title',value:'Untitled Document',type:'text'},footerNode,'first');
+			var edit = dojo.create('img',{src:require.toUrl('cowebx/dojo/RichTextEditor/images/pencil.png'),'class':'editIcon'},title,'after');
 
-				//TEMPORARY: HIDE UNUSED BUTTONS
-				var arr = [4,5,6,7,12,13,14,16,17,18];
-				for(var n in arr){
-					dojo.style(this._toolbar.childNodes[arr[n]], 'display', 'none');
+			//2. Connect
+			dojo.connect(title, 'onclick', this, function(e){
+				dojo.style(e.target, 'background', 'white');
+			});
+			dojo.connect(title, 'onblur', this, function(e){
+				this.title = (e.target.value.length > 0) ? e.target.value : this.title;
+				e.target.value = this.title;
+				dojo.style(e.target, 'background', '');
+				this.collab.sendSync('editorTitle', {'title':e.target.value}, null);
+			});
+			dojo.connect(title, 'onkeypress', this, function(e){
+				if(e.keyCode == 13)
+					e.target.blur();
+			});
+			this._title = title;
+
+			return footerNode;
+			},
+
+			_buildToolbar: function(){
+				dojo.place(this._toolbar.parentNode.parentNode, this.divContainer,'first');
+				for(var i=0; i<this._toolbar.childNodes.length; i++){
+					dojo.addClass(this._toolbar.childNodes[i], 'toolbarButton');
+					dojo.style(this._toolbar.childNodes[i].firstChild, 'width', '100%');
+					dojo.style(this._toolbar.childNodes[i].firstChild, 'height', '100%');
+					dojo.style(this._toolbar.childNodes[i].firstChild.firstChild, 'width', '100%');
+					dojo.style(this._toolbar.childNodes[i].firstChild.firstChild, 'height', '100%');
+					dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'width', '100%');
+					dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'height', '100%');
+					dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'backgroundPosition', 'center');
+					switch(i){
+					case 1:
+						dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/bold.png')+')');
+							break;
+						case 2:
+							dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/italic.png')+')');
+							break;
+						case 3:
+							dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/underline.png')+')');
+							break;
+						case 8:
+							dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/ordered.png')+')');
+							break;
+						case 9:
+							dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/unOrdered.png')+')');
+							break;
+						case 10:
+							dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
+							dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
+							dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/fontSize.png')+')');
+							break;
+						case 11:
+							dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style',	dojo.attr(this._toolbar.childNodes[i].firstChild.firstChild,'style')+'padding: 0px !Important;');
+							dojo.attr(this._toolbar.childNodes[i],'style',dojo.attr(this._toolbar.childNodes[i],'style')+'width: 91px !Important;');
+							dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/fontFace.png')+')');
+							break;
+						case 15:
+							dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/image.png')+')');
+							break;
+						case 19:
+							dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/textColor.png')+')');
+							break;
+						case 20:
+							dojo.style(this._toolbar.childNodes[i].firstChild.firstChild.firstChild, 'background', 'url('+require.toUrl('cowebx/dojo/RichTextEditor/images/hiliteColor.png')+')');
+							break;
+
+					}
+
+					//TEMPORARY: HIDE UNUSED BUTTONS
+					var arr = [4,5,6,7,12,13,14,16,17,18];
+					for(var n in arr){
+						dojo.style(this._toolbar.childNodes[arr[n]], 'display', 'none');
+					}
 				}
+				dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[8],'before');
+				dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[19],'before');
+				dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
+				var redo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url('+require.toUrl('cowebx/dojo/RichTextEditor/images/redo.png')+');'},this._toolbar,'first');
+				var undo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url('+require.toUrl('cowebx/dojo/RichTextEditor/images/undo.png')+');'},this._toolbar,'first');
+				dojo.connect(redo, 'onclick', this, function(){ document.execCommand('redo',"",""); });
+				dojo.connect(undo, 'onclick', this, function(){ document.execCommand('undo',"",""); });
+				dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
+				var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url('+require.toUrl('cowebx/dojo/RichTextEditor/images/save.png')+');'},this._toolbar,'first');
+				dojo.connect(save, 'onclick', this, 'onSaveClick');
+				this._buildConfirmDialog();
+			},
+
+			onSaveClick: function() {
+			 dojo.publish("shareClick", [{}]);
+		},
+
+			_buildConfirmDialog: function(){
+			secondDlg = new Dialog({
+				title: "Are you sure?",
+				style: "width: 300px;font:12px arial;",
+				id: 'tDialog'
+			});
+			var h = dojo.create('div',{'style':'margin-left:auto;margin-right:auto;width:80px;margin-bottom:5px'},secondDlg.domNode,'last');
+			var yes = new ToggleButton({
+				label: '<span style="font-family:Arial;font-size:10px;">Yes</span>',
+				showLabel: true,
+				id: 'yesButton'
+			});
+			var no = new ToggleButton({
+				label: '<span style="font-family:Arial;font-size:10px;">No</span>',
+				showLabel: true,
+				id: 'noButton'
+			});
+			dojo.place(yes.domNode, h, 'last');
+			dojo.place(no.domNode, h, 'last');
+			return secondDlg
+		},
+
+			_onRemoteTitle: function(obj){
+			this.title = obj.value.title;
+			this._title.value = this.title;
+		},
+
+		cleanup : function() {
+			if(this.timeoutId != null){
+				clearTimeout(this.timeoutId);
+				this.timeoutId= null;
 			}
-			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[8],'before');
-			dojo.create('div',{'class':'toolbarDiv'},this._toolbar.childNodes[19],'before');
-			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
-			var redo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url('+require.toUrl('cowebx/dojo/RichTextEditor/images/redo.png')+');'},this._toolbar,'first');
-			var undo = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url('+require.toUrl('cowebx/dojo/RichTextEditor/images/undo.png')+');'},this._toolbar,'first');
-			dojo.connect(redo, 'onclick', this, function(){ document.execCommand('redo',"",""); });
-			dojo.connect(undo, 'onclick', this, function(){ document.execCommand('undo',"",""); });
-			dojo.create('div',{'class':'toolbarDiv'},this._toolbar,'first');
-			var save = dojo.create('div',{'class':'toolbarButtonCustom',style:'background-image:url('+require.toUrl('cowebx/dojo/RichTextEditor/images/save.png')+');'},this._toolbar,'first');
-			dojo.connect(save, 'onclick', this, 'onSaveClick');
-			this._buildConfirmDialog();
-		},
-
-		onSaveClick: function() {
-		 dojo.publish("shareClick", [{}]);
-	},
-
-		_buildConfirmDialog: function(){
-		secondDlg = new Dialog({
-			title: "Are you sure?",
-			style: "width: 300px;font:12px arial;",
-			id: 'tDialog'
-		});
-		var h = dojo.create('div',{'style':'margin-left:auto;margin-right:auto;width:80px;margin-bottom:5px'},secondDlg.domNode,'last');
-		var yes = new ToggleButton({
-			label: '<span style="font-family:Arial;font-size:10px;">Yes</span>',
-			showLabel: true,
-			id: 'yesButton'
-		});
-		var no = new ToggleButton({
-			label: '<span style="font-family:Arial;font-size:10px;">No</span>',
-			showLabel: true,
-			id: 'noButton'
-		});
-		dojo.place(yes.domNode, h, 'last');
-		dojo.place(no.domNode, h, 'last');
-		return secondDlg
-	},
-
-		_onRemoteTitle: function(obj){
-		this.title = obj.value.title;
-		this._title.value = this.title;
-	},
-
-	cleanup : function() {
-		if(this.timeoutId != null){
-			clearTimeout(this.timeoutId);
-			this.timeoutId= null;
 		}
-	}
-	});
+		}
+	);
+
 });
 

@@ -85,14 +85,20 @@ define([
 	var proto = EditorTree.prototype;
 
 	proto.flatten = function() {
+		function splitUp(s) {
+			var ret = "";
+			for (var i = 0; i < s.length; ++i)
+				ret += s[i] + "\n";
+			return ret;
+		}
 		var str = "";
 		this.prePostOrder(function(at) {
 			if (Node.TEXT_NODE == at.nodeType) {
-				str += at.text + "\n";
+				str += splitUp(at.text);
 			} else if (Node.ELEMENT_NODE == at.nodeType) {
 				str += at.beginTag + "\n";
 				if (null !== at.text)
-					str += at.text + "\n";
+					str += splitUp(at.text);
 			}
 		}, function(at) {
 			if (Node.ELEMENT_NODE == at.nodeType) {
@@ -100,7 +106,29 @@ define([
 			}
 		});
 		return str;
-	}
+	};
+
+	proto.flattenToArray = function() {
+		function splitUp(ret, s) {
+			for (var i = 0; i < s.length; ++i)
+				ret.push(s[i]);
+		}
+		var ret = [];
+		this.prePostOrder(function(at) {
+			if (Node.TEXT_NODE == at.nodeType) {
+				splitUp(ret, at.text);
+			} else if (Node.ELEMENT_NODE == at.nodeType) {
+				ret.push(at.beginTag);
+				if (null !== at.text)
+					splitUp(ret, at.text);
+			}
+		}, function(at) {
+			if (Node.ELEMENT_NODE == at.nodeType) {
+				ret.push(at.endTag);
+			}
+		});
+		return ret;
+	};
 
 	proto.data =  function() {
 		return {
