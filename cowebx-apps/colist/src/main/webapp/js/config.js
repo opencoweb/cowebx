@@ -1,0 +1,37 @@
+//
+// Config file. Split out from the app for ease of overlaying a new config
+// without affecting the app controller.
+//
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+//
+var dojoConfig = {
+    baseUrl: '/colist',
+    async:true,
+
+    paths : {
+        coweb : 'lib/coweb',
+        cowebx: 'lib/cowebx',
+        org : 'lib/org',
+        colist : 'js'
+    },
+
+    packages:[{
+        name: 'dojo',
+        location:"http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dojo",
+      //http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojo',
+        main:'main'
+    },
+    {
+        name: 'dijit',
+        location:"http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dijit",
+        //location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit',
+        main:'main'
+    },
+    {
+        name: 'dojox',
+        location:"http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dojox",
+        //location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.8.0/dojox',
+        main:'main'
+    }]
+};
+

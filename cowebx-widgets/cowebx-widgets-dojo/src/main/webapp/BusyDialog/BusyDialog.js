@@ -194,7 +194,8 @@ var BusyDialog = dojo.declare('cowebx.BusyDialog', Dialog, {
             this.show();
         }
         // adjust dialog sizing in case the sheet changed size
-        this.layout();
+        this.resize(); // In dojo 1.8.0, use resize(). 1.7.0 used layout(). Both methods
+                       // are private, hence the methods changing names without notice...
     }
 });
 
