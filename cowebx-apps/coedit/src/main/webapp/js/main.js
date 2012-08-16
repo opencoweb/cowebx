@@ -1,4 +1,4 @@
-
 var cowebConfig = { adminUrl: './admin', cacheState : true };
-require(["colist"]);
+
+require(["coedit/application"]);
 

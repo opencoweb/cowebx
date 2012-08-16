@@ -13,7 +13,7 @@ define([
 	"dojo",
 	"dijit/registry",
 	"coweb/main",
-	"CoopGrid",
+	"colist/CoopGrid",
 	"dojox/grid/DataGrid",
 	"dojo/data/ItemFileWriteStore",
 	"cowebx/dojo/BusyDialog/BusyDialog",
