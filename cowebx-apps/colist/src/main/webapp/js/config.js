@@ -18,19 +18,16 @@ var dojoConfig = {
     packages:[{
         name: 'dojo',
         location:"http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dojo",
-      //http://vhost1629.developer.ihost.com/dojotoolkit/1.8.0/dojo',
         main:'main'
     },
     {
         name: 'dijit',
         location:"http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dijit",
-        //location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.8.0/dijit',
         main:'main'
     },
     {
         name: 'dojox',
         location:"http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dojox",
-        //location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.8.0/dojox',
         main:'main'
     }]
 };
