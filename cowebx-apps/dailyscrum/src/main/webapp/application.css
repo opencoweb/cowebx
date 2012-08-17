@@ -4,8 +4,8 @@
  * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
  * 
  */
-@import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojox/mobile/themes/iphone/iphone.css";
-@import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojox/mobile/themes/iphone/ipad.css";
+@import "http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dojox/mobile/themes/iphone/iphone.css";
+@import "http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dojox/mobile/themes/iphone/ipad.css";
 
 html, body {
     margin: 0px;

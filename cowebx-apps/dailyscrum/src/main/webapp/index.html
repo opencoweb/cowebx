@@ -4,13 +4,13 @@
     	<meta charset="utf-8" />
     	<title>Daily Scrum</title>
     	<link rel="stylesheet" href="application.css" type="text/css" />
-		<script type="text/javascript" src="config.js"></script>
-		<script type="text/javascript" src="http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojo/dojo.js"></script>
-		<script type="text/javascript" src="main.js"></script>
+		<script type="text/javascript" src="js/config.js"></script>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dojo/dojo.js.uncompressed.js"></script>
+		<script type="text/javascript" src="js/main.js"></script>
   	</head>
   	<body class="claro">
 		<div dojoType="dojox.mobile.FixedSplitter" orientation="H">
-			<div dojoType="dojox.mobile.FixedSplitterPane" class="dailyscrum_left">
+			<div dojoType="dojox.mobile.Container" class="dailyscrum_left">
 				<div dojoType="dojox.mobile.ScrollableView" selected="true" height="80%">
 					<h1 dojoType="dojox.mobile.Heading" fixed="top">Attendees</h1>
 					<ul dojoType="dojox.mobile.EdgeToEdgeList" id="listView" transition="none" stateful="true" >
@@ -29,11 +29,11 @@
 					</table>
 				</div>
 			</div>
-			<div dojoType="dojox.mobile.FixedSplitterPane" id="container">
+			<div dojoType="dojox.mobile.Container" id="container">
 				<div dojoType="dojox.mobile.ScrollableView" selected="true">
 					<h1 dojoType="dojox.mobile.Heading" fixed="top" id="speaker">Current Speaker: None</h1>
 					<div dojoType="dojox.mobile.FixedSplitter" orientation="V">
-						<div dojoType="dojox.mobile.FixedSplitterPane" class="dailyscrum_top">
+						<div dojoType="dojox.mobile.Container" class="dailyscrum_top">
 						<table class="dailyscrum_clock_table">
 							<tr>
 								<td class="dailyscrum_clock_right" id="userClockCell">
@@ -43,7 +43,7 @@
 							</tr>
 						</table>
 						</div>
-						<div dojoType="dojox.mobile.FixedSplitterPane" class="dailyscrum_scrumFrameView" id="scrumFrameView">
+						<div dojoType="dojox.mobile.Container" class="dailyscrum_scrumFrameView" id="scrumFrameView">
 							<div id="editorNode" class="dailyscrum_editor_node"></div>
 						</div>
 					</div>
