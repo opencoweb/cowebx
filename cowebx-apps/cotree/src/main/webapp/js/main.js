@@ -1,4 +1,4 @@
 var cowebConfig = { adminUrl: './admin', cacheState : true };
 
-require(["application"]);
+require(["cotree/application"]);
 
