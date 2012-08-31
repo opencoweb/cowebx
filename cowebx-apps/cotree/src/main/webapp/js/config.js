@@ -5,28 +5,27 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 //
 var dojoConfig = {
-	baseUrl: '/dailyscrum',
+	baseUrl: '/cotree',
 	async:true,
-	
 	paths : {
 	   coweb : 'lib/coweb',
 	   cowebx: 'lib/cowebx',
-	   org : 'lib/org'
+	   org : 'lib/org',
+      cotree : 'js'
 	},
-	
 	packages:[{
 		name: 'dojo',
-		location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojo',
+		location:'http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dojo',
 		main:'main'
 	},
 	{
 		name: 'dijit',
-		location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit',
+		location:'http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dijit',
 		main:'main'
 	},
 	{
 		name: 'dojox',
-		location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojox',
+		location:'http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dojox',
 		main:'main'
 	}]
 };

@@ -122,7 +122,7 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			if(this.tree.selectedItem) {
 				prevSelectedItemId = this.tree.selectedItem.id[0];
 				// Hide UI buttons temporarily
-				this.tree.attr('selectedItem','_null');
+				this.tree.set('selectedItem','_null');
 				dojo.place('buttonContainer',document.body,'last');
 				dojo.style('buttonContainer','display','none');
 			}
@@ -137,7 +137,7 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			this.store.save();
 			// Re-focus prevSelectedItem if it exists
 			if (prevSelectedItemId)
-				this.tree.attr('selectedItem',prevSelectedItemId);
+				this.tree.set('selectedItem',prevSelectedItemId);
 			// Try to show buttons again
 			this._click();
 		},
