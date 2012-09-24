@@ -7,9 +7,9 @@ class CoWebApp(coweb.AppContainer):
         # secret key for signing auth cookies
         self.webSecretKey = '${webSecretKey}'
         # match admin url to what java version uses
-        self.webAdminUrl = self.webRoot + 'cowebx-apps/admin'
+        self.webAdminUrl = self.webRoot + 'comap/admin'
         # match static url to what java uses
-        self.webStaticRoot = self.webRoot + 'cowebx-apps/'
+        self.webStaticRoot = self.webRoot + 'comap/'
         # provide custom updater type matcher
         self.updaterTypeMatcherClass = updater.ExampleUpdaterTypeMatcher
 
