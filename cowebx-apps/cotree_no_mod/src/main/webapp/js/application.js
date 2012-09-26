@@ -29,9 +29,10 @@ define([
 	'dijit/form/TextBox',
 	'dojo/parser',
 	'dojo/_base/array',
+	'./CoTree',
 	'dojo/dnd/common',
 	'dojo/dnd/Source'],
-function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog, TextBox, parser, array) {
+function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog, TextBox, parser, array, CoTree) {
 	parser.parse();
 	/*var bs  = document.getElementById("ps");
 	bs.onclick = function() {
@@ -44,6 +45,20 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		}
 	};*/
 	var app = {
+		_generateTree: function(data) {
+			var __generateTree = function(data) {
+				var clist = [];
+				array.forEach(data.children, dojo.hitch(this, function(at) {
+					__generateTree(at);
+					clist.push(at.id);
+				}));
+				this.myTree.createNode(data.id, data.name, clist);
+			}
+			__generateTree = dojo.hitch(this, __generateTree);
+			__generateTree(data);
+			this.myTree.setRoot(data.id);
+		},
+
 		init: function() {
 			// Properties
 			this.dndOps = {};           // Track each node's drag and drop movement.
@@ -51,6 +66,10 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			window.foo = this;          // For debugging
 			this._getData();            // Fetch the initial data.json
 			this._buildButtons();       // Build UI buttons
+
+			// Build internal tree representation.
+			this.myTree = new CoTree();
+			this._generateTree(this.data.items[0]);
 
 			// Build dojo Tree components
 			this.store 		= (this.store) ? this.store : new Store({data:this.data});
@@ -71,38 +90,58 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		},
 
 		onLocalAddNode: function(obj) {
-			// Set flag to indicate a regular 'insert'
-			obj['force'] = true;
-			// Send sync with topic corresponding to parent id
-			console.log("Local insert: %d[%d] = %d", obj.parentId, obj.pos, obj.id);
-			this.collab.sendSync('change.'+obj.parentId, obj, 'insert', obj.pos);
+			var sync = this.myTree.localInsert(obj.parentId, obj.pos, obj.id, obj.value);
+			this.collab.sendSync("change." + sync.collab, sync.value, 'insert', sync.position);
 		},
 
 		onRemoteAddNode: function(obj) {
-			// Get parent item from synced parentId
-			console.log("Remote insert: %d[%d] = %d", obj.value.parentId, obj.position, obj.value.id);
-			var parentItem = this._getItemById(obj.value.parentId);
+			var pid = obj.name.substring(7);
+			var parentItem = this._getItemById(pid);
 			// If parent item found...
 			if (parentItem) {
-				// add the new item to data store
-				var newItem = this.store.newItem({ id: obj.value.id, name:obj.value.value});
-				var parentId = obj.value.parentId;
-				// update parent node's children in store & save
-				var children = parentItem.children;
-				if (children == undefined)
-					children = [newItem];
-				else {
-					/* What a joke...for whatever reason the application breaks if I don't copy
-					   the array. Spent over two hours trying to figure out why... */
-					children = children.slice(0);
-					children.splice(obj.position, 0, newItem);
+				// Add the new item to data store.
+				var wasNew = this.myTree.remoteInsert(pid, obj.position, obj.value.id, obj.value.name);
+				if (wasNew) {
+					var newItem = this.store.newItem({ id: obj.value.id, name: obj.value.name});
+					var parentId = obj.value.parentId;
+					// update parent node's children in store & save
+					var children = parentItem.children;
+					if (children == undefined)
+						children = [newItem];
+					else {
+						/* What a joke...for whatever reason the application breaks if I don't copy
+						the array. Spent over two hours trying to figure out why... */
+						children = children.slice(0);
+						children.splice(obj.position, 0, newItem);
+					}
+					this.store.setValue(parentItem,'children',children);
+					this.store.save();
+				} else {
+					/* Node already exists. */
+					var oldParent = this._getItemById(obj.value.prevParentID);
+					//var target = oldParent.children[obj.position];
+					var target = this._getItemById(obj.value.id);
+					this.model.pasteItem(target, oldParent, parentItem, 0, obj.position);
+					this.store.save();
 				}
-				this.store.setValue(parentItem,'children',children);
-				this.store.save();
 			} else {
 				/* We can't honor the insert operation since the parent was already deleted. By assumption,
 				   other clients will also delete this parent at some point, thereby negating their
 				   insert of the desired node. Thus, we ignore this insert request. */
+				if (obj.value.move) {
+					/* If this was a MOVE but the parent doesn't exist anymore, this means the parent
+					 * was deleted by some other operation, and the subtree to be moved would be deleted
+					 * eventually anyway. Lets do that here. */
+					var target = this._getItemById(obj.value.id);
+					if (target) {
+						this._delNode(target);
+					} else  {
+						console.warn("remoteAdd: tried to delete subtree of already deleted " + 
+								"node, but could not find subtree to delete");
+					}
+				} else {
+					console.warn("remoteAdd: parent not found pid=", pid, obj);
+				}
 			}
 		},
 
@@ -112,12 +151,25 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			obj['parentId'] = parentId;
 			obj['id'] = id; // TODO remove
 			// Send sync with topic corresponding to parent id
-			console.log("Local delete %d[%d]", parentId, pos);
 			this.collab.sendSync('change.' + parentId, obj, 'delete', pos);
 		},
 
 		onRemoteDeleteNode: function(obj) {
-			console.log("Remote delete %d[%d] = %d", obj.value.parentId, obj.position, obj.value.id);
+			// Get targeted item by synced id
+			var pid = obj.name.substring(7);
+			var p = this._getItemById(pid);
+			if (!p) {
+				console.warn("remoteDelete: Parent node doesn't exist id=", pid, obj);
+				return;
+			}
+			var targetItem = p.children[obj.position];
+			this.myTree.remoteDelete(pid, obj.position, obj.value.move);
+			if (!obj.value.move) {
+				this._delNode(targetItem);
+			}
+		},
+
+		_delNode: function(targetItem) {
 			var prevSelectedItemId = null;
 			// Remove node focus temporarily & save ref
 			if (this.tree.selectedItem) {
@@ -127,12 +179,6 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 				dojo.place('buttonContainer',document.body,'last');
 				dojo.style('buttonContainer','display','none');
 			}
-			// Get targeted item by synced id
-			var p = this._getItemById(obj.value.parentId);
-			if (!p) {
-				return;
-			}
-			var targetItem = p.children[obj.position];
 			// Delete targeted item from store & save
 			this.store.deleteItem(targetItem);
 			this.store.save();
@@ -144,40 +190,22 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		},
 
 		onLocalMoveNode: function(obj) {
-			// send sync with topic corresponding to parent id
-			// with no flag set, indicating a modified 'delete'
-			// which keeps the node around
-			console.log("Local move %d[%d] = %d   -> %d[%d]", obj.prevParentID, obj.prevPos, obj.targetID,
-					obj.newParentID, obj.newPos);
-			this.collab.sendSync('change.'+obj.prevParentID, obj, 'delete', obj.prevPos);
-			// send sync with topic corresponding to parent id
-			// with no flag set, indicating a modified 'insert'
-			// which simply modifies children rather than creating
-			// a new node
-			this.collab.sendSync('change.'+obj.newParentID, obj, 'insert', obj.newPos);
-		},
-
-		validate: function(arr) {
-			try{
-			var been = {};
-			function t(x) { if (been[x]) throw 5;been[x] = true; }
-			var q = [];
-			array.forEach(arr, function(m) { q.push(m); });
-			while (q.length > 0) {
-				var at = q.shift();
-				t(at.id[0]);
-				array.forEach(at.children, function(ch) {
-					q.push(ch);
-				});
-			}
-			} catch (e) { return false;
-			}
-			return true;
+			/* Send sync with topic corresponding to parent id
+			   with no flag set, indicating a modified "delete"
+			   which keeps the node around. */
+			obj.id = obj.targetID;
+			obj.move = true;
+			this.myTree.localDelete(obj.prevParentID, obj, true);
+			this.collab.sendSync("change."+obj.prevParentID, obj, "delete", obj.prevPos);
+			/* Send sync with topic corresponding to parent id
+			   with no flag set, indicating a modified "insert"
+			   which simply modifies children rather than creating
+			   a new node. */
+			this.myTree.localInsert(obj.newParentID, obj.newPos, obj.targetID, null);
+			this.collab.sendSync("change."+obj.newParentID, obj, "insert", obj.newPos);
 		},
 
 		onRemoteMoveNode: function(obj) {
-			console.log("Remot move %d[%d] = %d   -> %d[%d] %s", obj.value.prevParentID,
-					obj.value.prevPos, obj.value.targetID, obj.value.newParentID, obj.value.newPos,obj.type);
 			if (obj.type == 'delete') {
 				var op = {
 					prevParent: this._getItemById(obj.value.prevParentID),
@@ -201,50 +229,29 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 		},
 
 		onLocalUpdateNode: function(obj) {
-			// Send sync with topic corresponding to target node id
-			console.log("Local update %d[%d] = %d",obj.parentId, obj.pos, obj.id);
-			this.collab.sendSync('change.'+obj.parentId, obj, 'update', obj.pos);
+			// Send sync with topic corresponding to target node id.
+			var sync = this.myTree.localUpdate(obj.id, obj.name);
+			this.collab.sendSync("change." + sync.collab, sync.value, "update", sync.position);
 		},
 
 		onRemoteUpdateNode: function(obj) {
-			console.log("Remote update %d[%d] = %d", obj.value.parentId, obj.position, obj.value.id);
-			// Get targeted item by synced id
-			var targetItem, p;
-			if (obj.value.parentId == this.superRootId) {
-				// This is ok because we don't allow the root to be deleted.
-				targetItem = this._getItemById(obj.value.id);
+			// Get targeted item by synced id.
+			var id = obj.name.substring(7);
+			var targetItem = this._getItemById(id);
+			if (targetItem) {
+				this.myTree.remoteUpdate(id, obj.value);
+				this.store.setValue(targetItem, "name", obj.value);
+				this.store.save();
 			} else {
-				p = this._getItemById(obj.value.parentId);
-				if (!p) {
-					/* We can't honor the update operation since the parent was already deleted. By assumption,
-					   other clients will also delete this parent at some point, thereby negating their
-					   update of the desired node. Thus, we ignore this update request. */
-					return;
-				}
-				targetItem = p.children[obj.position];
-				if (!this._getItemById(obj.value.id))
-					console.error("whoops");
+				console.warn("remoteUpdate: Can't find node id=", id, obj);
 			}
-			// Set new name, update store & save
-			var name = obj.value.name;
-			this.store.setValue(targetItem,'name',name);
-			this.store.save();
 		},
 
 		onRemoteChange: function(obj) {
-			// Normal insert
-			if (obj.type == 'insert' && obj.value['force'])
+			if (obj.type == 'insert')
 				this.onRemoteAddNode(obj);
-			// Normal delete
-			else if (obj.type == 'delete' && obj.value['force'])
-				this.onRemoteDeleteNode(obj);
-			// Modified insert
-			else if (obj.type == 'insert')
-				this.onRemoteMoveNode(obj);
-			// Modified delete
 			else if (obj.type == 'delete')
-				this.onRemoteMoveNode(obj);
-			// Normal update
+				this.onRemoteDeleteNode(obj);
 			else if (obj.type == 'update')
 				this.onRemoteUpdateNode(obj);
 		},
@@ -358,8 +365,18 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			var target = this.tree.selectedNode;
 			var targetId = target.item.id[0];
 			if (!target.getParent().item) {
+				console.warn("Can't delete root!");
 				return; // Can't delete the root.
 			}
+			var p = target.getParent();
+			var sync = this.myTree.localDelete(p.item.id, targetId);
+			this.collab.sendSync("change." + sync.collab, {move:false}, "delete", sync.position);
+			this.store.deleteItem(target.item);
+			this.store.save();
+			/*if (document.getElementById("ps").value=="pause")
+				this.collab.resumeSync();*/
+			this.collab.resumeSync();
+			return;
 
 			// Correct way to delete is to delete all children (post-order traversal) first.
 			postOrder(target);
@@ -377,8 +394,6 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 				this.store.save();
 				this.onLocalDeleteNode(itm[1], itm[2], true, itm[3]);
 			}, this);
-			//if (document.getElementById("ps").value=="pause")
-			//	this.collab.resumeSync();
 			this.collab.resumeSync();
 		},
 
