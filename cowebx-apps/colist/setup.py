@@ -40,9 +40,6 @@ def deploy(options, args):
     # copy the webapps into place
     cmd = 'cp -r src/main/webapp/* ' + os.path.join(dest, 'www/')
     subprocess.check_call(cmd, shell=True)
-    # copy the bots into place
-    cmd = 'cp -r src/main/python/bots/* ' + os.path.join(dest, 'bots/')
-    subprocess.check_call(cmd, shell=True)
     # copy updater example into place
     try:
         os.makedirs(os.path.join(dest, 'bin/updater/'))
@@ -70,7 +67,6 @@ def clean(options, args):
     rm(dest, 'bin/updater')
     rm(dest, 'bin/run_server.py')
     rm(dest, 'www')
-    rm(dest, 'bots')
 
 def develop(options, args):
     '''Symlinks the apps and widgets into an existing developer env.'''
@@ -94,12 +90,6 @@ def develop(options, args):
     srcRoot = 'src/main/webapp/'
     _symlink_path(srcRoot, target)
     
-    # symlink bots into bots/
-    target = os.path.join(targetRoot, 'bots')
-    os.mkdir(target)
-    srcRoot = 'src/main/python/bots'
-    _symlink_path(srcRoot, target)
-
     # symlink updater into bin/updater/
     target = os.path.join(targetRoot, 'bin/updater')
     os.makedirs(target)
