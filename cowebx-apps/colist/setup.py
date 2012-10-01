@@ -52,7 +52,8 @@ def deploy(options, args):
         os.makedirs(os.path.join(dest, 'www/lib/cowebx'))
     except OSError:
         pass
-    cmd = 'cp -r ../../cowebx-widgets/cowebx-widgets-dojo/src/main/webapp ' + os.path.join(dest, 'www/lib/cowebx/dojo')
+    cmd = 'cp -r ../../cowebx-widgets/cowebx-widgets-dojo/src/main/webapp ' + \
+			os.path.join(dest, 'www/lib/cowebx/dojo')
     subprocess.check_call(cmd, shell=True)
 
 def rm(target, f):
@@ -108,21 +109,6 @@ def develop(options, args):
     except OSError, e:
         print 'skipped: cowebx-widgets-dojo'
         
-    """
-    We use Google CDN for dojo. No need to use our own.
-    # symlink dojo/dijit/dojox into www/lib/dojo-1.7-patched
-    try:
-        os.makedirs(os.path.join(targetRoot, 'www/lib/dojo-1.7-patched'))
-    except OSError:
-        pass
-    target = os.path.join(targetRoot, 'www/lib/dojo-1.7-patched')
-    src = os.path.abspath('../cowebx-apps/src/main/webapp/dojo-1.7-patched')
-    try:
-        os.symlink(src, target)
-    except OSError, e:
-        print 'skipped: dojo dijit dojox'
-    """
-    
 if __name__ == '__main__':
     parser = optparse.OptionParser('usage: %prog <deploy|develop|clean> [options] <PATH>')
     parser.add_option('-f', '--force', dest='force', action='store_true', default=False,
