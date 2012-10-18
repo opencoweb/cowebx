@@ -1,10 +1,12 @@
 {
 	"moderatorIsUpdater": false,
+    "sessionModerator": "org.coweb.example.ZipModerator",
+    "operationEngine": true,
 	"bots": [
 		{
 			"name": "Zip Visits",
-			"description": "Simulates the number of people that have visited a zip code today. For demonstration purposes only.",
-			"author": "Brian Burns",
+			"description": "Tests ability of moderator to send service messages.",
+			"author": "Chris Cotter",
 			"version": "1.0",
 			"service": "zipvisits",
 			"class": "org.coweb.example.ZipVisits"

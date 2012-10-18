@@ -67,6 +67,7 @@ define([
             this.collab = coweb.initCollab({id : 'comap'});
             this.collab.subscribeReady(this, 'onCollabReady');
             this.collab.subscribeSync('log.message', this, 'onRemoteLogMsg');
+            this.collab.subscribeSync('mod.zipvisits', this, "onZipVisits");
     
             // avoid a splitter layout bug by forcing a resize after load
             dijit.byId('layout').resize();
@@ -122,15 +123,9 @@ define([
         onCollabReady: function(info) {
             // store username for use by widgets
             this.username = info.username;
-            // subscribe to zip data from bots
-            this.collab.subscribeService('zipvisits', this, 'onZipVisits');
         },
     
         onZipVisits: function(args) {
-            if(args.error) {
-                console.error('could not subscribe to zipvisits service');
-                return;
-            }
             var counts = args.value;
             for(var uuid in counts) {
                 if(counts.hasOwnProperty(uuid)) {
