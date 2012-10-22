@@ -26,9 +26,9 @@ public class ZipModerator extends DefaultSessionModerator {
     private HashMap<String, Object> markers = new HashMap<String, Object>();
     private Timer timer = null;
     private SessionModerator.CollabInterface collab;
+    boolean isReady = false;
 
     public ZipModerator() {
-        this.collab = this.initCollab("comap");
     }
 
     /**
@@ -64,10 +64,19 @@ public class ZipModerator extends DefaultSessionModerator {
 
     @Override
     public void onSessionEnd() {
+        System.out.println("  ZipModerator::onSessionEnd()");
+        this.isReady = false;
         if (null != this.timer) {
             this.timer.cancel();
             this.timer = null;
         }
+    }
+
+    @Override
+    public void onSessionReady() {
+        System.out.println("  ZipModerator::onSessionReady()");
+        this.collab = this.initCollab("comap");
+        this.isReady = true;
     }
 
     @Override
@@ -85,6 +94,8 @@ public class ZipModerator extends DefaultSessionModerator {
 
 		@Override
 		public void run() {
+            if (!this.m.isReady)
+                return;
 
 			Random r = new Random();
 			for (String mid : markers.keySet()) {

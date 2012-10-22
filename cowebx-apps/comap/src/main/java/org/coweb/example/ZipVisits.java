@@ -34,7 +34,7 @@ public class ZipVisits implements Bot {
 
 	public void onRequest(Map<String, Object> params, String replyToken, String username) {
         System.out.println("ZipVisits::onRequest()");
-        params.put("date", "Milk");
+        params.put("date", "Milk321" + Math.random());
         this.proxy.reply(this, replyToken, params);
 	}
     

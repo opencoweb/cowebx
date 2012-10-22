@@ -126,6 +126,9 @@ define([
         },
     
         onZipVisits: function(args) {
+            /*this.collab.postService('zipvisits', {'browser':'true'},function(v,e) {
+                console.log("  on svc callback: " + v);
+            });*/
             var counts = args.value;
             for(var uuid in counts) {
                 if(counts.hasOwnProperty(uuid)) {
