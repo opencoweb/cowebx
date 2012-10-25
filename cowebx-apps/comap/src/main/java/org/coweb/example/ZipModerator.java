@@ -15,6 +15,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Random;
 
+import org.cometd.bayeux.server.ServerSession;
 import org.cometd.bayeux.Message;
 
 /**
@@ -70,6 +71,16 @@ public class ZipModerator extends DefaultSessionModerator {
             this.timer.cancel();
             this.timer = null;
         }
+    }
+
+    @Override
+    public boolean canClientJoinSession(ServerSession client, Message message) {
+        return true;
+    }
+
+    @Override
+    public boolean canClientSubscribeService(ServerSession client, Message message) {
+        return true;
     }
 
     @Override
