@@ -58,14 +58,13 @@ public class ZipModerator extends DefaultSessionModerator {
 
         	if (this.timer == null) {
         		this.timer = new Timer();
-        		this.timer.scheduleAtFixedRate(new ZipTimer(this), 0, 5000);
+        		this.timer.scheduleAtFixedRate(new ZipTimer(), 0, 5000);
         	}
         }
     }
 
     @Override
     public void onSessionEnd() {
-        System.out.println("  ZipModerator::onSessionEnd()");
         this.isReady = false;
         if (null != this.timer) {
             this.timer.cancel();
@@ -79,33 +78,39 @@ public class ZipModerator extends DefaultSessionModerator {
     }
 
     @Override
-    public boolean canClientSubscribeService(ServerSession client, Message message) {
+    public boolean canClientSubscribeService(String svcName,
+            ServerSession client, Message message) {
+        return true;
+    }
+
+    @Override
+    public boolean canClientMakeServiceRequest(String svcName,
+            ServerSession client, Message mesage) {
         return true;
     }
 
     @Override
     public void onSessionReady() {
-        System.out.println("  ZipModerator::onSessionReady()");
         this.collab = this.initCollab("comap");
+        this.markers.clear();
         this.isReady = true;
+        this.collab.subscribeService("datebot");
     }
 
     @Override
-    public void onServiceResponse(Message message) {
-        System.out.println("    repsonse message " + message);
+    public void onServiceResponse(String svcName, Map<String, Object> data,
+            boolean error, boolean isPublic) {
+        System.out.printf(
+                "ZipModerator::onServiceResponse(%s,%b,%b): bot says \n  %s\n",
+                svcName, error, isPublic, data);
     }
 
     private class ZipTimer extends TimerTask {
 
-        private ZipModerator m = null;
-
-        ZipTimer(ZipModerator m) {
-        	this.m = m;
-        }
-
 		@Override
 		public void run() {
-            if (!this.m.isReady)
+            ZipModerator mod = ZipModerator.this;
+            if (!mod.isReady)
                 return;
 
 			Random r = new Random();
@@ -115,10 +120,10 @@ public class ZipModerator extends DefaultSessionModerator {
 				markers.put(mid, new Integer(m));
 			}
 
-            this.m.collab.sendSync("mod.zipvisits", markers, null, 0);
+            mod.collab.sendSync("mod.zipvisits", markers, null, 0);
             Map<String, Object> map = new HashMap<String, Object>();
-            map.put("chris", "cotter");
-            this.m.collab.postService("zipvisits", map);
+            map.put("dummmy", 0);
+            mod.collab.postService("datebot", map);
 		}
     }
 }

@@ -123,12 +123,28 @@ define([
         onCollabReady: function(info) {
             // store username for use by widgets
             this.username = info.username;
+            /* Must wait until the collab object is ready to subscribe
+             * to bots. */
+            this.collab.subscribeService("datebot", function(data) {
+                if (data.error) {
+                    /* Could not subscribe - moderator didn't allow it. */
+                } else {
+                    console.log("datebot published: " + data.value.date);
+                }
+            });
         },
     
         onZipVisits: function(args) {
-            /*this.collab.postService('zipvisits', {'browser':'true'},function(v,e) {
-                console.log("  on svc callback: " + v);
-            });*/
+            if (0) {
+            this.collab.postService("datebot", {"dummy" : 0}, function(data) {
+                if (data.error) {
+                    /* Moderator doesn't alow us to post messages. */
+                } else {
+                    console.log("datebot responded to private message, count=" +
+                        data.value.total);
+                }
+            });
+            }
             var counts = args.value;
             for(var uuid in counts) {
                 if(counts.hasOwnProperty(uuid)) {

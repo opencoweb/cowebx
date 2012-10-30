@@ -4,12 +4,12 @@
     "operationEngine": true,
 	"bots": [
 		{
-			"name": "Zip Visits",
+			"name": "CoMap Bot",
 			"description": "Tests ability of moderator to send service messages.",
 			"author": "Chris Cotter",
 			"version": "1.0",
-			"service": "zipvisits",
-			"class": "org.coweb.example.ZipVisits"
+			"service": "datebot",
+			"class": "org.coweb.example.DateBot"
 		}
 	]
 } 
