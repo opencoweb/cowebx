@@ -40,7 +40,7 @@ public class CotreeModerator extends DefaultSessionModerator {
 	  *
 	  * @param data incoming sync message
 	  */
-	public synchronized boolean onSync(Map<String, Object> data) {
+	public synchronized void onSync(Map<String, Object> data) {
 		// Get the value of the sync and determine the op to perform on tree
 		Map value = (Map)data.get("value");
 		String ty = data.get("type").toString();
@@ -63,8 +63,6 @@ public class CotreeModerator extends DefaultSessionModerator {
 		}else if(ty.equals("update")){
 			update(value, pos);
 		}
-		
-		return true;
 	}
 
 	/* The following private methods are helper methods for onSync. */
@@ -199,30 +197,34 @@ public class CotreeModerator extends DefaultSessionModerator {
 	/* The rest of these functions are uninteresting to the CoTree application. */
 
 	@Override
-	public void onClientJoinSession(ServerSession client) {
+	public void onClientJoinSession(ServerSession client, Message message) {
 	}
 
 	@Override
-	public boolean canClientJoinSession(ServerSession client) {
+	public boolean canClientJoinSession(ServerSession client, Message message) {
 		return true;
 	}
+
 	@Override
 	public void onClientLeaveSession(ServerSession client) {
 		return;
 	}
 
 	@Override
-	public boolean canClientSubscribeService(ServerSession client) {
+	public boolean canClientSubscribeService(String svcName, ServerSession client,
+			Message message) {
 		return true;
 	}
 
 	@Override
-	public boolean canClientMakeServiceRequest(ServerSession client, Message botMessage) {
+	public boolean canClientMakeServiceRequest(String svcName,
+			ServerSession client, Message botMessage) {
 		return true;
 	}
 
 	@Override
-	public void onServiceResponse(Message botResponse) {
+	public void onServiceResponse(String svcName, Map<String, Object> data,
+			boolean error, boolean isPublic) {
 		return;
 	}
 
