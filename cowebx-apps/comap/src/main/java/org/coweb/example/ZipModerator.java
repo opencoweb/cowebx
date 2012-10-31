@@ -59,6 +59,7 @@ public class ZipModerator extends DefaultSessionModerator {
     public void onSessionEnd() {
         /* When the session ends (all clients leave), we must stop sending
          * the pin drop list to the bot. */
+        this.collab = null;
         this.isReady = false;
     }
 
