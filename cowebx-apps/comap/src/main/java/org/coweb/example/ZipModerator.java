@@ -11,9 +11,6 @@ import org.coweb.SessionModerator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.Random;
 
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.bayeux.Message;
@@ -25,7 +22,6 @@ import org.cometd.bayeux.Message;
 public class ZipModerator extends DefaultSessionModerator {
 
     private HashMap<String, Object> markers = new HashMap<String, Object>();
-    private Timer timer = null;
     private SessionModerator.CollabInterface collab;
     boolean isReady = false;
 
@@ -42,89 +38,61 @@ public class ZipModerator extends DefaultSessionModerator {
         	return;
 
         if (topic.startsWith("coweb.sync.marker")) {
-            //parse the topic field to find the item after 
-            //coweb.sync.marker
+            /* Parse the topic field to find the item after
+             * coweb.sync.marker. */
         	String[] seqs = topic.split("\\.");
         	String action = seqs[3];
-        	String mid = seqs[4];
+        	String mid = seqs[4]; /* UUID of pin. */
 
-        	if (!action.equals("move") && !action.equals("add"))
-        		return;
-
-        	Random r = new Random();
-        	int m = r.nextInt(1000);
-
-        	this.markers.put(mid, new Integer(m));
-
-        	if (this.timer == null) {
-        		this.timer = new Timer();
-        		this.timer.scheduleAtFixedRate(new ZipTimer(), 0, 5000);
-        	}
+        	if (action.equals("add") || action.equals("move")) {
+                this.updateBot(mid, (Map<String, Object>)data.get("value"));
+            }
         }
+    }
+
+    private void updateBot(String mid, Map<String, Object> value) {
+        value.put("uuid", mid);
+        this.collab.postService("zipvisits", value);
     }
 
     @Override
     public void onSessionEnd() {
+        /* When the session ends (all clients leave), we must stop sending
+         * the pin drop list to the bot. */
         this.isReady = false;
-        if (null != this.timer) {
-            this.timer.cancel();
-            this.timer = null;
-        }
-    }
-
-    @Override
-    public boolean canClientJoinSession(ServerSession client, Message message) {
-        return true;
-    }
-
-    @Override
-    public boolean canClientSubscribeService(String svcName,
-            ServerSession client, Message message) {
-        return true;
     }
 
     @Override
     public boolean canClientMakeServiceRequest(String svcName,
             ServerSession client, Message mesage) {
+        /* Disallow the client from making service requests, since it is not
+         * necessary anyway. */
+        return false;
+    }
+
+    @Override
+    public boolean canClientSubscribeService(String svcName,
+            ServerSession client, Message message) {
+        /* Do allow the client to subscribe to the service, since this is how
+         * the client will receive the visit count data. */
         return true;
     }
 
     @Override
     public void onSessionReady() {
+        /* When the session is ready, create a new CollabInterface, so we can
+         * talk to the service bot. */
         this.collab = this.initCollab("comap");
         this.markers.clear();
         this.isReady = true;
-        this.collab.subscribeService("datebot");
     }
 
     @Override
     public void onServiceResponse(String svcName, Map<String, Object> data,
-            boolean error, boolean isPublic) {
-        System.out.printf(
-                "ZipModerator::onServiceResponse(%s,%b,%b): bot says \n  %s\n",
-                svcName, error, isPublic, data);
+            boolean error, boolean isPub) {
+        /* The bot will send us an acknowledge message, but we just
+         * ignore it. */
     }
 
-    private class ZipTimer extends TimerTask {
-
-		@Override
-		public void run() {
-            ZipModerator mod = ZipModerator.this;
-            if (!mod.isReady)
-                return;
-
-			Random r = new Random();
-			for (String mid : markers.keySet()) {
-				int m = ((Integer)markers.get(mid)).intValue();
-				m += r.nextInt(10);
-				markers.put(mid, new Integer(m));
-			}
-
-            mod.collab.sendSync("mod.zipvisits", markers, null, 0);
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("dummmy", 0);
-            mod.collab.postService("datebot", map);
-		}
-    }
 }
 
