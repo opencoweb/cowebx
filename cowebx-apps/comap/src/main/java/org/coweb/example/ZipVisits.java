@@ -68,7 +68,6 @@ public class ZipVisits extends VanillaBot {
         Map<String, Object> reply = new HashMap<String, Object>();
         reply.put("reply", "acknowledged");
         this.proxy.reply(this, replyToken, reply);
-
 	}
 
     private int getVisitCount(Map<String, Object> params) {
@@ -97,7 +96,6 @@ public class ZipVisits extends VanillaBot {
         public void run() {
             ZipVisits bot = ZipVisits.this;
             bot.updateVisits();
-            System.out.println("Bot: zips=" + bot.visits);
             bot.proxy.publish(bot, bot.visits);
         }
     }
