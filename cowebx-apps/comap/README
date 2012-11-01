@@ -1,0 +1,5 @@
+
+CoMap demonstrates how to use the moderator and bots; currently, only the Java
+version works, since the python code needs to use a moderator instead of a bot
+to send zipvisits.
+

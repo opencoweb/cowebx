@@ -74,6 +74,10 @@ var BusySheet = declare('cowebx.BusySheet', [_Widget, _TemplatedMixin, _WidgetsI
         // don't allow any further changes after a failure
         if(this._frozen) {return;}
         var bundle = this.labels[state];
+		if (!bundle) {
+			console.warn("Unknown state " + state + ". Unable to change BusyDialog.");
+			return;
+		}
         this.status.innerHTML = bundle.status;
         this.hint.innerHTML = bundle.hint;
         this._showIcon(bundle.icon);

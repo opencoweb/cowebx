@@ -4,105 +4,101 @@
  */
 package org.coweb.example;
 
-import org.coweb.bots.Bot;
-
+import org.coweb.bots.VanillaBot;
 import org.coweb.bots.Proxy;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Timer;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.TimerTask;
 import java.util.Random;
 
 /**
- * Bot class for the comap example. When a user adds a marker this bot
- * will see the sync event and start pushing info to the session.
+ * Simple bot that listens for messages from the moderator and sends out
+ * artificially generated visitor counts every five seconds.
  */
-public class ZipVisits implements Bot {
+public class ZipVisits extends VanillaBot {
 
     private Proxy proxy = null;
-    private HashMap<String, Object> markers = new HashMap<String, Object>();
+    private int total = 0;
     private Timer timer = null;
+    private Map<String, Object> visits = new HashMap<String, Object>();
+    private Random r = new Random();
 
+    /* This is necessary for all bots. The proxy is necessary for
+     * communication. */
     public void setProxy(Proxy proxy) {
        this.proxy = proxy;
     }
 
-	public void onSubscribe(String username) {
-        return;
-	}
-
-	public void onUnsubscribe(String username) {
-        return;
-	}
-	
+    @Override
 	public void onShutdown() {
-        if(this.timer != null)
-        	this.timer.cancel();
+        if (null != this.timer) {
+            this.timer.cancel();
+            this.timer = null;
+        }
 	}
-	
+
+    /*
+     * Called upon session startup.
+     */
+    @Override
 	public void init() {
-        return;
+        this.visits.clear();
+        this.timer = new Timer();
+        this.timer.scheduleAtFixedRate(new BotTimer(), 0, 5000);
 	}
 
-	public void onRequest(Map<String, Object> arg0, String arg1, String arg2) {
-        return;
+    /*
+     * Handle messages from the moderator. The moderator will send us marker
+     * positions via this mechanism.
+     */
+	public synchronized void onRequest(Map<String, Object> params, String replyToken,
+            String username) {
+
+        String uuid = (String)params.get("uuid");
+
+        int visitCount = this.getVisitCount(params);
+        this.visits.put(uuid, visitCount);
+
+        /* The reply token is used to uniquely identify which client sent the
+         * message and to distinguish between multiple messages if the client
+         * has sent more than one to this service. It must be considered
+         * opaque and not be altered. */
+        Map<String, Object> reply = new HashMap<String, Object>();
+        reply.put("reply", "acknowledged");
+        this.proxy.reply(this, replyToken, reply);
 	}
 
-   
-    /**
-     * Watch for sync events for marker adds and moves.
-     */ 
-    public void onSync(Map<String, Object> data, String username) {
-        String topic = (String)data.get("topic");
-        if(topic == null)
-        	return;
-   
-        if(topic.startsWith("coweb.sync.marker")) {
-            //parse the topic field to find the item after 
-            //coweb.sync.marker
-        	String[] seqs = topic.split("\\.");
-        	String action = seqs[3];
-        	String mid = seqs[4];
-        	
-        	if(!action.equals("move") && !action.equals("add"))
-        		return;
-        	
-        	Random r = new Random();
-        	int m = r.nextInt(1000);
-        	
-        	this.markers.put(mid, new Integer(m));
-        	
-        	if(this.timer == null) {
-        		this.timer = new Timer();
-        		this.timer.scheduleAtFixedRate(new ZipTimer(this), 0, 5000);
-        	}
-        	
+    private int getVisitCount(Map<String, Object> params) {
+        /* params contains the latitude and longitude of the pin drop
+         * location, but the truth is that we artificially generate the visit
+         * count, so we don't really look at the lat/lon location. */
+        synchronized (this.r) {
+            return r.nextInt(1000);
         }
-
     }
-    
-    private class ZipTimer extends TimerTask {
-    	
-        private ZipVisits b = null;
-        
-        ZipTimer(ZipVisits b) {
-        	this.b = b;
+
+    private void updateVisits() {
+        /* We artificially increment the visit count, as if over time,
+         * more visitors visit the location in question. */
+        for (String uuid: this.visits.keySet()) {
+            int cnt = (Integer)this.visits.get(uuid);
+            synchronized (this.r) {
+                cnt += this.r.nextInt(10);
+            }
+            this.visits.put(uuid, cnt);
         }
-    	
-		@Override
-		public void run() {
-
-			Random r = new Random();
-			for(String mid : markers.keySet()) {
-				int m = ((Integer)markers.get(mid)).intValue();
-				m += r.nextInt(10);
-				markers.put(mid, new Integer(m));
-			}
-
-            System.out.println("sending markers " + markers);    
-			this.b.proxy.publish(this.b, markers);
-		}
     }
+
+    private class BotTimer extends TimerTask {
+        @Override
+        public void run() {
+            ZipVisits bot = ZipVisits.this;
+            bot.updateVisits();
+            bot.proxy.publish(bot, bot.visits);
+        }
+    }
+
 }
+

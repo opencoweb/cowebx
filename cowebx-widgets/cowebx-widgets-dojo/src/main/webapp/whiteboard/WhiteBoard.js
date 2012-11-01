@@ -66,7 +66,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 				dojo.style(this.container, "width", width);
 				dojo.style(this.container, "height", height);
 				dojo.style(this.container, "background", "rgba(0, 0, 0, 0.1)");
-				if (distribute) {
+				if (distribute === true) {
 					this.collab.sendSync('whiteboardAttach', {attached: this.attached}, "insert");					
 				}
 			}
@@ -79,7 +79,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 				dojo.destroy(this.container);
 				this.container = null;
 				this.clear(false);
-				if (distribute) {
+				if (distribute === true) {
 					this.collab.sendSync('whiteboardAttach', {attached: this.attached}, "delete");					
 				}
 			}
@@ -102,7 +102,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 			} else if (this.currentType === "measure") {
 				shape = this._renderMeasure(points, ppi);
 			}
-			if (distribute) {
+			if (distribute === true) {
 				this.collab.sendSync('whiteboardUpdate', {points: points, lastPoint: this.lastPoint, currentType: this.currentType, color: this.color, lineSize: this.lineSize, srcppi: this.ppi}, "insert");
 			}
 			return shape;
@@ -392,7 +392,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 			this.last = undefined;
 			this.currentId = 0;
 			if (distribute === undefined) { distribute = true; }
-    		if (distribute) {
+    		if (distribute === true) {
     			this.collab.sendSync('whiteboardClear', {}, "delete");
     		}
 		},
@@ -412,14 +412,14 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 				delete selected.moveable;
 				this.selectedId = -1;
 			}
-    		if (distribute) {
+    		if (distribute === true) {
     			this.collab.sendSync('whiteboardModeChange', {mode: this.mode}, "update");
     		}
 		},
 		setMoveMode: function(distribute) {
 			if (distribute === undefined) { distribute = true; }
 			this.mode = "move";
-    		if (distribute) {
+    		if (distribute === true) {
     			this.collab.sendSync('whiteboardModeChange', {mode: this.mode}, "update");
     		}
 		},
@@ -508,7 +508,7 @@ define(['coweb/main', 'dojo', 'dojox/gfx', 'dojox/gfx/matrix', 'dojox/gfx/Moveab
 	    },
 	    onStateResponse: function(obj){
 	    	try {
-				console.log("state response:"+JSON.stringify(obj));
+				//console.log("state response:"+JSON.stringify(obj));
 				if (obj.attached) {
 					this.attach(false);
 				} else {

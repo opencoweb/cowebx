@@ -64,6 +64,12 @@ define({ root:
         hint: "The application failed to configure itself because of an unexpected error.",
         icon : "fail",
         actions : "fail"
-    }
+    },
+	"join-disallowed" : {
+		status: "Disallowed by server",
+		hint: "You are not permissioned to join the session.",
+		icon: "fail",
+		actions: "fail"
+	}
 })
 });
