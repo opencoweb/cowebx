@@ -22,7 +22,7 @@ def _symlink_path(srcRoot, target):
         try:
             os.symlink(src, dest)
         except OSError:
-            print 'skipped: %s' % path
+            print('skipped: %s' % path)
 
 def deploy(options, args):
     '''Deploys the sample apps and their widgets into coweb deploy dir.'''
@@ -40,13 +40,7 @@ def deploy(options, args):
     # copy the webapps into place
     cmd = 'cp -r src/main/webapp/* ' + os.path.join(dest, 'www/')
     subprocess.check_call(cmd, shell=True)
-    # copy updater example into place
-    try:
-        os.makedirs(os.path.join(dest, 'bin/updater/'))
-    except OSError:
-       pass
-    cmd = 'cp -r src/main/python/updater/* ' + os.path.join(dest, 'bin/updater/')
-    subprocess.check_call(cmd, shell=True)
+
     # copy the widgets / styles into place
     try:
         os.makedirs(os.path.join(dest, 'www/lib/cowebx'))
@@ -65,7 +59,6 @@ def clean(options, args):
         dest= args[1]
     except IndexError:
         raise SetupError('missing: destination path')
-    rm(dest, 'bin/updater')
     rm(dest, 'bin/run_server.py')
     rm(dest, 'www')
 
@@ -90,12 +83,6 @@ def develop(options, args):
     os.mkdir(target)
     srcRoot = 'src/main/webapp/'
     _symlink_path(srcRoot, target)
-    
-    # symlink updater into bin/updater/
-    target = os.path.join(targetRoot, 'bin/updater')
-    os.makedirs(target)
-    srcRoot = 'src/main/python/updater'
-    _symlink_path(srcRoot, target)
 
     # symlink widgets into www/lib/cowebx
     try:
@@ -106,9 +93,9 @@ def develop(options, args):
     src = os.path.abspath('../cowebx-widgets/cowebx-widgets-dojo/src/main/webapp')
     try:
         os.symlink(src, target)
-    except OSError, e:
-        print 'skipped: cowebx-widgets-dojo'
-        
+    except OSError as e:
+        print('skipped: cowebx-widgets-dojo')
+
 if __name__ == '__main__':
     parser = optparse.OptionParser('usage: %prog <deploy|develop|clean> [options] <PATH>')
     parser.add_option('-f', '--force', dest='force', action='store_true', default=False,
@@ -122,6 +109,7 @@ if __name__ == '__main__':
         sys.exit(255)
     try:
         func(options, args)
-    except SetupError, e:
-        print e
+    except SetupError as e:
+        print(e)
         sys.exit(1)
+

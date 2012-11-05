@@ -22,7 +22,7 @@ def _symlink_path(srcRoot, target):
         try:
             os.symlink(src, dest)
         except OSError:
-            print 'skipped: %s' % path
+            print('skipped: %s' % path)
 
 def deploy(options, args):
     '''Deploys the sample apps and their widgets into coweb deploy dir.'''
@@ -43,13 +43,7 @@ def deploy(options, args):
     # copy the bots into place
     cmd = 'cp -r src/main/python/bots/* ' + os.path.join(dest, 'bots/')
     subprocess.check_call(cmd, shell=True)
-    # copy updater example into place
-    try:
-        os.makedirs(os.path.join(dest, 'bin/updater/'))
-    except OSError:
-       pass
-    cmd = 'cp -r src/main/python/updater/* ' + os.path.join(dest, 'bin/updater/')
-    subprocess.check_call(cmd, shell=True)
+
     # copy the widgets / styles into place
     try:
         os.makedirs(os.path.join(dest, 'www/lib/cowebx'))
@@ -115,24 +109,9 @@ def develop(options, args):
     src = os.path.abspath('../cowebx-widgets/cowebx-widgets-dojo/src/main/webapp')
     try:
         os.symlink(src, target)
-    except OSError, e:
-        print 'skipped: cowebx-widgets-dojo'
-        
-    """
-    We use Google CDN for dojo. No need to use our own.
-    # symlink dojo/dijit/dojox into www/lib/dojo-1.7-patched
-    try:
-        os.makedirs(os.path.join(targetRoot, 'www/lib/dojo-1.7-patched'))
-    except OSError:
-        pass
-    target = os.path.join(targetRoot, 'www/lib/dojo-1.7-patched')
-    src = os.path.abspath('../cowebx-apps/src/main/webapp/dojo-1.7-patched')
-    try:
-        os.symlink(src, target)
-    except OSError, e:
-        print 'skipped: dojo dijit dojox'
-    """
-    
+    except OSError as e:
+        print('skipped: cowebx-widgets-dojo')
+
 if __name__ == '__main__':
     parser = optparse.OptionParser('usage: %prog <deploy|develop|clean> [options] <PATH>')
     parser.add_option('-f', '--force', dest='force', action='store_true', default=False,
@@ -146,6 +125,6 @@ if __name__ == '__main__':
         sys.exit(255)
     try:
         func(options, args)
-    except SetupError, e:
-        print e
+    except SetupError as e:
+        print(e)
         sys.exit(1)
