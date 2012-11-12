@@ -12,7 +12,6 @@ class ZipVisitsBot(object):
       self.bot = botWrapper
       self.markers = {}
       self.timer = None
-      print("IM GOING")
       
     def on_sync(self, data, username):
         # watch sync events for marker adds and moves
@@ -54,3 +53,4 @@ class ZipVisitsBot(object):
             self.timer = None
 
 coweb.bot.run(ZipVisitsBot)
+
