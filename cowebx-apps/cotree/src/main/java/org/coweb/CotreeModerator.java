@@ -40,7 +40,9 @@ public class CotreeModerator extends DefaultSessionModerator {
 	  *
 	  * @param data incoming sync message
 	  */
-	public synchronized void onSync(Map<String, Object> data) {
+	@Override
+	public synchronized void onSync(ServerSession client,
+			Map<String, Object> data) {
 		// Get the value of the sync and determine the op to perform on tree
 		Map value = (Map)data.get("value");
 		String ty = data.get("type").toString();

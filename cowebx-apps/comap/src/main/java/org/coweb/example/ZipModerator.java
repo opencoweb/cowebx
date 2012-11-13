@@ -32,7 +32,7 @@ public class ZipModerator extends DefaultSessionModerator {
      * Watch for sync events for marker adds and moves.
      */ 
     @Override
-    public void onSync(Map<String, Object> data) {
+    public void onSync(ServerSession client, Map<String, Object> data) {
         String topic = (String)data.get("topic");
         if (topic == null)
         	return;

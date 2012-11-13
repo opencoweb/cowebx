@@ -57,7 +57,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <coweb-version>0.8.4</coweb-version>
+        <coweb-version>0.8.5-SNAPSHOT</coweb-version>
         <jetty-version>7.6.0.v20120127</jetty-version>
         <jetty-plugin-version>${jetty-version}</jetty-plugin-version>
     </properties>
