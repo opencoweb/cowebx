@@ -21,7 +21,8 @@ define([
 	"dijit/form/Button",
 	"dijit/layout/BorderContainer",
 	"dijit/layout/ContentPane"
-], function(dojo, dijit, coweb, CoopGrid, DataGrid, ItemFileWriteStore, BusyDialog, arrays) {
+], function(dojo, dijit, coweb, CoopGrid, DataGrid, ItemFileWriteStore,
+	BusyDialog, arrays) {
 
 	function getURLParams() {
 		var urlParams = {};
@@ -43,21 +44,23 @@ define([
 		dojo.parser.parse();
 
 		this.grid = dijit.byId("grid");
-		this.grid.canSort = function() { return false; } // Disable column sorting.
+		this.grid.canSort = function(){return false;} // Disable column sorting.
 		this.dataStore = null; // This will be set each time by buildList.
 		this.dsHandles = {}; // See _dsConnect.
 
 		this.initCollab();
 
-		/* This is what we store internally - the list state is an array of objects.
-		   Each object has three properties: id, name, and amount. */
+		/* This is what we store internally - the list state is an array of
+		 * objects. Each object has three properties: id, name, and amount. */
 		this.bgData = [];
 		this.buildList()
 
-		// Map from DataGrid row ID to its position in the grid. See onRemoveRow and onLocalDelete.
+		/* Map from DataGrid row ID to its position in the grid. See
+		 * onRemoveRow and onLocalDelete. */
 		this.removed = {};
 
-		// Instantiate our cooperative grid extension, giving it a reference to the dojox.grid.DataGrid widget.
+		/* Instantiate our cooperative grid extension, giving it a reference to
+		 * the dojox.grid.DataGrid widget. */
 		args = {grid : this.grid, id : "colist_grid"};
 		var coopGrid = new CoopGrid(args);
 
@@ -305,29 +308,32 @@ define([
 	  * Creates our application's lone collaborative element: the shopping list.
 	  * Also, connect callbacks for collab events.
 	  *
-	  * If our application had other collaborative elements (a text editor, chat box, etc).
-	  * we would initialize other collab objects, for example with coweb.initCollab({id: "texteditor"}).
+	  * If our application had other collaborative elements (a text editor,
+	  * chat box, etc) we would initialize other collab objects, for example
+	  * with coweb.initCollab({id: "texteditor"}).
 	  */
 	proto.initCollab = function() {
 		// Create a collab object for our shopping list.
 		this.collab = coweb.initCollab({id : "shoppinglist"});
-		/* Listen to remove sync events with a topic of `change`. Our shopping list will
-		   only send updates through this one topic so that the OT engine can detect list
-		   operation conflicts. */
+		/* Listen to remove sync events with a topic of `change`. Our shopping
+		 * list will only send updates through this one topic so that the OT
+		 * engine can detect list operation conflicts. */
 		this.collab.subscribeSync("change", this, "onRemoteChange");
 
-		/* Listen for requests from remote applications joining the session when they ask
-		   for the full state of this widget. */
+		/* Listen for requests from remote applications joining the session when
+		 * they ask for the full state of this widget. */
 		this.collab.subscribeStateRequest(this, "onGetFullState");
 
-		/* Listen for responses from remote applications when this application instance
-		   joins a session so it can bring itself up to the current state. */
+		/* Listen for responses from remote applications when this application
+		 * instance joins a session so it can bring itself up to the current
+		 * state. */
 		this.collab.subscribeStateResponse(this, "onSetFullState");
 	};
 
 	/**
-	 * Adds a new row with default values to the local grid. Note that we don't send the event to
-	 * remove clients yet - see ItemFileWriteStore.onNew and the app.onLocalInsert callback.
+	 * Adds a new row with default values to the local grid. Note that we don't
+	 * send the event to remove clients yet - see ItemFileWriteStore.onNew and
+	 * the app.onLocalInsert callback.
 	 */
 	proto.onAddRow = function() {
 		// make pseudo-unique ids
@@ -341,8 +347,9 @@ define([
 	};
 
 	/**
-	 * Removes all selected rows from the grid. Note that we don't send the event to remove clients
-	 * yet - see ItemFileWriteStore.onDelete and the app.onLocalDelete callback.
+	 * Removes all selected rows from the grid. Note that we don't send the
+	 * event to remove clients yet - see ItemFileWriteStore.onDelete and the
+	 * app.onLocalDelete callback.
 	 */
 	proto.onRemoveRow = function() {
 		var selected = this.grid.selection.getSelected();
