@@ -62,7 +62,7 @@ define([
 		/* Instantiate our cooperative grid extension, giving it a reference to
 		 * the dojox.grid.DataGrid widget. */
 		args = {grid : this.grid, id : "colist_grid"};
-		var coopGrid = new CoopGrid(args);
+		//var coopGrid = new CoopGrid(args);
 
 		// Listen to and enable add/delete buttons.
 		var addButton = dijit.byId("addRowButton");
@@ -75,9 +75,12 @@ define([
 		sess.onStatusChange = function(status) {
 			console.log(status);
 		}
-		BusyDialog.createBusy(sess); // This is a widget in cowebx-widgets-dojo. Make sure to have the dependency in the pom.xml.
+		/* This is a widget in cowebx-widgets-dojo. Make sure to have the
+		 * dependency in the pom.xml. */
+		BusyDialog.createBusy(sess);
 		var urlParams = getURLParams();
-		var updaterType = urlParams["updaterType"] === undefined  ? "default" : urlParams["updaterType"];
+		var updaterType = urlParams["updaterType"] === undefined ?
+			"default" : urlParams["updaterType"];
 		sess.prepare({updaterType: updaterType});
 
 	};
@@ -129,8 +132,8 @@ define([
 		// get all attribute values
 		var row = this._itemToRow(item);
 
-		// store whole row in case remote needs to reconstruct after delete
-		// but indicate which attribute changed for the common update case
+		/* Store whole row in case remote needs to reconstruct after delete
+		 * but indicate which attribute changed for the common update case. */
 		var value = {};
 		value.row = row;
 		value.attr = attr;
@@ -154,7 +157,8 @@ define([
 		var pos = this.removed[id];
 		delete this.removed[id];
 		this.bgData.splice(pos, 1);
-		// Update this.removed data structure in case any positions need to be re-aligned.
+		/* Update this.removed data structure in case any positions need to be
+		 * re-aligned. */
 		for (var k in this.removed) {
 			if (this.removed[k] > pos)
 				--this.removed[k];
@@ -170,7 +174,8 @@ define([
 	 * @param position Where to insert the new item.
 	 */
 	proto.onRemoteInsert = function(value, position) {
-		// This is the unfortunate case we must rebuild the data grid (since I can't insert at arbitrary position...).
+		/* This is the unfortunate case we must rebuild the data grid
+		 * (since I can't insert at arbitrary position...). */
 		this.bgData.splice(position, 0, value.row);
 		this.buildList();
 	};
@@ -270,8 +275,8 @@ define([
 	};
 
 	/**
-	  * Static object that maps data store events to methods on this instance for
-	  * ease of connecting and disconnecting data store listeners.
+	  * Static object that maps data store events to methods on this instance
+	  * for ease of connecting and disconnecting data store listeners.
 	  */
 	CoListApp.typeToFuncs = {
 		"update": {ds : "onSet", coop: "onLocalUpdate"},
@@ -328,6 +333,20 @@ define([
 		 * instance joins a session so it can bring itself up to the current
 		 * state. */
 		this.collab.subscribeStateResponse(this, "onSetFullState");
+
+		this.collab.subscribeReady(this, "onCollabReady");
+	};
+
+	proto.onCollabReady = function(obj) {
+		console.log(obj.site);
+		console.log(obj.username);
+		console.log(obj.roster);
+		this.collab.subscribeService("echo", this, "svcMsg");
+	};
+
+	proto.svcMsg = function(obj) {
+		console.log("svc message");
+		console.log(obj.value);
 	};
 
 	/**

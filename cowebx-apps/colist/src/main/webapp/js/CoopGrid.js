@@ -42,7 +42,7 @@ define([
         // listen for responses from remote applications when this application
         // instance joins a session so it can bring itself up to the current 
         // state
-        this.collab.subscribeStateResponse(dojo.hitch(this, 'onSetFullState'));        
+        this.collab.subscribeStateResponse(dojo.hitch(this, 'onSetFullState'));
     };
     var proto = CoopGrid.prototype;
     

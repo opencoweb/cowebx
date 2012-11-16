@@ -27,3 +27,5 @@ class ListModerator(DefaultSessionModerator):
         elif "delete" == ty:
             self.bgData.pop(pos)
 
+        self.broadcast()
+

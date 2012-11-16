@@ -37,17 +37,22 @@ def deploy(options, args):
         '-f' if options.force else '',
         '-t', 'src/main/python/run_server.tmpl']):
         raise SetupError('aborted: cowebx deploy')
-    # copy the webapps into place
-    cmd = 'cp -r src/main/webapp/* ' + os.path.join(dest, 'www/')
-    subprocess.check_call(cmd, shell=True)
+
+    if 1:
+        # symlink the webapps
+        target = os.path.join(dest, 'www')
+        _symlink_path('src/main/webapp', target)
+    else:
+        # copy the webapps into place
+        cmd = 'cp -r src/main/webapp/* ' + os.path.join(dest, 'www/')
+        subprocess.check_call(cmd, shell=True)
 
     if 1:
         # symlink bots into bots/
         target = os.path.join(dest, 'bots')
         rm(dest, 'bots')
         os.mkdir(target)
-        srcRoot = 'src/main/python/bots'
-        _symlink_path(srcRoot, target)
+        _symlink_path('src/main/python/bots', target)
     else:
         # copy the bots into place
         cmd = 'cp -r src/main/python/bots/* ' + os.path.join(dest, 'bots/')
