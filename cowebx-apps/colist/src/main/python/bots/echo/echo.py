@@ -3,9 +3,6 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
 
-def _log(m):
-    print(m)
-
 # coweb
 import coweb.bot
 
@@ -13,22 +10,21 @@ class EchoBot(object):
     def __init__(self, botWrapper, *args):
         self.bot = botWrapper
         print("hello from bot init")
-        _log("hello __init__");
+        print("hello __init__");
       
     def on_request(self, data, replyToken, username):
-        _log('echo bot on_request: %s, %s, %s' % (data, replyToken, username))
+        print('echo bot on_request: %s, %s, %s' % (data, replyToken, username))
         self.bot.reply(replyToken, {'success': True})
         self.bot.publish(data)
     
     def on_subscribe(self, username):
-        _log('echo bot on_subscribe:', username)
+        print('echo bot on_subscribe:', username)
         
     def on_unsubscribe(self, username):
-        _log('echo bot on_unsubscribe', username)
+        print('echo bot on_unsubscribe', username)
     
     def on_shutdown(self):
-        _log('echo bot on_shutdown')
+        print('echo bot on_shutdown')
 
 coweb.bot.run(EchoBot)
-print("qweQWE")
 

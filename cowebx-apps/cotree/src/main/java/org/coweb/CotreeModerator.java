@@ -14,10 +14,6 @@ import org.cometd.bayeux.server.ServerSession;
  */
 public class CotreeModerator extends DefaultSessionModerator {
 
-	/* Hardcoded initial state. We will use JSON.parse to turn this into the actual backend state object.
-	 */
-	private static final String state = "{\"id\":\"root\", \"name\":\"Phonebook\",\"children\":[{\"id\":\"0\",\"name\":\"Person\",\"children\":[{\"id\":\"1\",\"name\":\"firstname\",\"children\":[{\"id\":\"2\",\"name\":\"Paul\",\"children\":[]}]},{\"id\":\"3\",\"name\":\"lastname\", \"children\":[ { \"id\":\"4\", \"name\":\"Bouchon\", \"children\":[] } ] }, { \"id\":\"5\", \"name\":\"address\", \"children\":[ { \"id\":\"6\", \"name\":\"home\", \"children\":[ { \"id\":\"7\", \"name\":\"street\", \"children\":[ { \"id\":\"8\", \"name\":\"101 Happy Drive\", \"children\":[] } ] }, { \"id\":\"9\", \"name\":\"city\", \"children\":[ { \"id\":\"10\", \"name\":\"New Orleans\", \"children\":[] } ] } ] } ] } ] }, { \"id\":\"11\", \"name\":\"Person\", \"children\":[ { \"id\":\"12\", \"name\":\"firstname\", \"children\":[ { \"id\":\"13\", \"name\":\"Dan\", \"children\":[] } ] }, { \"id\":\"14\", \"name\":\"lastname\", \"children\":[ { \"id\":\"15\", \"name\":\"Gisolfi\", \"children\":[] } ] }, { \"id\":\"16\", \"name\":\"address\", \"children\":[ { \"id\":\"17\", \"name\":\"home\", \"children\":[ { \"id\":\"18\", \"name\":\"street\", \"children\":[ { \"id\":\"19\", \"name\":\"102 1337 Way\", \"children\":[] } ] }, { \"id\":\"20\", \"name\":\"city\", \"children\":[ { \"id\":\"21\", \"name\":\"Palo Alto\", \"children\":[] } ] } ] } ] } ] }, { \"id\":\"22\", \"name\":\"Person\", \"children\":[ { \"id\":\"23\", \"name\":\"firstname\", \"children\":[ { \"id\":\"24\", \"name\":\"Brian\", \"children\":[] } ] }, { \"id\":\"25\", \"name\":\"lastname\", \"children\":[ { \"id\":\"26\", \"name\":\"Burns\", \"children\":[] } ] }, { \"id\":\"27\", \"name\":\"address\", \"children\":[ { \"id\":\"28\", \"name\":\"home\", \"children\":[ { \"id\":\"29\", \"name\":\"street\", \"children\":[ { \"id\":\"30\", \"name\":\"103 Windoze Drive\", \"children\":[] } ] }, { \"id\":\"31\", \"name\":\"city\", \"children\":[ { \"id\":\"32\", \"name\":\"New York\", \"children\":[] } ] } ] } ] } ] } ] }";
-
 	// Persistent object.
 	private Map arr = null;
 	// Unimportant globals
@@ -25,18 +21,19 @@ public class CotreeModerator extends DefaultSessionModerator {
 	
 	public CotreeModerator() {
 		super();
-		/* JSON.parse gives us an Object. Specifically, since our initial state is always a JSON object,
-		   JSON.parse returns a Map. See http://download.eclipse.org/jetty/stable-7/apidocs/org/eclipse/jetty/util/ajax/JSON.html
-		   for the JSON to Java mapping.
-		   */
+		/* JSON.parse gives us an Object. Specifically, since our initial state
+		 * is always a JSON object, JSON.parse returns a Map.
+		 * See http://download.eclipse.org/jetty/stable-7/apidocs/org/eclipse/
+		 * jetty/util/ajax/JSON.html for the JSON to Java mapping. */
 		this.arr = (Map)JSON.parse(state);
 	}
 
 	/**
 	  *
-	  * This is called whenever a remote client sends a sync event (insert, update, etc).
-	  * Our requirement is that we honor every request. The specific code below acts on
-	  * this object's internal state to keep it in sync with other clients.
+	  * This is called whenever a remote client sends a sync event (insert,
+	  * update, etc). Our requirement is that we honor every request. The
+	  * specific code below acts on this object's internal state to keep it in
+	  * sync with other clients.
 	  *
 	  * @param data incoming sync message
 	  */
@@ -73,12 +70,14 @@ public class CotreeModerator extends DefaultSessionModerator {
 		// Get the targeted node, update the value in the tree
 		Map parent = findNode(arr, (String)value.get("parentId"));
 		if (null == parent) {
-			System.err.printf("update: parent already deleted! %s %d\n", value.get("parentId"), pos);
+			System.err.printf("update: parent already deleted! %s %d\n",
+					value.get("parentId"), pos);
 			return;
 		}
 		Object[] children = (Object[])(parent.get("children"));
 		if (pos >= children.length) {
-			System.err.printf("update: %d.children[%d] doesn't exist.\n", value.get("parentId"), pos);
+			System.err.printf("update: %d.children[%d] doesn't exist.\n",
+					value.get("parentId"), pos);
 			return;
 		}
 		Map target = (Map)children[pos];
@@ -109,8 +108,9 @@ public class CotreeModerator extends DefaultSessionModerator {
 		// If we are doing a regular insert, create a new node and get
 		// the parent by node id
 		if(force){
-			String jsonStr = "{\"id\":\""+value.get("id").toString()+"\",\"name\":\""+
-				value.get("value").toString()+"\",\"children\":[]}";
+			String jsonStr = "{\"id\":\""+value.get("id").toString()+
+				"\",\"name\":\""+ value.get("value").toString()+
+				"\",\"children\":[]}";
 			jsonObj = (Map)JSON.parse(jsonStr);
 			parent = findNode(arr, (String)value.get("parentId"));
 		// If we are doing a modified insert (after a drag and drop), use
@@ -126,7 +126,8 @@ public class CotreeModerator extends DefaultSessionModerator {
 		// parent's children array
 		Object[] children = (Object[])(parent.get("children"));
 		if (children.length < pos) {
-			System.err.printf("insert(force=%b): %d.children[%d] does not exist.\n", force, parent.get("id"), pos);
+			System.err.printf("insert(force=%b): %d.children[%d] does not " +
+					"exist.\n", force, parent.get("id"), pos);
 			return;
 		}
 		children = arrayInsertAt(children, jsonObj, pos);
@@ -148,7 +149,8 @@ public class CotreeModerator extends DefaultSessionModerator {
 		}
 		Object[] children = (Object[])(parent.get("children"));
 		if (children.length <= pos) {
-			System.err.printf("delete(force=%b): %d.children[%d] does not exist.\n", force, parent.get("id"), pos);
+			System.err.printf("delete(force=%b): %d.children[%d] does not " +
+					"exist.\n", force, parent.get("id"), pos);
 			return;
 		}
 		tmpChild = (Map)children[pos];
@@ -181,22 +183,26 @@ public class CotreeModerator extends DefaultSessionModerator {
 	
 	/**
 	  *
-	  * Our application is relatively simple - we have one collaborative object (the phonebook)
-	  * whose internal data is already in the expected format of other clients.
+	  * Our application is relatively simple - we have one collaborative object
+	  * (the phonebook) whose internal data is already in the expected format of
+	  * other clients.
 	  *
-	  * If we had more collaborative items (perhaps a collaborative notepad), we would place those
-	  * collaborative items' data into the HashMap, keyed on the collab ID.
+	  * If we had more collaborative items (perhaps a collaborative notepad),
+	  * we would place those collaborative items' data into the HashMap, keyed
+	  * on the collab ID.
 	  *
 	  * @return full application state
 	  */
 	public Map<String, Object> getLateJoinState() {
 		HashMap<String, Object> hm = new HashMap<String, Object>();
 		hm.put("phonebook", arr);
-		// hm.put("notepad", notePadText);  <-- If we had a notepad as part of the application.
+		// hm.put("notepad", notePadText);  <-- If we had a notepad as part of
+		//                                      the application.
 		return hm;
 	}
 
-	/* The rest of these functions are uninteresting to the CoTree application. */
+	/* The rest of these functions are uninteresting to the
+	 * CoTree application. */
 
 	@Override
 	public void onClientJoinSession(ServerSession client, Message message) {
@@ -204,6 +210,9 @@ public class CotreeModerator extends DefaultSessionModerator {
 
 	@Override
 	public boolean canClientJoinSession(ServerSession client, Message message) {
+		System.out.println("canClientJoinSession" +
+				client.getAttribute("username"));
+		System.out.println(message);
 		return true;
 	}
 
@@ -234,5 +243,9 @@ public class CotreeModerator extends DefaultSessionModerator {
 	public void onSessionEnd() {
 		return;
 	}
-	
+
+	/* Hardcoded initial state. We will use JSON.parse to turn this into the
+	 * actual backend state object. */
+	private static final String state = "{\"id\":\"root\", \"name\":\"Phonebook\",\"children\":[{\"id\":\"0\",\"name\":\"Person\",\"children\":[{\"id\":\"1\",\"name\":\"firstname\",\"children\":[{\"id\":\"2\",\"name\":\"Paul\",\"children\":[]}]},{\"id\":\"3\",\"name\":\"lastname\", \"children\":[ { \"id\":\"4\", \"name\":\"Bouchon\", \"children\":[] } ] }, { \"id\":\"5\", \"name\":\"address\", \"children\":[ { \"id\":\"6\", \"name\":\"home\", \"children\":[ { \"id\":\"7\", \"name\":\"street\", \"children\":[ { \"id\":\"8\", \"name\":\"101 Happy Drive\", \"children\":[] } ] }, { \"id\":\"9\", \"name\":\"city\", \"children\":[ { \"id\":\"10\", \"name\":\"New Orleans\", \"children\":[] } ] } ] } ] } ] }, { \"id\":\"11\", \"name\":\"Person\", \"children\":[ { \"id\":\"12\", \"name\":\"firstname\", \"children\":[ { \"id\":\"13\", \"name\":\"Dan\", \"children\":[] } ] }, { \"id\":\"14\", \"name\":\"lastname\", \"children\":[ { \"id\":\"15\", \"name\":\"Gisolfi\", \"children\":[] } ] }, { \"id\":\"16\", \"name\":\"address\", \"children\":[ { \"id\":\"17\", \"name\":\"home\", \"children\":[ { \"id\":\"18\", \"name\":\"street\", \"children\":[ { \"id\":\"19\", \"name\":\"102 1337 Way\", \"children\":[] } ] }, { \"id\":\"20\", \"name\":\"city\", \"children\":[ { \"id\":\"21\", \"name\":\"Palo Alto\", \"children\":[] } ] } ] } ] } ] }, { \"id\":\"22\", \"name\":\"Person\", \"children\":[ { \"id\":\"23\", \"name\":\"firstname\", \"children\":[ { \"id\":\"24\", \"name\":\"Brian\", \"children\":[] } ] }, { \"id\":\"25\", \"name\":\"lastname\", \"children\":[ { \"id\":\"26\", \"name\":\"Burns\", \"children\":[] } ] }, { \"id\":\"27\", \"name\":\"address\", \"children\":[ { \"id\":\"28\", \"name\":\"home\", \"children\":[ { \"id\":\"29\", \"name\":\"street\", \"children\":[ { \"id\":\"30\", \"name\":\"103 Windoze Drive\", \"children\":[] } ] }, { \"id\":\"31\", \"name\":\"city\", \"children\":[ { \"id\":\"32\", \"name\":\"New York\", \"children\":[] } ] } ] } ] } ] } ] }";
+
 }

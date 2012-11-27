@@ -1,4 +1,15 @@
 {
-	"moderatorIsUpdater": false,
-	"bots": []
+	"moderatorIsUpdater": true,
+    "sessionModerator": "org.coweb.Mod",
+    "operationEngine": true,
+	"bots": [
+		{
+			"name": "Visit Count Service",
+			"description": "Publish visitor count for pin drop locations.",
+			"author": "Chris Cotter",
+			"version": "1.0",
+			"service": "echo",
+			"class": "org.coweb.Echo"
+		}
+	]
 } 

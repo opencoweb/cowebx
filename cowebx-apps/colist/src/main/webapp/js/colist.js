@@ -324,6 +324,9 @@ define([
 		 * list will only send updates through this one topic so that the OT
 		 * engine can detect list operation conflicts. */
 		this.collab.subscribeSync("change", this, "onRemoteChange");
+        this.collab.subscribeSync("chat", function(data) {
+            console.log("CHAT SYNC:", data);
+        });
 
 		/* Listen for requests from remote applications joining the session when
 		 * they ask for the full state of this widget. */
@@ -338,15 +341,11 @@ define([
 	};
 
 	proto.onCollabReady = function(obj) {
-		console.log(obj.site);
-		console.log(obj.username);
-		console.log(obj.roster);
 		this.collab.subscribeService("echo", this, "svcMsg");
 	};
 
 	proto.svcMsg = function(obj) {
-		console.log("svc message");
-		console.log(obj.value);
+		console.log("svc broadcast message:", obj);
 	};
 
 	/**
@@ -356,6 +355,9 @@ define([
 	 */
 	proto.onAddRow = function() {
 		// make pseudo-unique ids
+        this.collab.postService("echo", {"Chris":"Cotter"}, function(resp) {
+            console.log("Response from private bot: ", resp);
+        });
 		var date = new Date();
 		var id = String(Math.random()).substr(2) + String(date.getTime());
 		this.dataStore.newItem({

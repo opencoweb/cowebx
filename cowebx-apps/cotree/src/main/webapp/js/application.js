@@ -7,11 +7,13 @@
 
 /*
    TODO remove code that sends targetID as part of the sync
-   TODO update tutorial page and make moderator/non-moderator app tutorials different
+   TODO update tutorial page and make moderator/non-moderator app tutorials
+   different
 
    FIXME onStateRequest gives bad data sometimes, so no new clients can join.
-   FIXME moving nodes around really quickly leads to out of sync, even though sync events are correct.
-		 probably an implementation bug of onRemoteMove not faithfully honoring remote events.
+   FIXME moving nodes around really quickly leads to out of sync, even though
+   sync events are correct. probably an implementation bug of onRemoteMove not
+   faithfully honoring remote events.
 
 */
 
@@ -31,7 +33,8 @@ define([
 	'dojo/_base/array',
 	'dojo/dnd/common',
 	'dojo/dnd/Source'],
-function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog, TextBox, parser, array) {
+function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button,
+	Dialog, TextBox, parser, array) {
 	parser.parse();
 	/*var bs  = document.getElementById("ps");
 	bs.onclick = function() {
@@ -74,13 +77,16 @@ function(dojo, coweb, dijit, Store, Tree, Model, dndSource, Menu, Button, Dialog
 			// Set flag to indicate a regular 'insert'
 			obj['force'] = true;
 			// Send sync with topic corresponding to parent id
-			console.log("Local insert: %d[%d] = %d", obj.parentId, obj.pos, obj.id);
-			this.collab.sendSync('change.'+obj.parentId, obj, 'insert', obj.pos);
+			console.log("Local insert: %d[%d] = %d", obj.parentId, obj.pos,
+					obj.id);
+			this.collab.sendSync('change.'+obj.parentId, obj, 'insert',
+					obj.pos);
 		},
 
 		onRemoteAddNode: function(obj) {
 			// Get parent item from synced parentId
-			console.log("Remote insert: %d[%d] = %d", obj.value.parentId, obj.position, obj.value.id);
+			console.log("Remote insert: %d[%d] = %d", obj.value.parentId,
+					obj.position, obj.value.id);
 			var parentItem = this._getItemById(obj.value.parentId);
 			// If parent item found...
 			if (parentItem) {
