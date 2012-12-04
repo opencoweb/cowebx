@@ -44,6 +44,16 @@ public class Mod extends DefaultSessionModerator {
     }
 
     @Override
+    public boolean canClientJoinSession(ServerSession cl, Message msg) {
+        return true;
+    }
+
+    @Override
+    public boolean canClientMakeServiceRequest(String svcName, ServerSession cl, Message msg) {
+        return true;
+    }
+
+    @Override
     public void onSessionReady() {
         /* When the session is ready, create a new CollabInterface, so we can
          * talk to the service bot. */

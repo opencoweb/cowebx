@@ -13,10 +13,16 @@ class ListModerator(DefaultSessionModerator):
         self._ready = False
         self.collab = None
 
+    def canClientSubscribeService(self, svcName, cl, msg):
+        return True
+
+    def canClientMakeServiceRequest(self, svcName, cl, msg):
+        return True
+
     def onSessionReady(self):
         self._ready = True
-        print("onSessionReady")
         self.collab = self.initCollab("shoppinglist")
+        self.collab.subscribeService("echo")
 
     def onSessionEnd(self):
         self._ready = False
@@ -41,5 +47,9 @@ class ListModerator(DefaultSessionModerator):
         elif "delete" == ty:
             self.bgData.pop(pos)
 
-        self.collab.sendSync("chat", "hello", "insert", 0)
+        self.collab.postService("echo", {"coffee":"123"})
+        #self.collab.sendSync("chat", "hello", "insert", 0)
+
+    def onServiceResponse(self, svcName, data, error, isPub):
+        print("MOD::onServiceResponse",svcName,data,error,isPub)
 
