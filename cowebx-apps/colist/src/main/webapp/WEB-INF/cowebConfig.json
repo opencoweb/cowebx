@@ -1,5 +1,5 @@
 {
-	"moderatorIsUpdater": true,
+	"moderatorIsUpdater": false,
     "sessionModerator": "org.coweb.Mod",
     "operationEngine": true,
 	"bots": [

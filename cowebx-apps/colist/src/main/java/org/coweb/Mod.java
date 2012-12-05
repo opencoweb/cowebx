@@ -45,7 +45,9 @@ public class Mod extends DefaultSessionModerator {
 
     @Override
     public boolean canClientJoinSession(ServerSession cl, Message msg) {
-        return true;
+        String token = (String) ((Map<String, Object>) msg.getExt().get(
+                    "userDefined")).get("token");
+        return "shopper".equals(token);
     }
 
     @Override

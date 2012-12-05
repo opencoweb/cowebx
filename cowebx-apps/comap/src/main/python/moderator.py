@@ -39,5 +39,5 @@ class ZipModerator(DefaultSessionModerator):
         self.isReady = True
 
     def onServiceResponse(self, svcName, data, error, isPub):
-        print("onServiceResponse", data)
+        pass
 

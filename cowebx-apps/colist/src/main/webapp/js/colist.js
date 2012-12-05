@@ -72,8 +72,10 @@ define([
 
 		// Get a session instance.
 		var sess = coweb.initSession();
-		sess.onStatusChange = function(status) {
-			console.log(status);
+		sess.onStatusChange = function(stat) {
+			if ("join-disallowed" == stat) {
+				window.alert("Try using username 'shopper' to access the list");
+			}
 		}
 		/* This is a widget in cowebx-widgets-dojo. Make sure to have the
 		 * dependency in the pom.xml. */
@@ -81,7 +83,16 @@ define([
 		var urlParams = getURLParams();
 		var updaterType = urlParams["updaterType"] === undefined ?
 			"default" : urlParams["updaterType"];
-		sess.prepare({updaterType: updaterType});
+		/* Toggle this if statement to require prompt-based authentication
+		 * (non-secure). The only username that allows access to the session
+		 * is "shopper".*/
+		var token = "";
+		if (0) {
+			token = window.prompt("Enter username");
+		} else {
+			token = "shopper";
+		}
+		sess.prepare({updaterType: updaterType, userDefined: {token:token}});
 
 	};
 
@@ -324,9 +335,9 @@ define([
 		 * list will only send updates through this one topic so that the OT
 		 * engine can detect list operation conflicts. */
 		this.collab.subscribeSync("change", this, "onRemoteChange");
-        this.collab.subscribeSync("chat", function(data) {
-            console.log("CHAT SYNC:", data);
-        });
+		this.collab.subscribeSync("chat", function(data) {
+			console.log("CHAT SYNC:", data);
+		});
 
 		/* Listen for requests from remote applications joining the session when
 		 * they ask for the full state of this widget. */
@@ -355,9 +366,9 @@ define([
 	 */
 	proto.onAddRow = function() {
 		// make pseudo-unique ids
-        this.collab.postService("echo", {"Chris":"Cotter"}, function(resp) {
-            console.log("Response from private bot: ", resp);
-        });
+		this.collab.postService("echo", {"Chris":"Cotter"}, function(resp) {
+			console.log("Response from private bot: ", resp);
+		});
 		var date = new Date();
 		var id = String(Math.random()).substr(2) + String(date.getTime());
 		this.dataStore.newItem({
