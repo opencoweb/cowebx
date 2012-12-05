@@ -21,7 +21,6 @@ import org.cometd.bayeux.Message;
  */
 public class ZipModerator extends DefaultSessionModerator {
 
-    private HashMap<String, Object> markers = new HashMap<String, Object>();
     private SessionModerator.CollabInterface collab;
     boolean isReady = false;
 
@@ -84,7 +83,6 @@ public class ZipModerator extends DefaultSessionModerator {
         /* When the session is ready, create a new CollabInterface, so we can
          * talk to the service bot. */
         this.collab = this.initCollab("comap");
-        this.markers.clear();
         this.isReady = true;
     }
 

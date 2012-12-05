@@ -12,7 +12,7 @@ class CoWebApp(coweb.AppContainer):
         # match static url to what java uses
         self.webStaticRoot = self.webRoot + 'comap/'
         self.moderatorClass = ZipModerator
-        self.moderatorIsUpdater = True
+        self.moderatorIsUpdater = False
         #self.serviceManagerClass = ObjectServiceManager
 
 if __name__ == '__main__':
