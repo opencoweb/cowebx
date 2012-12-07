@@ -14,6 +14,12 @@ import os.path
 
 class SetupError(Exception): pass
 
+def rm(target, f):
+    subprocess.call(["rm", "-rf", os.path.join(target, f)])
+
+def ln(src, target):
+    subprocess.call(["ln", "-s", src, target])
+
 def _symlink_path(srcRoot, target):
     for path in os.listdir(srcRoot):
         if path.startswith('.') or path == 'WEB-INF': continue
@@ -38,30 +44,20 @@ def deploy(options, args):
         '-t', 'src/main/python/run_server.tmpl']):
         raise SetupError('aborted: cowebx deploy')
 
-    if 1:
-        # symlink the webapps
-        target = os.path.join(dest, 'www')
-        _symlink_path('src/main/webapp', target)
-    else:
-        # copy the webapps into place
-        cmd = 'cp -r src/main/webapp/* ' + os.path.join(dest, 'www/')
-        subprocess.check_call(cmd, shell=True)
+    # copy the webapps into place
+    cmd = 'cp -r src/main/webapp/* ' + os.path.join(dest, 'www/')
+    subprocess.check_call(cmd, shell=True)
 
-    if 1:
-        # symlink bots into bots/
-        target = os.path.join(dest, 'bots')
-        rm(dest, 'bots')
-        os.mkdir(target)
-        _symlink_path('src/main/python/bots', target)
-    else:
+    if os.path.exists("src/main/python/bots"):
         # copy the bots into place
         cmd = 'cp -r src/main/python/bots/* ' + os.path.join(dest, 'bots/')
         subprocess.check_call(cmd, shell=True)
 
-    # symlink moderator
-    rm(dest, 'bin/moderator.py')
-    ln(os.path.abspath('src/main/python/moderator.py'),
-            os.path.join(dest, 'bin/moderator.py'))
+    if os.path.exists("src/main/python/moderator.py"):
+        # symlink moderator
+        rm(dest, 'bin/moderator.py')
+        ln(os.path.abspath('src/main/python/moderator.py'),
+                os.path.join(dest, 'bin/moderator.py'))
 
     # copy the widgets / styles into place
     try:
@@ -72,11 +68,48 @@ def deploy(options, args):
           os.path.join(dest, 'www/lib/cowebx/dojo')
     subprocess.check_call(cmd, shell=True)
 
-def rm(target, f):
-    subprocess.call(["rm", "-rf", os.path.join(target, f)])
+def develop(options, args):
+    '''Symlinks the apps and widgets into an existing developer env.'''
+    try:
+        dest = args[1]
+    except IndexError:
+        raise SetupError('missing: destination path')
 
-def ln(src, target):
-    subprocess.call(["ln", "-s", src, target])
+    # create container script
+    if subprocess.call([
+        'pycoweb', 'deploy', dest, 
+        '-f' if options.force else '',
+        '-t', 'src/main/python/run_server.tmpl']):
+        raise SetupError('aborted: cowebx develop')
+
+    # symlink the webapps
+    target = os.path.join(dest, 'www')
+    _symlink_path('src/main/webapp', target)
+    
+    if os.path.exists("src/main/python/bots"):
+        # symlink bots into bots/
+        target = os.path.join(dest, 'bots')
+        rm(dest, 'bots')
+        os.mkdir(target)
+        _symlink_path('src/main/python/bots', target)
+
+    if os.path.exists("src/main/python/moderator.py"):
+        rm(dest, 'bin/moderator.py')
+        cmd = 'cp src/main/python/moderator.py ' + os.path.join(dest, 'bin')
+        subprocess.check_call(cmd, shell=True)
+
+    # symlink widgets into www/lib/cowebx
+    try:
+        os.makedirs(os.path.join(dest, 'www/lib/cowebx'))
+    except OSError:
+        pass
+    target = os.path.join(dest, 'www/lib/cowebx/dojo')
+    src = os.path.abspath('../../cowebx-widgets/cowebx-widgets-dojo/src/'
+            'main/webapp')
+    try:
+        os.symlink(src, target)
+    except OSError as e:
+        print('skipped: cowebx-widgets-dojo')
 
 def clean(options, args):
     '''Cleans up the workpath files created by this script.'''
@@ -85,51 +118,9 @@ def clean(options, args):
     except IndexError:
         raise SetupError('missing: destination path')
     rm(dest, 'bin/run_server.py')
+    rm(dest, 'bin/moderator.py')
     rm(dest, 'www')
     rm(dest, 'bots')
-
-def develop(options, args):
-    '''Symlinks the apps and widgets into an existing developer env.'''
-    try:
-        targetRoot = args[1]
-    except IndexError:
-        raise SetupError('missing: destination path')
-
-    # create container script
-    bin = os.path.join(targetRoot, 'bin')
-    script = os.path.join(bin, 'run_server.py')
-    if subprocess.call([
-        'pycoweb', 'container', script,
-        '-f' if options.force else '',
-        '-t', 'src/main/python/run_server.tmpl']):
-        raise SetupError('aborted: cowebx develop')
-
-    # symlink apps into www/
-    target = os.path.join(targetRoot, 'www')
-    os.mkdir(target)
-    srcRoot = 'src/main/webapp/'
-    _symlink_path(srcRoot, target)
-    
-    # symlink bots into bots/
-    target = os.path.join(targetRoot, 'bots')
-    os.mkdir(target)
-    srcRoot = 'src/main/python/bots'
-    _symlink_path(srcRoot, target)
-
-    # Don't symlink cowebx widgets. Remove the following line to link widgets.
-    pass
-    # symlink widgets into www/lib/cowebx
-    try:
-        os.makedirs(os.path.join(targetRoot, 'www/lib/cowebx'))
-    except OSError:
-        pass
-    target = os.path.join(targetRoot, 'www/lib/cowebx/dojo')
-    src = os.path.abspath('../cowebx-widgets/cowebx-widgets-dojo/src/'
-            'main/webapp')
-    try:
-        os.symlink(src, target)
-    except OSError as e:
-        print('skipped: cowebx-widgets-dojo')
 
 if __name__ == '__main__':
     parser = optparse.OptionParser('usage: %prog <deploy|develop|clean> '
