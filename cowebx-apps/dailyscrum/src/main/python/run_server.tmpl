@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 import coweb
-from moderator import ListModerator
 
 class CoWebApp(coweb.AppContainer):
     def on_configure(self):
         # secret key for signing auth cookies
         self.webSecretKey = '${webSecretKey}'
         # match admin url to what java version uses
-        self.webAdminUrl = self.webRoot + 'colist/admin'
+        self.webAdminUrl = self.webRoot + 'dailyscrum/admin'
         # match static url to what java uses
-        self.webStaticRoot = self.webRoot + 'colist/'
-        self.moderatorClass = ListModerator
-        self.moderatorIsUpdater = True
+        self.webStaticRoot = self.webRoot + 'dailyscrum/'
 
 if __name__ == '__main__':
     coweb.run_server(CoWebApp)

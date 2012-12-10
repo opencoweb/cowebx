@@ -1,0 +1,22 @@
+    OpenCoweb Demo Applications
+
+About
+
+  These are demo applications using the Open Coweb Framework
+  <http://opencoweb.org>. Remote clients can make
+  simultaneous updates to a web application, and the OpenCoweb framework
+  libraries ensure that the document converges to the same state for each
+  client.
+
+Quick Start
+
+  1. If you haven't already, follow
+     the instructions at <http://opencoweb.org/ocwdocs/tutorial/install.html>
+	 to deploy a Coweb instance.
+  2. See option three of "Java setup" to deploy these demo applications, or
+  3. See option three of "Python setup" to deploy these demo applications.
+  4. Visit the app(s) in your browser as described in the tutorial.
+
+License
+
+  Copyright (c) The Dojo Foundation 2011. All Rights Reserved.

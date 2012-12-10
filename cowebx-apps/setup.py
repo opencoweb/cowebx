@@ -16,6 +16,8 @@ import argparse
 import os
 import os.path
 
+_widgetLoc = "../cowebx-widgets/cowebx-widgets-dojo"
+
 class SetupError(Exception): pass
 
 def rm(target, f):
@@ -54,8 +56,14 @@ def deploy(args):
 	cmd = 'cp -r ' + pref + '/webapp/* ' + os.path.join(dest, 'www/')
 	subprocess.check_call(cmd, shell=True)
 
+	# copy updater scripts, bots, and moderator if they exist
+
+	if os.path.exists(pref + "/python/updater"):
+		cmd = 'cp -r ' + pref + '/python/updater ' +\
+				os.path.join(dest, 'bin')
+		subprocess.check_call(cmd, shell=True)
+
 	if os.path.exists(pref + "/python/bots"):
-		# copy the bots into place
 		cmd = 'cp -r ' + pref + '/python/bots/* ' + os.path.join(dest, 'bots/')
 		subprocess.check_call(cmd, shell=True)
 
@@ -69,7 +77,7 @@ def deploy(args):
 		os.makedirs(os.path.join(dest, 'www/lib/cowebx'))
 	except OSError:
 		pass
-	cmd = 'cp -r ../cowebx-widgets/cowebx-widgets-dojo/src/main/webapp ' + \
+	cmd = 'cp -r ' + _widgetLoc + '/src/main/webapp ' +\
 		  os.path.join(dest, 'www/lib/cowebx/dojo')
 	subprocess.check_call(cmd, shell=True)
 
@@ -93,6 +101,14 @@ def develop(args):
 	target = os.path.join(dest, 'www')
 	_symlink_path(pref + '/webapp', target)
 	
+	# symlink updater, bots, and moderator if they exist
+
+	if os.path.exists(pref + "/python/updater"):
+		target = os.path.join(dest, 'bin/updater')
+		rm(dest, 'bin/updater')
+		os.mkdir(target)
+		_symlink_path(pref + '/python/updater', target)
+
 	if os.path.exists(pref + "/python/bots"):
 		# symlink bots into bots/
 		target = os.path.join(dest, 'bots')
@@ -112,8 +128,7 @@ def develop(args):
 	except OSError:
 		pass
 	target = os.path.join(dest, 'www/lib/cowebx/dojo')
-	src = os.path.abspath('../cowebx-widgets/cowebx-widgets-dojo/src/'
-			'main/webapp')
+	src = os.path.abspath(_widgetLoc + '/src/main/webapp')
 	try:
 		os.symlink(src, target)
 	except OSError as e:
@@ -125,6 +140,7 @@ def clean(args):
 		dest= args.path
 	except IndexError:
 		raise SetupError('missing: destination path')
+	rm(dest, 'bin/updater')
 	rm(dest, 'bin/run_server.py')
 	rm(dest, 'bin/moderator.py')
 	rm(dest, 'www')
@@ -141,6 +157,12 @@ if __name__ == '__main__':
 		'clean'])
 	parser.add_argument('-p', '--path', action='store', default=defaultPath)
 	args = parser.parse_args()
+
+	if not args.path:
+		print("No target path specified! Please run this script in an activated"
+				"virtual env, or specify the path with -p.")
+		parser.print_usage()
+		sys.exit(1)
 
 	# Doesn't matter what the app is when we clean.
 	if "clean" != args.action:
