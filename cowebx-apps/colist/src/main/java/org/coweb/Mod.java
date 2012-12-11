@@ -12,9 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cometd.bayeux.server.ServerSession;
-import org.cometd.bayeux.Message;
-
 /**
  * Bot class for the comap example. When a user adds a marker this bot
  * will see the sync event and start pushing info to the session.
@@ -28,7 +25,7 @@ public class Mod extends DefaultSessionModerator {
     }
 
     @Override
-    public void onSync(ServerSession client, Map<String, Object> data) {
+    public void onSync(String clientId, Map<String, Object> data) {
         String topic = (String)data.get("topic");
         if (topic.equals("coweb.sync.change.shoppinglist")) {
             this.collab.sendSync("chat", "hello", "insert", 0);
@@ -44,14 +41,15 @@ public class Mod extends DefaultSessionModerator {
     }
 
     @Override
-    public boolean canClientJoinSession(ServerSession cl, Message msg) {
-        String token = (String) ((Map<String, Object>) msg.getExt().get(
-                    "userDefined")).get("token");
+    public boolean canClientJoinSession(String clientId,
+            Map<String, Object> userDefined) {
+        String token = (String)userDefined.get("token");
         return "shopper".equals(token);
     }
 
     @Override
-    public boolean canClientMakeServiceRequest(String svcName, ServerSession cl, Message msg) {
+    public boolean canClientMakeServiceRequest(String svcName, String clientId,
+            Map<String, Object> botData) {
         return true;
     }
 

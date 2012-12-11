@@ -12,9 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cometd.bayeux.server.ServerSession;
-import org.cometd.bayeux.Message;
-
 /**
  * Bot class for the comap example. When a user adds a marker this bot
  * will see the sync event and start pushing info to the session.
@@ -31,7 +28,7 @@ public class ZipModerator extends DefaultSessionModerator {
      * Watch for sync events for marker adds and moves.
      */ 
     @Override
-    public void onSync(ServerSession client, Map<String, Object> data) {
+    public void onSync(String clientId, Map<String, Object> data) {
         String topic = (String)data.get("topic");
         if (topic == null)
         	return;
@@ -63,8 +60,8 @@ public class ZipModerator extends DefaultSessionModerator {
     }
 
     @Override
-    public boolean canClientMakeServiceRequest(String svcName,
-            ServerSession client, Message mesage) {
+    public boolean canClientMakeServiceRequest(String svcName, String clientId,
+            Map<String, Object> botData) {
         /* Disallow the client from making service requests, since it is not
          * necessary anyway. */
         return false;
@@ -72,7 +69,7 @@ public class ZipModerator extends DefaultSessionModerator {
 
     @Override
     public boolean canClientSubscribeService(String svcName,
-            ServerSession client, Message message) {
+            String clientId) {
         /* Do allow the client to subscribe to the service, since this is how
          * the client will receive the visit count data. */
         return true;

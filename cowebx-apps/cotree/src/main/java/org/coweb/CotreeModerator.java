@@ -5,8 +5,6 @@ package org.coweb;
 
 import java.util.*;
 import org.eclipse.jetty.util.ajax.JSON;
-import org.cometd.bayeux.Message;
-import org.cometd.bayeux.server.ServerSession;
 
 /**
  * @author bouchon
@@ -38,8 +36,7 @@ public class CotreeModerator extends DefaultSessionModerator {
 	  * @param data incoming sync message
 	  */
 	@Override
-	public synchronized void onSync(ServerSession client,
-			Map<String, Object> data) {
+	public synchronized void onSync(String clientId, Map<String, Object> data) {
 		// Get the value of the sync and determine the op to perform on tree
 		Map value = (Map)data.get("value");
 		String ty = data.get("type").toString();
@@ -205,31 +202,28 @@ public class CotreeModerator extends DefaultSessionModerator {
 	 * CoTree application. */
 
 	@Override
-	public void onClientJoinSession(ServerSession client, Message message) {
+	public void onClientJoinSession(String clientId) {
 	}
 
 	@Override
-	public boolean canClientJoinSession(ServerSession client, Message message) {
-		System.out.println("canClientJoinSession" +
-				client.getAttribute("username"));
-		System.out.println(message);
+	public boolean canClientJoinSession(String clientId,
+			Map<String, Object> userDefined) {
 		return true;
 	}
 
 	@Override
-	public void onClientLeaveSession(ServerSession client) {
+	public void onClientLeaveSession(String clientId) {
 		return;
 	}
 
 	@Override
-	public boolean canClientSubscribeService(String svcName, ServerSession client,
-			Message message) {
+	public boolean canClientSubscribeService(String svcName, String clientId) {
 		return true;
 	}
 
 	@Override
-	public boolean canClientMakeServiceRequest(String svcName,
-			ServerSession client, Message botMessage) {
+	public boolean canClientMakeServiceRequest(String svcName, String clientId,
+			Map<String, Object> botData) {
 		return true;
 	}
 
