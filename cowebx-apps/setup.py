@@ -155,12 +155,11 @@ if __name__ == '__main__':
 	parser.add_argument('-a', '--app', action='store')
 	parser.add_argument('action', action='store', choices=['deploy', 'develop',
 		'clean'])
-	parser.add_argument('-p', '--path', action='store', default=defaultPath)
 	args = parser.parse_args()
 
+	args.path = defaultPath
 	if not args.path:
-		print("No target path specified! Please run this script in an activated"
-				"virtual env, or specify the path with -p.")
+		print("Please run this script in an activated virtual env.")
 		parser.print_usage()
 		sys.exit(1)
 

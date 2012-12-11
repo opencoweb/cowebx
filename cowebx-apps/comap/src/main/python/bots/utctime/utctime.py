@@ -12,16 +12,16 @@ class TimeBot(object):
       self.bot = botWrapper
       
     def on_request(self, data, replyToken, username):
-        print 'utctime bot on_request: %s, %s, %s' % (data, replyToken, username)
+        print('utctime bot on_request: %s, %s, %s' % (data, replyToken, username))
         self.bot.reply(replyToken, {'time': str(datetime.datetime.utcnow())})
     
     def on_subscribe(self, username):
-        print 'utctime bot on_subscribe:', username
+        print('utctime bot on_subscribe:', username)
         
     def on_unsubscribe(self, username):
-        print 'utctime bot on_unsubscribe:', username
+        print('utctime bot on_unsubscribe:', username)
     
     def on_shutdown(self):
-        print 'utctime bot on_shutdown'
+        print('utctime bot on_shutdown')
 
 coweb.bot.run(TimeBot)
