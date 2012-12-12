@@ -31,7 +31,7 @@ class ZipModerator(DefaultSessionModerator):
     def canClientMakeServiceRequest(self, svcName, cl, message):
         return False
 
-    def canClientSubscribeService(self, svcName, cl, message):
+    def canClientSubscribeService(self, svcName, cl):
         return True
 
     def onSessionReady(self):

@@ -78,7 +78,7 @@ class CotreeModerator(DefaultSessionModerator):
     def getLateJoinState(self):
         return {"phonebook": self.arr}
 
-    def canClientSubscribeService(self, svcName, cl, msg):
+    def canClientSubscribeService(self, svcName, cl):
         return True
 
     def canClientMakeServiceRequest(self, svcName, cl, msg):

@@ -13,7 +13,7 @@ class ListModerator(DefaultSessionModerator):
         self._ready = False
         self.collab = None
 
-    def canClientSubscribeService(self, svcName, cl, msg):
+    def canClientSubscribeService(self, svcName, cl):
         return True
 
     def canClientMakeServiceRequest(self, svcName, cl, msg):
@@ -32,7 +32,7 @@ class ListModerator(DefaultSessionModerator):
     def getLateJoinState(self):
         return {"shoppinglist": self.bgData}
 
-    def onSync(self, client, data):
+    def onSync(self, cl, data):
         if "coweb.sync.change.shoppinglist" != data["topic"]:
             print("ListModerator.onSync(%s)" % data["topic"])
             return
