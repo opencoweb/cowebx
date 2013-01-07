@@ -5,7 +5,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.opencoweb.cowebx</groupId>
-	<version>0.8.4</version>
+	<version>1.0</version>
     <artifactId>cowebx-apps</artifactId>
     <packaging>pom</packaging>
     <name>OpenCoweb Extras Demos</name>
