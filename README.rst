@@ -2,6 +2,10 @@
 OpenCoweb Extras
 ================
 
+----------------------------------------------------------------
+** *This project is no longer maintained and provided as is.* **
+----------------------------------------------------------------
+
 This repository contains example applications and widgets demonstrating the
 Open Cooperative Web Framework in the https://github.com/opencoweb/coweb
 repository. These examples depend on version 0.8.4 of the framework or higher.
